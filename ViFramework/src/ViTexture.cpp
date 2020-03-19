@@ -1,0 +1,47 @@
+#include "ViTexture.h"
+
+ViTexture* ViTexture::Load(std::string path)
+{
+	int format = STBI_rgb_alpha;
+	int width, height, orig_format;
+	uint8_t* data = stbi_load(path.c_str(), &width, &height, &orig_format, format);
+
+	if (data == NULL)
+	{
+		SDL_Log("Error: Failed to load texture. Reason: %s", stbi_failure_reason());
+		return NULL;
+	}
+
+	ViTexture* texture = new ViTexture(data, width, height);
+	stbi_image_free(data);
+
+	return texture;
+}
+
+ViTexture::ViTexture(uint8_t* aData, GLsizei aWidth, GLsizei aHeight, GLint aInternalFormat, GLenum aFormat, GLint aPack, GLint aUnpack, GLenum aMipMap) :
+	mWidth(aWidth),
+	mHeight(aHeight),
+	mInternalFormat(aInternalFormat),
+	mFormat(aFormat),
+	mPack(aPack),
+	mUnpack(aUnpack),
+	mMipMap(aMipMap)
+{
+	glGenTextures(1, &mId);
+	glBindTexture(GL_TEXTURE_2D, mId);
+
+	if (aPack > 0)
+		glPixelStorei(GL_PACK_ALIGNMENT, aPack);
+	if (aUnpack > 0)
+		glPixelStorei(GL_UNPACK_ALIGNMENT, aUnpack);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, aInternalFormat, mWidth, mHeight, 0, aFormat, GL_UNSIGNED_BYTE, aData);
+
+	if (aMipMap)
+	{
+		glHint(GL_GENERATE_MIPMAP_HINT, aMipMap);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+}

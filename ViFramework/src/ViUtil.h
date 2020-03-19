@@ -1,0 +1,103 @@
+#pragma once
+
+#include <glm/glm.hpp>
+
+#if 1
+	#ifdef _MSC_VER
+		#define DISABLE_WARNING_PUSH __pragma(warning(push))
+		#define DISABLE_WARNING_POP __pragma(warning(pop))
+		#define DISABLE_WARNING(num) __pragma(warning(disable: num))
+	//TODO other compilers - GCC, CLANG
+	#endif
+#else
+	#define DISABLE_WARNING_PUSH
+	#define DISABLE_WARNING_POP
+	#define DISABLE_WARNING(num)
+#endif
+
+#define vi_property_get(type, var)	\
+type Get_##var()					\
+{									\
+	return var;						\
+}									\
+
+#define vi_property_set(type, var)	\
+void Set_##var(type setTo)			\
+{									\
+	var = setTo;					\
+}									\
+
+#define vi_property_get_named(type, var, get_set_name)	\
+type Get##get_set_name()								\
+{														\
+	return var;											\
+}														\
+
+#define vi_property_set_named(type, var, get_set_name)	\
+void Set##get_set_name(type setTo)						\
+{														\
+	var = setTo;										\
+}														\
+
+#define vi_property_exported_get_named(type, var, get_set_name)	\
+type VIENGINE_EXPORT Get##get_set_name()						\
+{																\
+	return var;													\
+}																\
+
+#define vi_property_exported_set_named(type, var, get_set_name)	\
+void VIENGINE_EXPORT Set##get_set_name(type setTo)				\
+{																\
+	var = setTo;												\
+}																\
+
+#define vi_property(type, var)	\
+private:						\
+	DISABLE_WARNING_PUSH		\
+	DISABLE_WARNING(4251)		\
+	type var;					\
+	DISABLE_WARNING_POP			\
+public:							\
+	vi_property_get(type, var)	\
+	vi_property_set(type, var)	\
+
+#define vi_property_named(type, var, get_set_name)	\
+private:											\
+	DISABLE_WARNING_PUSH							\
+	DISABLE_WARNING(4251)							\
+	type var;										\
+	DISABLE_WARNING_POP								\
+public:												\
+	vi_property_get_named(type, var, get_set_name)	\
+	vi_property_set_named(type, var, get_set_name)	\
+
+#define vi_property_exported_named(type, var, get_set_name)	\
+private:													\
+	DISABLE_WARNING_PUSH									\
+	DISABLE_WARNING(4251)									\
+	type var;												\
+	DISABLE_WARNING_POP										\
+public:														\
+	vi_property_exported_get_named(type, var, get_set_name)	\
+	vi_property_exported_set_named(type, var, get_set_name)	\
+
+#ifdef ViFramework_EXPORTS
+	/*Enabled as "export" while compiling the dll project*/
+	#define VIENGINE_EXPORT __declspec(dllexport)  
+#else
+	/*Enabled as "import" in the Client side for using already created dll file*/
+	#define VIENGINE_EXPORT __declspec(dllimport)  
+#endif
+
+DISABLE_WARNING_PUSH
+DISABLE_WARNING(4251)
+template struct VIENGINE_EXPORT glm::mat<4, 4, glm::f32, glm::packed_highp>;
+template struct VIENGINE_EXPORT glm::vec<4, glm::f32, glm::packed_highp>;
+template struct VIENGINE_EXPORT glm::vec<3, glm::f32, glm::packed_highp>;
+template struct VIENGINE_EXPORT glm::vec<2, glm::f32, glm::packed_highp>;
+
+typedef VIENGINE_EXPORT glm::mat<4, 4, glm::f32, glm::packed_highp> mat4;
+typedef VIENGINE_EXPORT glm::vec<4, glm::f32, glm::packed_highp> vec4;
+typedef VIENGINE_EXPORT glm::vec<3, glm::f32, glm::packed_highp> vec3;
+typedef VIENGINE_EXPORT glm::vec<2, glm::f32, glm::packed_highp> vec2;
+DISABLE_WARNING_POP
