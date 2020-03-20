@@ -3,17 +3,30 @@
 #include <SDL.h>
 #include <map>
 #include <string>
+#include <stdio.h>
+#include <iostream>
 
 #include "ViTexture.h"
+#include "ViFont.h"
+#include "ViMaterial.h"
+#include "ViVifParser.h"
+#include "ViAssetHolderTexture.h"
+#include "ViAssetHolderMaterial.h"
+#include "ViAssetHolderProgram.h"
 
 class ViAssetHandler
 {
 public:
-	VIENGINE_EXPORT ViTexture* LoadTexture(std::string path);
+	ViAssetHandler();
+
+	VIENGINE_EXPORT ViTexture* LoadTexture(std::string aName);
+	VIENGINE_EXPORT ViMaterial* LoadMaterial(std::string aName);
+	VIENGINE_EXPORT ViProgram* LoadProgram(std::string aName);
+
+	VIENGINE_EXPORT void InitialParse(std::string assetsvifpath);
 
 private:
-	DISABLE_WARNING_PUSH
-		DISABLE_WARNING(4251)
-		std::map<std::string, ViTexture*> mTextures;
-	DISABLE_WARNING_POP
+	ViAssetHolderTexture* mTextureHolder;
+	ViAssetHolderMaterial* mMaterialHolder;
+	ViAssetHolderProgram* mProgramHolder;
 };

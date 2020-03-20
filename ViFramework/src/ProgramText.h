@@ -19,7 +19,7 @@ public:
 	void SetProjection(mat4 aProjection);
 	void SetColor(ViColorGL aColor);
 
-	vi_property_get_named(ViColorGL, mColor, Color)
+	vi_property_get_named(ViColorGL, mColor, Color);
 
 private:
 	mat4 mProjection;

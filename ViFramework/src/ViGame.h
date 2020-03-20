@@ -37,8 +37,8 @@ protected:
 
 	virtual void Init();
 
-	vi_property_get_named(ViColorGL, mClearColor, ClearColor)
-		vi_property_set_named(ViColorGL, mClearColor, ClearColor)
+	vi_property_get_named(ViColorGL, mClearColor, ClearColor);
+	vi_property_set_named(ViColorGL, mClearColor, ClearColor);
 
 private:
 	void PrivateUpdate();

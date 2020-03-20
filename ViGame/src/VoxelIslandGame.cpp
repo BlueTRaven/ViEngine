@@ -4,6 +4,7 @@ vigame::VoxelIslandGame::VoxelIslandGame() : ViGame(640, 480),
 	transform(ViTransform::Positioned({ 0.0, 0.0, -1.0 }))
 {
 	transform.SetScale({ 0.5, 0.5, 0.5 });
+	viEnv->GetAssetHandler()->InitialParse("./Assets/assets.vif");
 }
 
 void vigame::VoxelIslandGame::Init()
@@ -14,7 +15,7 @@ void vigame::VoxelIslandGame::Init()
 	testFont = ViFont::Load("./Assets/Fonts/arial.ttf");
 	textMaterial = new ViMaterial(mProgramText, testFont->GetTexture());
 
-	genericMaterial = new ViMaterial(mProgramGeneric, viEnv->GetAssetHandler()->LoadTexture("./Assets/Textures/dirt_01.png"));
+	genericMaterial = new ViMaterial(mProgramGeneric, viEnv->GetAssetHandler()->LoadTexture("dirt_01"));
 
 	ViGame::Init();
 }

@@ -34,7 +34,7 @@ public:
 
 	void SetSettings(ViVertexBatchSettings aSettings);
 
-	vi_property_get_named(ViVertexBatchSettings, mSettings, Settings)
+	vi_property_get_named(ViVertexBatchSettings, mSettings, Settings);
 
 private:
 	bool ShouldFlush(ViMaterial* aMaterial, ViTransform aTransform);
@@ -49,8 +49,8 @@ private:
 	ViTransform mTransform;
 
 	DISABLE_WARNING_PUSH
-		DISABLE_WARNING(4251)
-		std::vector<GLuint> indices;
+	DISABLE_WARNING(4251)
+	std::vector<GLuint> indices;
 	std::vector<ViVertex> vertices;
 	DISABLE_WARNING_POP
 

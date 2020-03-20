@@ -1,19 +1,34 @@
 #include "ViAssetHandler.h"
 
-ViTexture* ViAssetHandler::LoadTexture(std::string path)
+ViAssetHandler::ViAssetHandler() :
+	mTextureHolder(new ViAssetHolderTexture())
 {
-	if (mTextures.find(path) == mTextures.end())
-	{	//it's not there. Load it
-		ViTexture* texture = ViTexture::Load(path);
+}
 
-		if (texture != NULL)
-		{
-			mTextures.emplace(path, texture);
-			printf("Loaded texture from %s.\n", path.c_str());
-		}
+ViTexture* ViAssetHandler::LoadTexture(std::string aName)
+{
+	return mTextureHolder->GetAsset(aName);
+}
 
-		return texture;
+ViMaterial* ViAssetHandler::LoadMaterial(std::string aName)
+{
+	return mMaterialHolder->GetAsset(aName);
+}
+
+ViProgram * ViAssetHandler::LoadProgram(std::string aName)
+{
+	return mProgramHolder->GetAsset(aName);
+}
+
+void ViAssetHandler::InitialParse(std::string assetsvifpath)
+{
+	ViVifParser parser(assetsvifpath);
+
+	vi_assert(parser.GetValid(), "Error: Assets vif either does not exist or is not parsable.");
+
+	for (ViVifLine line : parser.GetLines())
+	{
+		if (line.mWords[0] == "textures")
+			mTextureHolder->Find("./Assets/" + line.mWords[1]);
 	}
-
-	return mTextures[path];
 }

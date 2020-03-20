@@ -1,0 +1,7 @@
+material generic
+program generic
+texture dirt_01
+
+material text
+program text
+texture null

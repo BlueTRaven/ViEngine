@@ -26,9 +26,9 @@ public:
 	bool operator ==(ViTransform const &obj);
 	bool operator !=(ViTransform const &obj);
 
-	vi_property_named(vec3, mPosition, Position)
-		vi_property_named(vec3, mRotation, Rotation)
-		vi_property_named(vec3, mScale, Scale)
+	vi_property_named(vec3, mPosition, Position);
+	vi_property_named(vec3, mRotation, Rotation);
+	vi_property_named(vec3, mScale, Scale);
 
 		const static  ViTransform None;
 

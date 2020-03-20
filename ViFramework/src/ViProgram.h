@@ -17,14 +17,14 @@ public:
 
 	virtual void SetUniforms();
 
-	vi_property_get(GLuint, program)
-		vi_property_get(std::vector<ViVertexAttribute*>, mVertexAttributes)
+	vi_property_get(GLuint, program);
+	vi_property_get(std::vector<ViVertexAttribute*>, mVertexAttributes);
 
-		vi_property_named(bool, mDirty, Dirty)
+	vi_property_named(bool, mDirty, Dirty);
 
-		vi_property_get_named(mat4, mObjectMat, ObjectMat)
+	vi_property_get_named(mat4, mObjectMat, ObjectMat);
 
-		virtual void SetObjectMat(mat4 aObjMat);
+	virtual void SetObjectMat(mat4 aObjMat);
 
 protected:
 	void BindAttributes();
@@ -42,6 +42,6 @@ private:
 
 	DISABLE_WARNING_PUSH
 		DISABLE_WARNING(4251)
-		std::vector<ViVertexAttribute*> mVertexAttributes;
+	std::vector<ViVertexAttribute*> mVertexAttributes;
 	DISABLE_WARNING_POP
 };

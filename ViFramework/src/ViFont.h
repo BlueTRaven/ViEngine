@@ -24,9 +24,10 @@ public:
 
 	ViFont(uint8_t* aData);
 
-	vi_property_get_named(bool, mValid, Valid)
-		vi_property_get_named(ViTexture*, mTexture, Texture)
-		vi_property_get_named(stbtt_packedchar*, mCharInfo, CharInfo)
+	vi_property_get_named(bool, mValid, Valid);
+	vi_property_get_named(ViTexture*, mTexture, Texture);
+	vi_property_get_named(stbtt_packedchar*, mCharInfo, CharInfo);
+
 private:
 	bool mValid;
 

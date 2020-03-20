@@ -14,10 +14,10 @@ public:
 		offset(offset)
 	{ }
 
-	vi_property(GLuint, id)
-
-		vi_property(std::string, name)
-		vi_property(uint16_t, elements)
-		vi_property(size_t, size)
-		vi_property(void*, offset)
+	vi_property(GLuint, id);
+		
+	vi_property(std::string, name);
+	vi_property(uint16_t, elements);
+	vi_property(size_t, size);
+	vi_property(void*, offset);
 };

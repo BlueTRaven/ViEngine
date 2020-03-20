@@ -46,3 +46,8 @@ ViShader::ViShader(ShaderType aShaderType, GLuint aShaderId) :
 	mShaderId(aShaderId)
 {
 }
+
+ViCompiledShader ViShader::CompileShader()
+{
+	return ViCompiledShader();
+}

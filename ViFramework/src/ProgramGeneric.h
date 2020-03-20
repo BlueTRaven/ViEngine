@@ -18,10 +18,10 @@ public:
 	void SetCamera(mat4 aCamera);
 	void SetColor(ViColorGL aColor);
 
-	vi_property_get_named(mat4, mProjection, Projection)
-		vi_property_get_named(mat4, mCamera, Camera)
+	vi_property_get_named(mat4, mProjection, Projection);
+	vi_property_get_named(mat4, mCamera, Camera);
 
-		vi_property_get_named(ViColorGL, mColor, Color)
+	vi_property_get_named(ViColorGL, mColor, Color);
 
 private:
 	mat4 mProjection;

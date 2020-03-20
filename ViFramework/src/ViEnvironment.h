@@ -14,12 +14,12 @@ public:
 
 	static ViEnvironment* GetInstance();
 
-	vi_property_get_named(ViInputManager*, mInputManager, InputManager)
-		vi_property_get_named(ViAssetHandler*, mAssetHandler, AssetHandler)
-		vi_property_get_named(ViVertexBatch*, mVertexBatch, VertexBatch)
+	vi_property_get_named(ViInputManager*, mInputManager, InputManager);
+	vi_property_get_named(ViAssetHandler*, mAssetHandler, AssetHandler);
+	vi_property_get_named(ViVertexBatch*, mVertexBatch, VertexBatch);
 
-		vi_property_get_named(int, mScreenWidth, ScreenWidth)
-		vi_property_get_named(int, mScreenHeight, ScreenHeight)
+	vi_property_get_named(int, mScreenWidth, ScreenWidth);
+	vi_property_get_named(int, mScreenHeight, ScreenHeight);
 
 private:
 	static ViEnvironment* mEnvironment;

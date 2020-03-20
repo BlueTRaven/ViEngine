@@ -1,0 +1,8 @@
+texture dirt_01
+location "dirt_01.png"
+
+texture player_size
+location "player_size.png"
+
+texture white_pixel
+location "white_pixel"

@@ -7,6 +7,7 @@
 #include <filesystem>
 
 #include "ViUtil.h"
+#include "ViCompiledShader.h"
 
 class ViShader
 {
@@ -23,10 +24,14 @@ public:
 
 	ViShader(ShaderType aShaderType, GLuint aShaderId);
 
-	vi_property_get(GLuint, mShaderId)
-		vi_property_get(ShaderType, mShaderType)
+	ViCompiledShader CompileShader();
+	
+	vi_property_get(GLuint, mShaderId);
+	vi_property_get(ShaderType, mShaderType);
 
 private:
 	GLuint mShaderId;
 	ShaderType mShaderType;
+
+	std::string mFullShader;
 };
