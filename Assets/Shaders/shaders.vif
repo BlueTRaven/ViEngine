@@ -1,0 +1,15 @@
+shader vertex_generic
+type vertex 
+location "vertex_generic.glsl"
+
+shader fragment_generic
+type fragment 
+location "fragment_generic.glsl"
+
+shader vertex_text
+type vertex 
+location "vertex_text.glsl"
+
+shader fragment_text
+type fragment
+location "fragment_text.glsl"

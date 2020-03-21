@@ -17,9 +17,10 @@ public:
 
 	virtual void SetUniforms();
 
-	vi_property_get(GLuint, program);
-	vi_property_get(std::vector<ViVertexAttribute*>, mVertexAttributes);
+	vi_property_get_named(GLuint, mId, Id);
+	vi_property_get_named(std::vector<ViVertexAttribute*>, mVertexAttributes, VertexAttributes);
 
+	vi_property_named(bool, mLinked, Linked);
 	vi_property_named(bool, mDirty, Dirty);
 
 	vi_property_get_named(mat4, mObjectMat, ObjectMat);
@@ -34,14 +35,21 @@ protected:
 	void UniformFloat(float val, std::string name);
 	void UniformVec4(vec4 val, std::string name);
 	void UniformMat4(mat4 val, bool transpose, std::string name);
+
+	//Compile and link the shaders to the program. If program 
+	void CompileAndLink();
+
 private:
-	GLuint program;
+	GLuint mId = -1;
 
 	mat4 mObjectMat;
 	bool mHasObjectMat = true;
 
+	ViShader* mVertShader;
+	ViShader* mFragShader;
+
 	DISABLE_WARNING_PUSH
-		DISABLE_WARNING(4251)
+	DISABLE_WARNING(4251)
 	std::vector<ViVertexAttribute*> mVertexAttributes;
 	DISABLE_WARNING_POP
 };

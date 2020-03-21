@@ -12,26 +12,14 @@
 class ViShader
 {
 public:
-	enum ShaderType
-	{
-		VERTEX = GL_VERTEX_SHADER,
-		FRAGMENT = GL_FRAGMENT_SHADER,
-		COMPUTE = GL_COMPUTE_SHADER,
-		GEOMETRY = GL_GEOMETRY_SHADER
-	};
+	static ViShader* Load(ViCompiledShader::ViShaderType type, std::string path);
 
-	static ViShader* Load(ShaderType type, std::string path);
-
-	ViShader(ShaderType aShaderType, GLuint aShaderId);
+	ViShader(ViCompiledShader::ViShaderType aShaderType, std::string aFullShader);
 
 	ViCompiledShader CompileShader();
-	
-	vi_property_get(GLuint, mShaderId);
-	vi_property_get(ShaderType, mShaderType);
 
 private:
-	GLuint mShaderId;
-	ShaderType mShaderType;
+	ViCompiledShader::ViShaderType mShaderType;
 
 	std::string mFullShader;
 };

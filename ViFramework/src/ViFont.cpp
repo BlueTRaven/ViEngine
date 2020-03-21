@@ -1,25 +1,26 @@
 #include "ViFont.h"
 
-ViFont* ViFont::Load(std::string path)
+ViFont* ViFont::Load(int size, std::string path)
 {
 	std::ifstream file(path, std::ios::binary | std::ios::ate);
 
 	if (!file.is_open())
 		return nullptr;
 
-	size_t size = file.tellg();
+	size_t fileSize = file.tellg();
 	
 	file.seekg(0, std::ios::beg);
-	uint8_t* data = (uint8_t*)malloc(size);
-	file.read((char*)data, size);
+	uint8_t* data = (uint8_t*)malloc(fileSize);
+	file.read((char*)data, fileSize);
 
-	ViFont* font = new ViFont(data);
+	ViFont* font = new ViFont(data, size);
 	file.close();
 
 	return font;
 }
 
-ViFont::ViFont(uint8_t* aData) 
+ViFont::ViFont(uint8_t* aData, int aSize) :
+	mSize(aSize)
 {
 	uint8_t* atlasData = (uint8_t*)malloc(cATLASWIDTH * cATLASHEIGHT);
 
@@ -31,7 +32,7 @@ ViFont::ViFont(uint8_t* aData)
 	}
 
 	stbtt_PackSetOversampling(&context, 2, 2);
-	if (!stbtt_PackFontRange(&context, aData, 0, 40, ViFont::cFIRSTCHAR, ViFont::cCHARCOUNT, mCharInfo))
+	if (!stbtt_PackFontRange(&context, aData, 0, aSize, ViFont::cFIRSTCHAR, ViFont::cCHARCOUNT, mCharInfo))
 	{
 		printf("Error: Font Packing Failed.\n");
 		return;

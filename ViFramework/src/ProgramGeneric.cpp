@@ -1,8 +1,12 @@
 #include "ProgramGeneric.h"
 
+#include "ViEnvironment.h"
+
+// ViShader::Load(ViShaderType::VERTEX, "./Assets/Shaders/vertex_generic.glsl")
+// ViShader::Load(ViShaderType::FRAGMENT, "./Assets/Shaders/fragment_generic.glsl")
 ViProgramGeneric::ViProgramGeneric() : 
-	ViProgram(ViShader::Load(ViShader::VERTEX, "./Assets/Shaders/vertex_generic.glsl"), 
-		ViShader::Load(ViShader::FRAGMENT, "./Assets/Shaders/fragment_generic.glsl"), 
+	ViProgram(viEnv->GetAssetHandler()->LoadShader("vertex_generic"), 
+		viEnv->GetAssetHandler()->LoadShader("fragment_generic"),
 		std::vector<ViVertexAttribute*> {
 			new ViVertexAttribute("position", 3, sizeof(ViVertex), (void*)offsetof(ViVertex, pos)),
 			new ViVertexAttribute("color", 4, sizeof(ViVertex), (void*)offsetof(ViVertex, color)),

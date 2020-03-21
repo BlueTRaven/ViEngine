@@ -1,3 +1,5 @@
-materials "Materials/materials.vif"
-programs "Programs/programs.vif"
 textures "Textures/textures.vif"
+fonts "Fonts/fonts.vif"
+materials "Materials/materials.vif"
+programs "Shaders/programs.vif"
+shaders "Shaders/shaders.vif"

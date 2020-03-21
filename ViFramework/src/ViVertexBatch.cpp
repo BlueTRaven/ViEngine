@@ -112,13 +112,13 @@ void ViVertexBatch::Flush()
 
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeIndex, indices.data(), GL_STATIC_DRAW);
 
-	glUseProgram(mMaterial->GetProgram()->Get_program());
+	glUseProgram(mMaterial->GetProgram()->GetId());
 
 	mMaterial->GetProgram()->SetUniforms();
 	mMaterial->GetProgram()->SetObjectMat(mTransform.Matrix());
 
 	std::vector<GLuint> boundVertexAttributes;	//these need to be unbound after drawing, so we need to keep track of them.
-	for (ViVertexAttribute* attribute : mMaterial->GetProgram()->Get_mVertexAttributes())
+	for (ViVertexAttribute* attribute : mMaterial->GetProgram()->GetVertexAttributes())
 	{
 		GLuint attrib = BindAndGetVertexAttribute(attribute);
 
@@ -208,7 +208,7 @@ GLuint ViVertexBatch::BindAndGetVertexAttribute(ViVertexAttribute* attribute)
 		GLuint id = attribute->Get_id();
 		glEnableVertexAttribArray(id);
 		glVertexAttribPointer(id, attribute->Get_elements(), GL_FLOAT, GL_FALSE, (GLsizei)attribute->Get_size(), attribute->Get_offset());
-		glBindAttribLocation(mMaterial->GetProgram()->Get_program(), id, attribute->Get_name().c_str());
+		glBindAttribLocation(mMaterial->GetProgram()->GetId(), id, attribute->Get_name().c_str());
 
 		return id;
 	}

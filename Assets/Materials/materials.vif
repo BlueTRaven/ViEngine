@@ -1,7 +1,7 @@
-material generic
+material dirt_01
 program generic
 texture dirt_01
 
-material text
+material font_arial_32
 program text
-texture null
+font arial_32

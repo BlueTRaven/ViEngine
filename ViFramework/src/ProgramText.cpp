@@ -1,8 +1,12 @@
 #include "ProgramText.h"
 
+#include "ViEnvironment.h"
+
+//ViShader::Load(ViShaderType::VERTEX, "./Assets/Shaders/vertex_text.glsl"),
+//ViShader::Load(ViShaderType::FRAGMENT, "./Assets/Shaders/fragment_text.glsl")
 ViProgramText::ViProgramText() : 
-	ViProgram(ViShader::Load(ViShader::VERTEX, "./Assets/Shaders/vertex_text.glsl"),
-		ViShader::Load(ViShader::FRAGMENT, "./Assets/Shaders/fragment_text.glsl"),
+	ViProgram(viEnv->GetAssetHandler()->LoadShader("vertex_text"),
+		viEnv->GetAssetHandler()->LoadShader("fragment_text"),
 		std::vector<ViVertexAttribute*> {
 			new ViVertexAttribute("position", 3, sizeof(ViVertex), (void*)offsetof(ViVertex, pos)),
 			new ViVertexAttribute("color", 4, sizeof(ViVertex), (void*)offsetof(ViVertex, color)),

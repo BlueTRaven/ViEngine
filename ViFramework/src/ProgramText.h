@@ -2,7 +2,6 @@
 
 #include <glm/glm.hpp>
 
-#include "ViEnvironment.h"
 #include "ViColorsGL.h"
 #include "ViColor.h"
 #include "ViVertex.h"

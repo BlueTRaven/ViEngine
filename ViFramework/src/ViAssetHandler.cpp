@@ -1,13 +1,22 @@
 #include "ViAssetHandler.h"
 
 ViAssetHandler::ViAssetHandler() :
-	mTextureHolder(new ViAssetHolderTexture())
+	mTextureHolder(new ViAssetHolderTexture()),
+	mFontHolder(new ViAssetHolderFont()),
+	mMaterialHolder(new ViAssetHolderMaterial()),
+	mProgramHolder(new ViAssetHolderProgram()),
+	mShaderHolder(new ViAssetHolderShader())
 {
 }
 
 ViTexture* ViAssetHandler::LoadTexture(std::string aName)
 {
 	return mTextureHolder->GetAsset(aName);
+}
+
+ViFont * ViAssetHandler::LoadFont(std::string aName)
+{
+	return mFontHolder->GetAsset(aName);
 }
 
 ViMaterial* ViAssetHandler::LoadMaterial(std::string aName)
@@ -20,6 +29,11 @@ ViProgram * ViAssetHandler::LoadProgram(std::string aName)
 	return mProgramHolder->GetAsset(aName);
 }
 
+ViShader* ViAssetHandler::LoadShader(std::string aName)
+{
+	return mShaderHolder->GetAsset(aName);
+}
+
 void ViAssetHandler::InitialParse(std::string assetsvifpath)
 {
 	ViVifParser parser(assetsvifpath);
@@ -28,7 +42,18 @@ void ViAssetHandler::InitialParse(std::string assetsvifpath)
 
 	for (ViVifLine line : parser.GetLines())
 	{
-		if (line.mWords[0] == "textures")
-			mTextureHolder->Find("./Assets/" + line.mWords[1]);
+		std::string type = line.mWords[0];
+		std::string location = "./Assets/" + line.mWords[1];
+
+		if (type == "textures")
+			mTextureHolder->Find(location);
+		else if (type == "fonts")
+			mFontHolder->Find(location);
+		else if (type == "materials")
+			mMaterialHolder->Find(location);
+		else if (type == "programs")
+			mProgramHolder->Find(location);
+		else if (type == "shaders")
+			mShaderHolder->Find(location);
 	}
 }

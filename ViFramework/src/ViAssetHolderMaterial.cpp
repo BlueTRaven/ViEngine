@@ -1,14 +1,43 @@
 #include "ViAssetHolderMaterial.h"
 
+#include "ViEnvironment.h"
+
 ViMaterial* ViAssetHolderMaterial::LoadAsset(ViAssetDefinition aDefinition)
 {
 	//This should really never get hit
 	vi_assert((aDefinition.type == "material"), "Error: asset definition has incorrect type. Expected 'material' but got " + aDefinition.type + ".");
 
-	std::string location;
-	for (ViVifLine line : aDefinition.definition)
+	ViVifLine programLine = FindLine(aDefinition, "program");
+	std::string programName = programLine.mWords[1];
+
+	ViVifLine textureLine = FindLine(aDefinition, "texture");
+
+	ViVifLine fontLine = FindLine(aDefinition, "font");
+
+	if (textureLine.mIsEmpty)
 	{
-		if (line.mWords[0] == "location")
-			location = line.mWords[1];
+		if (!fontLine.mIsEmpty)
+		{
+			std::string fontName = fontLine.mWords[1];
+
+			ViProgram* program = viEnv->GetAssetHandler()->LoadProgram(programName);
+			ViFont* font = viEnv->GetAssetHandler()->LoadFont(fontName);
+
+			return new ViMaterial(program, font->GetTexture());
+		}
+		else 
+		{
+			printf("Error: No font or texture definition could be found for material asset %s.\n", aDefinition.name.c_str());
+			return nullptr;
+		}
+	}
+	else
+	{
+		std::string textureName = textureLine.mWords[1];
+
+		ViProgram* program = viEnv->GetAssetHandler()->LoadProgram(programName);
+		ViTexture* texture = viEnv->GetAssetHandler()->LoadTexture(textureName);
+
+		return new ViMaterial(program, texture);
 	}
 }

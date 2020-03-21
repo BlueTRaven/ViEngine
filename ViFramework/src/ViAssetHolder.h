@@ -24,6 +24,8 @@ public:
 protected:
 	virtual T LoadAsset(ViAssetDefinition aDefinition) = 0;
 
+	ViVifLine FindLine(ViAssetDefinition aDefinition, std::string aFirstName);
+
 	vi_property_get_named(std::string, mBasePath, BasePath);
 
 private:
@@ -150,4 +152,16 @@ void ViAssetHolder<T>::SetBasePath(std::string aBasePath)
 			break;
 		}
 	}
+}
+
+template<typename T>
+ViVifLine ViAssetHolder<T>::FindLine(ViAssetDefinition aDefinition, std::string aFirstName)
+{
+	for (ViVifLine line : aDefinition.definition)
+	{
+		if (line.mWords[0] == aFirstName)
+			return line;
+	}
+
+	return ViVifLine();
 }

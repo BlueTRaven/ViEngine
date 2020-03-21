@@ -1,9 +1,5 @@
 program generic
 customtype generic
-shader vertex "Shaders/vertex_generic.glsl"
-shader fragment "Shaders/fragment_generic.glsl"
 
 program text
 customtype text
-shader vertex "Shaders/vertex_text.glsl"
-shader fragment "Shaders/fragment_text.glsl"

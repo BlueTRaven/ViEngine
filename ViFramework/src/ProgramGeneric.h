@@ -5,7 +5,6 @@
 #include "ViColor.h"
 #include "ViProgram.h"
 #include "ViUtil.h"
-#include "ViEnvironment.h"
 
 class VIENGINE_EXPORT ViProgramGeneric : public ViProgram
 {

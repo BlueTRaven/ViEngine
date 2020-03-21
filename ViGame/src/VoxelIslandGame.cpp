@@ -9,13 +9,12 @@ vigame::VoxelIslandGame::VoxelIslandGame() : ViGame(640, 480),
 
 void vigame::VoxelIslandGame::Init()
 {
-	mProgramGeneric = new ViProgramGeneric();
-	mProgramText = new ViProgramText();
+	testFont = viEnv->GetAssetHandler()->LoadFont("arial_32");
+	genericMaterial = viEnv->GetAssetHandler()->LoadMaterial("dirt_01");
+	textMaterial = viEnv->GetAssetHandler()->LoadMaterial("font_arial_32");
 
-	testFont = ViFont::Load("./Assets/Fonts/arial.ttf");
-	textMaterial = new ViMaterial(mProgramText, testFont->GetTexture());
-
-	genericMaterial = new ViMaterial(mProgramGeneric, viEnv->GetAssetHandler()->LoadTexture("dirt_01"));
+	mProgramGeneric = static_cast<ViProgramGeneric*>(viEnv->GetAssetHandler()->LoadProgram("generic"));
+	mProgramText = static_cast<ViProgramText*>(viEnv->GetAssetHandler()->LoadProgram("text"));
 
 	ViGame::Init();
 }

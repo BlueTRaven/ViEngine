@@ -1,6 +1,6 @@
 #include "ViShader.h"
 
-ViShader* ViShader::Load(ShaderType type, std::string path)
+ViShader* ViShader::Load(ViCompiledShader::ViShaderType type, std::string path)
 {
 	printf("Loading shader from %s\n", path.c_str());
 
@@ -12,9 +12,21 @@ ViShader* ViShader::Load(ShaderType type, std::string path)
 	std::stringstream strstream;
 	strstream << file.rdbuf();
 	std::string full = strstream.str();
-	const char * full_c_str = full.c_str();
 
-	GLint shader = glCreateShader(type);
+	return new ViShader(type, full);
+}
+
+ViShader::ViShader(ViCompiledShader::ViShaderType aShaderType, std::string aFullShader) :
+	mShaderType(aShaderType),
+	mFullShader(aFullShader)
+{
+}
+
+ViCompiledShader ViShader::CompileShader()
+{
+	const char* full_c_str = mFullShader.c_str();
+
+	GLint shader = glCreateShader(mShaderType);
 	glShaderSource(shader, 1, &full_c_str, NULL);
 	glCompileShader(shader);
 
@@ -31,23 +43,12 @@ ViShader* ViShader::Load(ShaderType type, std::string path)
 		shader = -1;
 		delete[] log;
 
-		return nullptr;
+		return ViCompiledShader();
 	}
 	else
 	{
-		ViShader* compiledShader = new ViShader(type, shader);
-
-		return compiledShader;
+		ViCompiledShader compiled = ViCompiledShader(shader, true, mShaderType);
+		return compiled;
 	}
-}
-
-ViShader::ViShader(ShaderType aShaderType, GLuint aShaderId) :
-	mShaderType(aShaderType),
-	mShaderId(aShaderId)
-{
-}
-
-ViCompiledShader ViShader::CompileShader()
-{
 	return ViCompiledShader();
 }

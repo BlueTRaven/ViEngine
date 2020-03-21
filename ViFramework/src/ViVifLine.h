@@ -6,6 +6,7 @@
 
 struct VIENGINE_EXPORT ViVifLine
 {
+	ViVifLine();
 	ViVifLine(std::vector<std::string> line);
 
 	DISABLE_WARNING_PUSH
