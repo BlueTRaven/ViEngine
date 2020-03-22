@@ -21,11 +21,12 @@ void ViVertexBatch::Init(ViVertexBatchSettings aSettings)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 }
 
-void ViVertexBatch::Draw(ViMaterial* aMaterial, ViTransform aTransform, const std::vector<ViVertex>& aVertices, const std::vector<GLuint>& aIndices)
+void ViVertexBatch::Draw(ViMaterial* aMaterial, ViTransform aTransform, std::vector<ViVertex> aVertices, std::vector<GLuint> aIndices)
 {
 	FlushMode mode = ShouldFlush(aMaterial, aTransform);
 	Flush(mode);
 
+	mHasAnything = true;
 	mMaterial = aMaterial;
 	if (mode & cFLUSH_PROGRAM)
 		mMaterialChanged = true;
@@ -35,20 +36,8 @@ void ViVertexBatch::Draw(ViMaterial* aMaterial, ViTransform aTransform, const st
 
 	assert(aIndices.size() % 3 == 0);
 
-	if (mHasAnything)
-	{
-		mVertices = aVertices;
-		mIndices = aIndices;
-
-		mHasAnything = true;
-	}
-	else 
-	{
-		if (aVertices != mVertices)
-			mVertices.insert(mVertices.end(), aVertices.begin(), aVertices.end());
-		if (aIndices != mIndices)
-			mIndices.insert(mIndices.end(), aIndices.begin(), aIndices.end());
-	}
+	mVertices.insert(mVertices.end(), aVertices.begin(), aVertices.end());
+	mIndices.insert(mIndices.end(), aIndices.begin(), aIndices.end());
 }
 
 void ViVertexBatch::DrawMesh(ViMesh* aMesh, ViTransform aTransform)
@@ -115,17 +104,11 @@ void ViVertexBatch::Flush(int aFlushMode)
 		mSettings.SetSettings();
 	}
 
-	if (mVerticesChanged)
-	{
-		GLsizeiptr sizeVert = mVertices.size() * sizeof(ViVertex);
-		glBufferData(GL_ARRAY_BUFFER, sizeVert, mVertices.data(), GL_STATIC_DRAW);
-	}
+	GLsizeiptr sizeVert = mVertices.size() * sizeof(ViVertex);
+	glBufferData(GL_ARRAY_BUFFER, sizeVert, mVertices.data(), GL_STATIC_DRAW);
 
-	if (mIndicesChanged)
-	{
-		GLsizeiptr sizeIndex = mIndices.size() * sizeof(GLuint);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeIndex, mIndices.data(), GL_STATIC_DRAW);
-	}
+	GLsizeiptr sizeIndex = mIndices.size() * sizeof(GLuint);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeIndex, mIndices.data(), GL_STATIC_DRAW);
 
 	if (mMaterialChanged)
 	{
@@ -143,6 +126,52 @@ void ViVertexBatch::Flush(int aFlushMode)
 	{
 		GLuint id = mMaterial->GetTexture()->GetId();
 		glBindTexture(GL_TEXTURE_2D, id);
+
+		switch (mSettings.textureMode)
+		{
+		case ViVertexBatchSettings::TexMode::cWRAP_LINEAR:
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			break;
+		case ViVertexBatchSettings::TexMode::cWRAPM_LINEAR:
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			break;
+		case ViVertexBatchSettings::TexMode::cCLAMP_LINEAR:
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			break;
+		case ViVertexBatchSettings::TexMode::cWRAP_POINT:
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			break;
+		case ViVertexBatchSettings::TexMode::cWRAPM_POINT:
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			break;
+		case ViVertexBatchSettings::TexMode::cCLAMP_POINT:
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			break;
+		}
 	}
 
 	//Note that we pass NULL into offsets

@@ -37,7 +37,7 @@ public:
 
 	//Adds all vertices to be drawn next time Flush is called.
 	//If the material passed in is not the same as the current material (mMaterial), automatically flushes.
-	void Draw(ViMaterial* aMaterial, ViTransform aTransform, const std::vector<ViVertex>& aVertices, const std::vector<GLuint>& aIndices);
+	void Draw(ViMaterial* aMaterial, ViTransform aTransform, std::vector<ViVertex> aVertices, std::vector<GLuint> aIndices);
 
 	void DrawMesh(ViMesh* mesh, ViTransform aTransform);
 	void DrawQuad(ViMaterial* aMaterial, ViTransform aTransform, glm::vec3 pointA, glm::vec3 pointB, glm::vec3 pointC, glm::vec3 pointD);
