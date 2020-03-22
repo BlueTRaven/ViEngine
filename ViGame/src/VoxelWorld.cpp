@@ -10,8 +10,8 @@ vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize) :
 	mCubes((CubeInstance*)malloc(aSize.x * aSize.y * aSize.z))
 {
 	//Cube with no mesh
-	AddCube(new Cube(this, nullptr), 0);
-	AddCube(new Cube(this, GET_ASSET_MATERIAL("dirt_01")), 1);
+	AddCube(new Cube(this, nullptr));
+	AddCube(new Cube(this, GET_ASSET_MATERIAL("dirt_01")));
 
 	for (int x = 0; x < WIDTH; x++)
 	{
@@ -56,10 +56,12 @@ void vigame::VoxelWorld::Draw(ViVertexBatch* batch)
 	}
 }
 
-void vigame::VoxelWorld::AddCube(Cube* aCube, cubeid aId)
+void vigame::VoxelWorld::AddCube(Cube* aCube)
 {
-	mCubeIdMappings.emplace(aId, aCube);
-	mIdCubeMappings.emplace(aCube, aId);
+	cubeid id = (cubeid)mCubeTypes.size();
+	aCube->SetId(id);
+	mCubeTypes.push_back(aCube);
+	mIdCubeMappings.emplace(aCube, id);
 }
 
 vigame::cubeid vigame::VoxelWorld::GetId(Cube* aCube)
@@ -77,7 +79,7 @@ vigame::Cube* vigame::VoxelWorld::GetCube(cubeid aId)
 {
 	if (mCachedCubeid == -1 || mCachedCube == nullptr || aId != mCachedCubeid)
 	{
-		mCachedCube = mCubeIdMappings[aId];
+		mCachedCube = mCubeTypes[aId];
 		mCachedCubeid = aId;
 	}
 	

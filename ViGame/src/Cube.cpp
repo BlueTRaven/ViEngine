@@ -3,9 +3,23 @@
 #include "VoxelWorld.h"
 
 vigame::Cube::Cube(VoxelWorld* world, ViMaterial* aMaterial) :
-	mWorld(world)
+	mWorld(world),
+	idSet(false)
 {
 	CreateMesh(aMaterial);
+}
+
+void vigame::Cube::SetId(cubeid aId)
+{
+	vi_assert(!idSet, "Error: Cannot re-set id.");
+
+	idSet = true;
+	mId = aId;
+}
+
+inline vigame::cubeid vigame::Cube::GetId()
+{
+	return mId;
 }
 
 vigame::VoxelWorld* vigame::Cube::GetWorld()

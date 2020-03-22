@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <GL/glew.h>
+#include <math.h>
 
 #include "ViGame.h"
 #include "VoxelWorld.h"

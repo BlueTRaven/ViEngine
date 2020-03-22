@@ -118,6 +118,9 @@ static_assert(true, "vi_property_exported_named macro requires a semicolon immed
 	#define VIENGINE_EXPORT __declspec(dllimport)  
 #endif
 
+//--------------------------------------------------------------------------------------------------
+//												Typedefs
+//--------------------------------------------------------------------------------------------------
 DISABLE_WARNING_PUSH
 DISABLE_WARNING(4251)
 template struct VIENGINE_EXPORT glm::mat<4, 4, glm::f32, glm::packed_highp>;

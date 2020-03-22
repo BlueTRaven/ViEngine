@@ -9,6 +9,7 @@ ViGame::ViGame(int aScreenWidth, int aScreenHeight) :
 	mWindow(NULL),
 	mCounter(0),
 	mTimer(new ViTimer()),
+	mFpsTimer(new ViTimer()),
 	mClearColor(vicolors::BLACK)
 {
 	new ViEnvironment(aScreenWidth, aScreenHeight);
@@ -25,6 +26,7 @@ void ViGame::Start()
 	PrivateInit();
 
 	mTimer->Start();
+	mFpsTimer->Start();
 
 	while (mRunning)
 	{
@@ -32,11 +34,21 @@ void ViGame::Start()
 		mTimer->Update();
 		double deltaTime = mTimer->GetSec() / time;
 
+		mFpsTimer->Update();
+
 		PrivateUpdate();
 		PrivateDraw();
 		Events();
 
 		mCounter++;
+		mFpsCounter++;
+
+		if (mFpsTimer->GetSec() > 1)
+		{
+			mFps = (float)(mFpsCounter / mFpsTimer->GetSec());
+			mFpsTimer->Start();
+			mFpsCounter = 0;
+		}
 	}
 }
 
@@ -45,9 +57,14 @@ void ViGame::Quit()
 	mRunning = false;
 }
 
-float ViGame::GetFPS()
+float ViGame::GetAvgFPS()
 {
 	return (float)(mCounter / mTimer->GetSec());
+}
+
+float ViGame::GetFPS()
+{
+	return mFps;
 }
 
 void ViGame::PrivateUpdate()

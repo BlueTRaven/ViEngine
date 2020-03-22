@@ -4,10 +4,11 @@
 #include <map>
 
 #include "ViUtil.h"
+#include "ViVertexBatch.h"
 
 #include "Cube.h"
 #include "CubeInstance.h"
-#include "ViVertexBatch.h"
+#include "ViGameUtil.h"
 
 namespace vigame
 {
@@ -17,15 +18,15 @@ namespace vigame
 		VoxelWorld(vec3i aSize, float aGridSize);
 
 		void SetCubeInstance(vec3i aPosition, Cube* aCube);
-		CubeInstance& GetCubeInstance(vec3i aPosition);
+		inline CubeInstance& GetCubeInstance(vec3i aPosition);
 
 		CubeInstance MakeInstance(Cube* aCube);
 
 		void Draw(ViVertexBatch* batch);
 
-		void AddCube(Cube* aCube, cubeid aId);
-		cubeid GetId(Cube* aCube);
-		Cube* GetCube(cubeid aId);
+		void AddCube(Cube* aCube);
+		inline cubeid GetId(Cube* aCube);
+		inline Cube* GetCube(cubeid aId);
 
 		vi_property_get_named(float, mGridSize, GridSize);
 
@@ -41,7 +42,7 @@ namespace vigame
 #define HEIGHT mSize.y
 #define DEPTH mSize.z
 
-		std::map<cubeid, Cube*> mCubeIdMappings;
+		std::vector<Cube*> mCubeTypes;
 		std::map<Cube*, cubeid> mIdCubeMappings;
 	};
 }

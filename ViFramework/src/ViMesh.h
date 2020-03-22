@@ -11,6 +11,8 @@ class VIENGINE_EXPORT ViMesh
 public:
 	ViMesh(ViMaterial* aMaterial, std::vector<ViVertex> aVertices, std::vector<GLuint> aIndices);
 
+	void Merge(ViMesh* aMesh...);
+	
 	vi_property_named(ViMaterial*, mMaterial, Material);
 	vi_property_named(std::vector<ViVertex>, mVertices, Vertices);
 	vi_property_named(std::vector<GLuint>, mIndices, Indices);

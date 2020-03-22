@@ -27,6 +27,7 @@ public:
 		cFLUSH_VERTICES = 1 << 0,
 		cFLUSH_PROGRAM = 1 << 1,
 		cFLUSH_SETTINGS = 1 << 2,
+		cFLUSH_TRANSFORM,
 		cFLUSH_ALL = ~0
 	};
 
@@ -36,7 +37,7 @@ public:
 
 	//Adds all vertices to be drawn next time Flush is called.
 	//If the material passed in is not the same as the current material (mMaterial), automatically flushes.
-	void Draw(ViMaterial* aMaterial, ViTransform aTransform, std::vector<ViVertex> aVertices, std::vector<GLuint> aIndices);
+	void Draw(ViMaterial* aMaterial, ViTransform aTransform, const std::vector<ViVertex>& aVertices, const std::vector<GLuint>& aIndices);
 
 	void DrawMesh(ViMesh* mesh, ViTransform aTransform);
 	void DrawQuad(ViMaterial* aMaterial, ViTransform aTransform, glm::vec3 pointA, glm::vec3 pointB, glm::vec3 pointC, glm::vec3 pointD);
@@ -44,7 +45,7 @@ public:
 
 	//Takes the current vertices and indices and draws them.
 	//Clears both vectors afterwards.
-	void Flush(FlushMode aFlushMode);
+	void Flush(int aFlushMode);
 
 	void SetSettings(ViVertexBatchSettings aSettings);
 
@@ -58,17 +59,19 @@ private:
 	GLuint ibo = 0;
 
 	ViVertexBatchSettings mSettings;
-
+	bool mSettingsChanged;
 	ViMaterial* mMaterial;
+	bool mMaterialChanged;
 	ViTransform mTransform;
+	bool mTransformChanged;
 
 	DISABLE_WARNING_PUSH
 	DISABLE_WARNING(4251)
-	std::vector<GLuint> indices;
-	std::vector<ViVertex> vertices;
+	std::vector<GLuint> mIndices;
+	bool mIndicesChanged;
+	std::vector<ViVertex> mVertices;
+	bool mVerticesChanged;
 	DISABLE_WARNING_POP
-
-	GLuint BindAndGetVertexAttribute(ViVertexAttribute* attribute);
 
 	bool mHasAnything = false;
 };

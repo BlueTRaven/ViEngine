@@ -6,6 +6,24 @@ ViMesh::ViMesh(ViMaterial* aMaterial, std::vector<ViVertex> aVertices, std::vect
 	mIndices(aIndices)
 {
 }
+
+void ViMesh::Merge(ViMesh* aMesh...)
+{
+	std::vector<ViMesh*> aMeshes = { aMesh };
+
+	for (ViMesh* mesh : aMeshes)
+	{
+		int oldCount = mVertices.size() - 1;
+		mVertices.insert(mVertices.end(), mesh->GetVertices().begin(), mesh->GetVertices().end());
+
+		std::vector<GLuint> indices = mesh->GetIndices();
+		for (GLuint index : indices)
+		{	//indices need to be fixed since they're relative to the old mesh
+			mIndices.push_back(index + oldCount);
+		}
+	}
+}
+
 ViMesh* ViMesh::MakeQuad(ViMaterial* aMaterial, vec3 pointA, vec3 pointB, vec3 pointC, vec3 pointD)
 {
 	std::vector<ViVertex> vertices

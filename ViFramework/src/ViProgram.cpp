@@ -3,7 +3,8 @@
 ViProgram::ViProgram(ViShader* vertShader, ViShader* fragShader, std::vector<ViVertexAttribute*> aVertexAttributes) :
 	mVertShader(vertShader),
 	mFragShader(fragShader),
-	mVertexAttributes(aVertexAttributes)
+	mVertexAttributes(aVertexAttributes),
+	mBoundAttributes(false)
 {
 	CompileAndLink();
 }
@@ -23,9 +24,13 @@ void ViProgram::SetObjectMat(mat4 aObjectMat)
 
 GLuint ViProgram::GetUniform(std::string name)
 {
+	if (mCachedUniformName == name && mCachedUniform != -1)
+		return mCachedUniform;
+
 	if (!mLinked)
 	{
 		printf("Program has not been linked - uniform %s cannot be found.\n", name.c_str());
+		mCachedUniform = -1;
 		return -1;
 	}
 
@@ -33,9 +38,12 @@ GLuint ViProgram::GetUniform(std::string name)
 	if (uniform < -1)
 	{
 		printf("Could not find uniform %s position.\n", name.c_str());
-
+		mCachedUniform = -1;
 		return -1;
 	}
+
+	mCachedUniform = uniform;
+	mCachedUniformName = name;
 	return uniform;
 }
 
@@ -105,7 +113,7 @@ void ViProgram::CompileAndLink()
 	glDetachShader(mId, fragShaderCompiled.mId);
 	glDeleteShader(fragShaderCompiled.mId);
 
-	BindAttributes();
+	//BindAttributes();
 
 	if (linked == GL_TRUE)
 		SetLinked(true);
@@ -113,22 +121,32 @@ void ViProgram::CompileAndLink()
 
 void ViProgram::BindAttributes()
 {
-	for (auto attribute : mVertexAttributes)
+	if (!mBoundAttributes)
 	{
-		if (attribute->Get_elements() > 4)
+		for (auto attribute : mVertexAttributes)
 		{
-			printf("Cannot have more than 4 fields. Was given %i.\n", attribute->Get_elements());
-			return;
+			if (attribute->Get_elements() > 4)
+			{
+				printf("Cannot have more than 4 fields. Was given %i.\n", attribute->Get_elements());
+				continue;
+			}
+
+			GLuint attribId = glGetAttribLocation(mId, attribute->Get_name().c_str());
+
+			if (attribId == -1)
+			{
+				printf("Could not find attribute %s position.\n", attribute->Get_name().c_str());
+				continue;
+			}
+
+			attribute->Set_id(attribId);
+
+			glVertexAttribPointer(attribId, attribute->Get_elements(), GL_FLOAT, GL_FALSE, (GLsizei)attribute->Get_size(), attribute->Get_offset());
+			glBindAttribLocation(mId, attribId, attribute->Get_name().c_str());
+
+			glEnableVertexAttribArray(attribId);
 		}
 
-		GLuint attribId = glGetAttribLocation(mId, attribute->Get_name().c_str());
-
-		if (attribId == -1)
-		{
-			printf("Could not find attribute %s position.\n", attribute->Get_name().c_str());
-			return;
-		}
-
-		attribute->Set_id(attribId);
+		mBoundAttributes = true;
 	}
 }

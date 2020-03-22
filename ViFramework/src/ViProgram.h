@@ -27,8 +27,9 @@ public:
 
 	virtual void SetObjectMat(mat4 aObjMat);
 
-protected:
 	void BindAttributes();
+
+protected:
 
 	GLuint GetUniform(std::string name);
 
@@ -44,12 +45,16 @@ private:
 
 	mat4 mObjectMat;
 	bool mHasObjectMat = true;
+	bool mBoundAttributes;
+
+	DISABLE_WARNING_PUSH
+	DISABLE_WARNING(4251)
+	GLuint mCachedUniform;
+	std::string mCachedUniformName;
 
 	ViShader* mVertShader;
 	ViShader* mFragShader;
 
-	DISABLE_WARNING_PUSH
-	DISABLE_WARNING(4251)
 	std::vector<ViVertexAttribute*> mVertexAttributes;
 	DISABLE_WARNING_POP
 };

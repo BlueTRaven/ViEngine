@@ -36,6 +36,7 @@ protected:
 	vi_property_get_named(SDL_Window*, mWindow, Window);
 
 protected:
+	float GetAvgFPS();
 	float GetFPS();
 
 private:
@@ -45,6 +46,11 @@ private:
 
 	uint32_t mCounter;	//number of frames since the start
 	ViTimer* mTimer;	//timer since the start of the game
+
+	uint32_t mFpsCounter;
+	ViTimer* mFpsTimer;
+
+	float mFps;
 
 	SDL_Window* mWindow;
 	SDL_GLContext mContext;

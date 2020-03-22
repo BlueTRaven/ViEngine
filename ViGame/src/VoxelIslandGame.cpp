@@ -9,6 +9,7 @@ vigame::VoxelIslandGame::VoxelIslandGame() : ViGame(640 * 2, 480 * 2),
 
 void vigame::VoxelIslandGame::Init()
 {
+	SDL_GL_SetSwapInterval(0);	//turn vsync off
 	SDL_ShowCursor(SDL_DISABLE);
 
 	testFont = GET_ASSET_FONT("debug");
@@ -17,13 +18,16 @@ void vigame::VoxelIslandGame::Init()
 	mProgramText = static_cast<ViProgramText*>(GET_ASSET_PROGRAM("text"));
 	mProgramGeneric = static_cast<ViProgramGeneric*>(GET_ASSET_PROGRAM("generic"));
 
-	world = new VoxelWorld({ 128, 128, 1 }, 0.05f);
+	world = new VoxelWorld({ 8, 8, 8 }, 0.05f);
 
-	for (int x = 0; x < 16; x++)
+	for (int x = 0; x < 4; x++)
 	{
-		for (int z = 0; z < 16; z++)
+		for (int y = 0; y < 4; y++)
 		{
-			world->SetCubeInstance({ x, 0, z }, world->GetCube(1));
+			for (int z = 0; z < 4; z++)
+			{
+				world->SetCubeInstance({ x, y, z }, world->GetCube(1));
+			}
 		}
 	}
 
@@ -68,7 +72,7 @@ void vigame::VoxelIslandGame::Update()
 	if (rotation.x < -85)
 		rotation.x = -85;
 
-	rotation.y = (float)((int)rotation.y % 360);
+	rotation.y = std::fmod(rotation.y, 360.0f);
 
 	transform.SetRotation(rotation);
 
@@ -92,8 +96,9 @@ void vigame::VoxelIslandGame::Draw()
 	world->Draw(VERTEX_BATCH);
 
 	VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_NONE, ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_ALPHABLEND));
-	float fps = GetFPS();
-	VERTEX_BATCH->DrawString(textMaterial, ViTransform::None, testFont, std::to_string(fps));
+
+	VERTEX_BATCH->DrawString(textMaterial, ViTransform::Positioned(vec3(0, 0, 0)), testFont, "Avg. FPS: " + std::to_string(GetAvgFPS()));
+	VERTEX_BATCH->DrawString(textMaterial, ViTransform::Positioned(vec3(0, testFont->GetSize() + 8, 0)), testFont, "FPS: " + std::to_string(GetFPS()));
 
 	ViGame::Draw();
 }
