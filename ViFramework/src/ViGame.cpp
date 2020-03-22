@@ -7,6 +7,8 @@
 
 ViGame::ViGame(int aScreenWidth, int aScreenHeight) :
 	mWindow(NULL),
+	mCounter(0),
+	mTimer(new ViTimer()),
 	mClearColor(vicolors::BLACK)
 {
 	new ViEnvironment(aScreenWidth, aScreenHeight);
@@ -22,17 +24,30 @@ void ViGame::Start()
 {
 	PrivateInit();
 
+	mTimer->Start();
+
 	while (mRunning)
 	{
+		double time = mTimer->GetSec();
+		mTimer->Update();
+		double deltaTime = mTimer->GetSec() / time;
+
 		PrivateUpdate();
 		PrivateDraw();
 		Events();
+
+		mCounter++;
 	}
 }
 
 void ViGame::Quit()
 {
 	mRunning = false;
+}
+
+float ViGame::GetFPS()
+{
+	return (float)(mCounter / mTimer->GetSec());
 }
 
 void ViGame::PrivateUpdate()
@@ -56,7 +71,7 @@ void ViGame::PrivateDraw()
 {
 	Draw();
 
-	viEnv->GetVertexBatch()->Flush();	//manual flush call - must be done at end of frame
+	viEnv->GetVertexBatch()->Flush(ViVertexBatch::cFLUSH_ALL);	//manual flush call - must be done at end of frame
 	SDL_GL_SwapWindow(mWindow);
 }
 
@@ -124,7 +139,7 @@ void ViGame::PrivateInit()
 
 		mInitialized = true;
 
-		viEnv->GetVertexBatch()->Init(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_NONE, ViVertexBatchSettings::cDEPTH_NONE, ViVertexBatchSettings::cWRAP_LINEAR));
+		viEnv->GetVertexBatch()->Init(ViVertexBatchSettings::Default);
 
 		Init();
 	}

@@ -15,9 +15,6 @@ public:
 	vi_property_named(std::vector<ViVertex>, mVertices, Vertices);
 	vi_property_named(std::vector<GLuint>, mIndices, Indices);
 
-	//If the material is the same, combines, then destroys, aMesh. If the material is not the same, the mesh cannot be combined; does nothing.
-	void Combine(ViMesh* aMesh);
-
 	//Makes a quad ViMesh.
 	static ViMesh* MakeQuad(ViMaterial* aMaterial, vec3 pointA, vec3 pointB, vec3 pointC, vec3 pointD);
 	//Makes a quad. If aOverwrite is false, adds to aVertices and aIndices; otherwise, overwrites them completely.

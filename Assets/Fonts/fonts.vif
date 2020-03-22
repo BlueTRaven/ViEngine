@@ -5,3 +5,7 @@ location "arial.ttf"
 font arial_32_b
 size 32
 location "arialbd.ttf"
+
+font debug
+size 18
+location "arial.ttf"

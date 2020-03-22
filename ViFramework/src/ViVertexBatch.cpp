@@ -18,8 +18,8 @@ void ViVertexBatch::Init(ViVertexBatchSettings aSettings)
 
 void ViVertexBatch::Draw(ViMaterial* aMaterial, ViTransform aTransform, std::vector<ViVertex> vertices, std::vector<GLuint> indices)
 {
-	if (ShouldFlush(aMaterial, aTransform))
-		Flush();
+	FlushMode mode = ShouldFlush(aMaterial, aTransform);
+	Flush(mode);
 
 	mHasAnything = true;
 	mMaterial = aMaterial;
@@ -29,6 +29,11 @@ void ViVertexBatch::Draw(ViMaterial* aMaterial, ViTransform aTransform, std::vec
 
 	this->vertices.insert(this->vertices.end(), vertices.begin(), vertices.end());
 	this->indices.insert(this->indices.end(), indices.begin(), indices.end());
+}
+
+void ViVertexBatch::DrawMesh(ViMesh* aMesh, ViTransform aTransform)
+{
+	Draw(aMesh->GetMaterial(), aTransform, aMesh->GetVertices(), aMesh->GetIndices());
 }
 
 void ViVertexBatch::DrawQuad(ViMaterial * aMaterial, ViTransform aTransform, glm::vec3 pointA, glm::vec3 pointB, glm::vec3 pointC, glm::vec3 pointD)
@@ -80,50 +85,90 @@ void ViVertexBatch::DrawString(ViMaterial* aMaterial, ViTransform aTransform, Vi
 	Draw(aMaterial, aTransform, vertices, indices);
 }
 
-void ViVertexBatch::Flush()
+void ViVertexBatch::Flush(FlushMode aFlushMode)
 {
-	if (!mHasAnything)
+	if (!mHasAnything || aFlushMode == FlushMode::cFLUSH_NONE)
 		return;
 
-	if (mSettings.cullMode != ViVertexBatchSettings::cCULL_NONE)
+	if (aFlushMode & FlushMode::cFLUSH_SETTINGS)
 	{
-		glEnable(GL_CULL_FACE);
-		glFrontFace(mSettings.cullMode == ViVertexBatchSettings::cCULL_CW ? GL_CW : GL_CCW);
-		glCullFace(GL_BACK);
-	}
-	else glDisable(GL_CULL_FACE);
+		if (mSettings.cullMode != ViVertexBatchSettings::cCULL_NONE)
+		{
+			glEnable(GL_CULL_FACE);
+			glFrontFace(mSettings.cullMode == ViVertexBatchSettings::cCULL_CW ? GL_CW : GL_CCW);
+			glCullFace(GL_BACK);
+		}
+		else glDisable(GL_CULL_FACE);
 
-	if (mSettings.depthMode != ViVertexBatchSettings::cDEPTH_NONE)
+		if (mSettings.depthMode != ViVertexBatchSettings::cDEPTH_NONE)
+		{
+			glEnable(GL_DEPTH_TEST);
+			glDepthMask(GL_TRUE);
+			glDepthFunc(mSettings.depthMode == ViVertexBatchSettings::cDEPTH_LESS ? GL_LESS : GL_GREATER);
+		}
+		else glDisable(GL_DEPTH_TEST);
+
+		if (mSettings.blendMode != ViVertexBatchSettings::cBLEND_NONE)
+		{
+			glEnable(GL_BLEND);
+
+			switch (mSettings.blendMode)
+			{
+			case ViVertexBatchSettings::cBLEND_ADDITIVE:
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+				break;
+			case ViVertexBatchSettings::cBLEND_NONPREMULTIPLIED:
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				break;
+			case ViVertexBatchSettings::cBLEND_ALPHABLEND:
+				glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+				break;
+			case ViVertexBatchSettings::cBLEND_OPAQUE:
+				glBlendFunc(GL_ONE, GL_ZERO);
+			case ViVertexBatchSettings::cBLEND_CUSTOM:
+				glBlendFunc(mSettings.blendModesFactor, mSettings.blendModedFactor);
+				break;
+			default:
+				glDisable(GL_BLEND);
+				break;
+			}
+		}
+		else glDisable(GL_BLEND);
+	}
+
+	if (aFlushMode & FlushMode::cFLUSH_VERTICES)
 	{
-		glEnable(GL_DEPTH_TEST);
-		glDepthMask(GL_TRUE);
-		glDepthFunc(mSettings.depthMode == ViVertexBatchSettings::cDEPTH_LESS ? GL_LESS : GL_GREATER);
+		glBindVertexArray(vao);		//binds the vertex array to vao ptr
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);	//binds the GL_ARRAY_BUFFER to vbo ptr
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);	//binds the GL_ELEMENT_ARRAY_BUFFER to ind ptr
+
+		GLsizeiptr sizeVert = vertices.size() * sizeof(ViVertex);
+		GLsizeiptr sizeIndex = indices.size() * sizeof(GLuint);
+
+		glBufferData(GL_ARRAY_BUFFER, sizeVert, vertices.data(), GL_STATIC_DRAW);
+
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeIndex, indices.data(), GL_STATIC_DRAW);
 	}
-	else glDisable(GL_DEPTH_TEST);
 
-	glBindVertexArray(vao);		//binds the vertex array to vao ptr
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);	//binds the GL_ARRAY_BUFFER to vbo ptr
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);	//binds the GL_ELEMENT_ARRAY_BUFFER to ind ptr
+	if (aFlushMode & FlushMode::cFLUSH_PROGRAM)
+	{
+		glUseProgram(mMaterial->GetProgram()->GetId());
 
-	GLsizeiptr sizeVert = vertices.size() * sizeof(ViVertex);
-	GLsizeiptr sizeIndex = indices.size() * sizeof(GLuint);
-
-	glBufferData(GL_ARRAY_BUFFER, sizeVert, vertices.data(), GL_STATIC_DRAW);
-
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeIndex, indices.data(), GL_STATIC_DRAW);
-
-	glUseProgram(mMaterial->GetProgram()->GetId());
-
-	mMaterial->GetProgram()->SetUniforms();
+		mMaterial->GetProgram()->SetUniforms();
+	}
+	
 	mMaterial->GetProgram()->SetObjectMat(mTransform.Matrix());
 
 	std::vector<GLuint> boundVertexAttributes;	//these need to be unbound after drawing, so we need to keep track of them.
-	for (ViVertexAttribute* attribute : mMaterial->GetProgram()->GetVertexAttributes())
+	if (aFlushMode & FlushMode::cFLUSH_VERTICES)
 	{
-		GLuint attrib = BindAndGetVertexAttribute(attribute);
+		for (ViVertexAttribute* attribute : mMaterial->GetProgram()->GetVertexAttributes())
+		{
+			GLuint attrib = BindAndGetVertexAttribute(attribute);
 
-		if (attrib >= 0)
-			boundVertexAttributes.push_back(attrib);
+			if (attrib >= 0)
+				boundVertexAttributes.push_back(attrib);
+		}
 	}
 
 	//note that we don't have to have a texture, so we simply skip this step if we don't have one
@@ -197,7 +242,7 @@ void ViVertexBatch::Flush()
 
 void ViVertexBatch::SetSettings(ViVertexBatchSettings aSettings)
 {
-	Flush();
+	Flush(FlushMode::cFLUSH_ALL);
 	mSettings = aSettings;
 }
 
@@ -220,7 +265,18 @@ GLuint ViVertexBatch::BindAndGetVertexAttribute(ViVertexAttribute* attribute)
 	return -1;
 }
 
-bool ViVertexBatch::ShouldFlush(ViMaterial* aMaterial, ViTransform aTransform)
+ViVertexBatch::FlushMode ViVertexBatch::ShouldFlush(ViMaterial* aMaterial, ViTransform aTransform)
 {
-	return aMaterial != mMaterial || aTransform != mTransform || aMaterial->GetProgram()->GetDirty();
+	if (aMaterial != mMaterial)
+		return FlushMode::cFLUSH_ALL;
+
+	FlushMode mode = FlushMode::cFLUSH_VERTICES;
+
+	if (aMaterial->GetProgram()->GetDirty())
+		mode = (FlushMode)(mode | FlushMode::cFLUSH_PROGRAM);
+
+	if (aTransform != mTransform)
+		mode = (FlushMode)(mode | FlushMode::cFLUSH_SETTINGS);
+
+	return mode;
 }

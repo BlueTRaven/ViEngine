@@ -18,6 +18,15 @@
 #include "ViAssetHolderProgram.h"
 #include "ViAssetHolderShader.h"
 
+//Shortcut macros so we don't have to type so much
+#define ASSET_HANDLER viEnv->GetAssetHandler()
+
+#define GET_ASSET_TEXTURE(name) viEnv->GetAssetHandler()->LoadTexture(name)
+#define GET_ASSET_FONT(name) viEnv->GetAssetHandler()->LoadFont(name)
+#define GET_ASSET_MATERIAL(name) viEnv->GetAssetHandler()->LoadMaterial(name)
+#define GET_ASSET_PROGRAM(name) viEnv->GetAssetHandler()->LoadProgram(name)
+#define GET_ASSET_SHADER(name) viEnv->GetAssetHandler()->LoadShader(name)
+
 class ViAssetHandler
 {
 public:

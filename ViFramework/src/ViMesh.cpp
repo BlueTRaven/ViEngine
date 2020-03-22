@@ -6,18 +6,6 @@ ViMesh::ViMesh(ViMaterial* aMaterial, std::vector<ViVertex> aVertices, std::vect
 	mIndices(aIndices)
 {
 }
-
-void ViMesh::Combine(ViMesh* aMesh)
-{
-	if (aMesh->GetMaterial() != GetMaterial())
-		return;
-
-	mVertices.insert(mVertices.end(), aMesh->GetVertices().begin(), aMesh->GetVertices().end());
-	mIndices.insert(mIndices.end(), aMesh->GetIndices().begin(), aMesh->GetIndices().end());
-
-	delete aMesh;
-}
-
 ViMesh* ViMesh::MakeQuad(ViMaterial* aMaterial, vec3 pointA, vec3 pointB, vec3 pointC, vec3 pointD)
 {
 	std::vector<ViVertex> vertices
@@ -44,17 +32,18 @@ void ViMesh::MakeQuadRaw(vec3 pointA, vec3 pointB, vec3 pointC, vec3 pointD, std
 		aIndices.clear();
 	}
 
+	int offset = (int)aVertices.size();
+	aIndices.push_back(offset + 0);
+	aIndices.push_back(offset + 1);
+	aIndices.push_back(offset + 3);
+	aIndices.push_back(offset + 1);
+	aIndices.push_back(offset + 2);
+	aIndices.push_back(offset + 3);
+
 	aVertices.push_back(ViVertex(pointA, vicolors::WHITE, glm::vec2(0.0, 0.0)));
 	aVertices.push_back(ViVertex(pointB, vicolors::WHITE, glm::vec2(1.0, 0.0)));
 	aVertices.push_back(ViVertex(pointC, vicolors::WHITE, glm::vec2(1.0, 1.0)));
 	aVertices.push_back(ViVertex(pointD, vicolors::WHITE, glm::vec2(0.0, 1.0)));
-
-	aIndices.push_back(0);
-	aIndices.push_back(1);
-	aIndices.push_back(3);
-	aIndices.push_back(1);
-	aIndices.push_back(2);
-	aIndices.push_back(3);
 }
 
 ViMesh* ViMesh::MakeUCube(ViMaterial* aMaterial, vec3 min, vec3 max)
@@ -77,7 +66,7 @@ ViMesh* ViMesh::MakeUCube(ViMaterial* aMaterial, vec3 min, vec3 max)
 	ViMesh::MakeQuadRaw(r_t_n, r_t_f, r_b_f, r_b_n, vertices, indices);	//right face
 	ViMesh::MakeQuadRaw(r_t_f, l_t_f, l_b_f, r_b_f, vertices, indices);	//back face
 	ViMesh::MakeQuadRaw(l_t_f, l_t_n, l_b_n, l_b_f, vertices, indices);	//left face
-	ViMesh::MakeQuadRaw(l_t_f, l_t_n, l_b_n, l_b_f, vertices, indices);	//top face
+	ViMesh::MakeQuadRaw(l_t_f, r_t_f, r_t_n, l_t_n, vertices, indices);	//top face
 	ViMesh::MakeQuadRaw(r_b_f, l_b_f, l_b_n, r_b_n, vertices, indices);	//bottom face
 
 	ViMesh* mesh = new ViMesh(aMaterial, vertices, indices);

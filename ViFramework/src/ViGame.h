@@ -8,15 +8,8 @@
 #include <SDL_opengl.h>
 
 #include "ViEnvironment.h"
-
-#include "ProgramGeneric.h"
-#include "ProgramText.h"
-#include "ViAssetHandler.h"
-#include "ViVertexBatch.h"
 #include "ViColor.h"
-#include "ViColorsGL.h"
-#include "ViTransform.h"
-#include "ViFont.h"
+#include "ViTimer.h"
 
 class VIENGINE_EXPORT ViGame
 {
@@ -40,10 +33,18 @@ protected:
 	vi_property_get_named(ViColorGL, mClearColor, ClearColor);
 	vi_property_set_named(ViColorGL, mClearColor, ClearColor);
 
+	vi_property_get_named(SDL_Window*, mWindow, Window);
+
+protected:
+	float GetFPS();
+
 private:
 	void PrivateUpdate();
 	void PrivateDraw();
 	void PrivateInit();
+
+	uint32_t mCounter;	//number of frames since the start
+	ViTimer* mTimer;	//timer since the start of the game
 
 	SDL_Window* mWindow;
 	SDL_GLContext mContext;

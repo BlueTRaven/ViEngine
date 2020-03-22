@@ -1,6 +1,6 @@
 #include "ViFont.h"
 
-ViFont* ViFont::Load(int size, std::string path)
+ViFont* ViFont::Load(float size, std::string path)
 {
 	std::ifstream file(path, std::ios::binary | std::ios::ate);
 
@@ -19,7 +19,7 @@ ViFont* ViFont::Load(int size, std::string path)
 	return font;
 }
 
-ViFont::ViFont(uint8_t* aData, int aSize) :
+ViFont::ViFont(uint8_t* aData, float aSize) :
 	mSize(aSize)
 {
 	uint8_t* atlasData = (uint8_t*)malloc(cATLASWIDTH * cATLASHEIGHT);

@@ -8,5 +8,5 @@ ViFont* ViAssetHolderFont::LoadAsset(ViAssetDefinition aDefinition)
 	std::string size = FindLine(aDefinition, "size").mWords[1];
 	std::string location = FindLine(aDefinition, "location").mWords[1];
 
-	return ViFont::Load(std::stoi(size), GetBasePath() + "/" + location);
+	return ViFont::Load(std::stof(size), GetBasePath() + "/" + location);
 }

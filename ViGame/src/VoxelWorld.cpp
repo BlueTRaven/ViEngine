@@ -1,12 +1,19 @@
 #include "VoxelWorld.h"
 
-vigame::VoxelWorldGenerator::VoxelWorldGenerator(vec3i aSize) :
+#include "ViEnvironment.h"
+
+vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize) :
 	mSize(aSize),
+	mGridSize(aGridSize),
+	mCachedCube(nullptr),
+	mCachedCubeid(-1),
 	mCubes((CubeInstance*)malloc(aSize.x * aSize.y * aSize.z))
 {
-	//AddCube(new Cube(new ViMaterial()), 0);
+	//Cube with no mesh
+	AddCube(new Cube(this, nullptr), 0);
+	AddCube(new Cube(this, GET_ASSET_MATERIAL("dirt_01")), 1);
 
-	/*for (int x = 0; x < WIDTH; x++)
+	for (int x = 0; x < WIDTH; x++)
 	{
 		for (int y = 0; y < HEIGHT; y++)
 		{
@@ -15,40 +22,64 @@ vigame::VoxelWorldGenerator::VoxelWorldGenerator(vec3i aSize) :
 				SetCubeInstance({ x, y, z }, GetCube(0));
 			}
 		}
-	}*/
+	}
 }
 
-void vigame::VoxelWorldGenerator::SetCubeInstance(vec3i aPosition, Cube* aCube)
+void vigame::VoxelWorld::SetCubeInstance(vec3i aPosition, Cube* aCube)
 {
 	mCubes[aPosition.x + WIDTH * (aPosition.y + DEPTH * aPosition.z)] = MakeInstance(aCube);
 }
 
-vigame::CubeInstance& vigame::VoxelWorldGenerator::GetCubeInstance(vec3i aPosition)
+vigame::CubeInstance& vigame::VoxelWorld::GetCubeInstance(vec3i aPosition)
 {
 	return mCubes[aPosition.x + WIDTH * (aPosition.y + DEPTH * aPosition.z)];
 }
 
-vigame::CubeInstance vigame::VoxelWorldGenerator::MakeInstance(Cube* aCube)
+vigame::CubeInstance vigame::VoxelWorld::MakeInstance(Cube* aCube)
 {
 	return CubeInstance(GetId(aCube));
 }
 
-void vigame::VoxelWorldGenerator::Draw(ViVertexBatch* batch)
+void vigame::VoxelWorld::Draw(ViVertexBatch* batch)
 {
+	for (int x = 0; x < WIDTH; x++)
+	{
+		for (int y = 0; y < HEIGHT; y++)
+		{
+			for (int z = 0; z < DEPTH; z++)
+			{
+				Cube* cube = GetCube(GetCubeInstance({ x, y, z }).mId);
+				if (cube->GetMesh() != nullptr)
+					batch->DrawMesh(cube->GetMesh(), ViTransform::Positioned(vec3( x, y, z) * GetGridSize()));
+			}
+		}
+	}
 }
 
-void vigame::VoxelWorldGenerator::AddCube(Cube* aCube, cubeid aId)
+void vigame::VoxelWorld::AddCube(Cube* aCube, cubeid aId)
 {
-	mCubeIdMappings.emplace(0, aCube);
-	mIdCubeMappings.emplace(aCube, 0);
+	mCubeIdMappings.emplace(aId, aCube);
+	mIdCubeMappings.emplace(aCube, aId);
 }
 
-vigame::cubeid vigame::VoxelWorldGenerator::GetId(Cube * aCube)
+vigame::cubeid vigame::VoxelWorld::GetId(Cube* aCube)
 {
-	return mIdCubeMappings[aCube];
+	if (mCachedCubeid == -1 || mCachedCube == nullptr || aCube != mCachedCube)
+	{
+		mCachedCubeid = mIdCubeMappings[aCube];
+		mCachedCube = aCube;
+	}
+
+	return mCachedCubeid;
 }
 
-vigame::Cube * vigame::VoxelWorldGenerator::GetCube(cubeid aId)
+vigame::Cube* vigame::VoxelWorld::GetCube(cubeid aId)
 {
-	return mCubeIdMappings[aId];
+	if (mCachedCubeid == -1 || mCachedCube == nullptr || aId != mCachedCubeid)
+	{
+		mCachedCube = mCubeIdMappings[aId];
+		mCachedCubeid = aId;
+	}
+	
+	return mCachedCube;
 }

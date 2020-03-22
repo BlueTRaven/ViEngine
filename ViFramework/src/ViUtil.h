@@ -126,6 +126,7 @@ template struct VIENGINE_EXPORT glm::vec<3, glm::f32, glm::packed_highp>;
 template struct VIENGINE_EXPORT glm::vec<2, glm::f32, glm::packed_highp>;
 
 template struct VIENGINE_EXPORT glm::vec<3, glm::int32, glm::packed_highp>;
+template struct VIENGINE_EXPORT glm::vec<2, glm::int32, glm::packed_highp>;
 
 typedef VIENGINE_EXPORT glm::mat<4, 4, glm::f32, glm::packed_highp> mat4;
 typedef VIENGINE_EXPORT glm::vec<4, glm::f32, glm::packed_highp> vec4;
@@ -133,4 +134,5 @@ typedef VIENGINE_EXPORT glm::vec<3, glm::f32, glm::packed_highp> vec3;
 typedef VIENGINE_EXPORT glm::vec<2, glm::f32, glm::packed_highp> vec2;
 
 typedef VIENGINE_EXPORT glm::vec<3, glm::int32, glm::packed_highp> vec3i;
+typedef VIENGINE_EXPORT glm::vec<2, glm::int32, glm::packed_highp> vec2i;
 DISABLE_WARNING_POP

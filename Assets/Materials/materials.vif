@@ -5,3 +5,7 @@ texture dirt_01
 material font_arial_32
 program text
 font arial_32
+
+material font_debug
+program text
+font debug

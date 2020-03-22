@@ -1,7 +1,10 @@
 #pragma once
 
-#include "GL/glew.h"
+#include <chrono>
+#include <GL/glew.h>
+
 #include "ViGame.h"
+#include "VoxelWorld.h"
 
 namespace vigame
 {
@@ -17,6 +20,8 @@ namespace vigame
 		void Draw() override;
 
 	private:
+		VoxelWorld* world;
+
 		ViProgramGeneric* mProgramGeneric;
 		ViProgramText* mProgramText;
 		ViFont* testFont;

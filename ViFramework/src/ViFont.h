@@ -20,18 +20,18 @@ public:
 	const static int cATLASWIDTH = 512;
 	const static int cATLASHEIGHT = 512;
 
-	static ViFont* Load(int size, std::string path);
+	static ViFont* Load(float size, std::string path);
 
-	ViFont(uint8_t* aData, int aSize);
+	ViFont(uint8_t* aData, float aSize);
 
 	vi_property_get_named(bool, mValid, Valid);
-	vi_property_get_named(int, mSize, Size);
+	vi_property_get_named(float, mSize, Size);
 	vi_property_get_named(ViTexture*, mTexture, Texture);
 	vi_property_get_named(stbtt_packedchar*, mCharInfo, CharInfo);
 
 private:
 	bool mValid;
-	int mSize;
+	float mSize;
 
 	ViTexture* mTexture;
 
