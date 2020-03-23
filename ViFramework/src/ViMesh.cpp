@@ -6,6 +6,11 @@ ViMesh::ViMesh(ViMaterial* aMaterial, std::vector<ViVertex> aVertices, std::vect
 	mIndices(aIndices),
 	mVerticesSize(aVertices.size() * sizeof(ViVertex)),
 	mIndicesSize(aIndices.size() * sizeof(GLuint)),
+	mCanGenerateGLObjects(false),
+	mHasGLObjects(false),
+	mVAO(0),
+	mVBO(0),
+	mIBO(0),
 	mVolatile(false)
 {
 }
@@ -27,6 +32,51 @@ void ViMesh::Merge(ViMesh* aMesh...)
 		}
 		mIndicesSize += mesh->GetIndicesSize();
 	}
+}
+
+void ViMesh::GenerateGLObjects()
+{
+	mHasGLObjects = true;
+
+	glGenVertexArrays(1, &mVAO);
+	glGenBuffers(1, &mVBO);
+	glGenBuffers(1, &mIBO);
+}
+
+bool ViMesh::HasGeneratedGLObjects()
+{
+	return mHasGLObjects;
+}
+
+void ViMesh::Bind()
+{
+	glBindVertexArray(mVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIBO);
+
+	glUseProgram(mMaterial->GetProgram()->GetId());
+}
+
+void ViMesh::Unbind()
+{
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+void ViMesh::UploadData()
+{
+	if (!mHasGLObjects)
+		GenerateGLObjects();
+
+	Bind();
+
+	glBufferData(GL_ARRAY_BUFFER, mVerticesSize, mVertices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, mIndicesSize, mIndices.data(), GL_STATIC_DRAW);
+
+	mMaterial->GetProgram()->BindAttributes(true);
+
+	Unbind();
 }
 
 ViMesh* ViMesh::MakeQuad(ViMaterial* aMaterial, vec3 pointA, vec3 pointB, vec3 pointC, vec3 pointD)
@@ -69,8 +119,10 @@ void ViMesh::MakeQuadRaw(vec3 pointA, vec3 pointB, vec3 pointC, vec3 pointD, std
 	aVertices.push_back(ViVertex(pointD, vicolors::WHITE, glm::vec2(0.0, 1.0)));
 }
 
-ViMesh* ViMesh::MakeUCube(ViMaterial* aMaterial, vec3 min, vec3 max)
+ViMesh* ViMesh::MakeUCube(ViMaterial* aMaterial, vec3 min, vec3 max, int aFaces)
 {
+	if (aFaces == cFACE_NONE)
+		return nullptr;
 	//<near/far - n/f>_<top/bottom - t/b>_<left/right - l/r>
 
 	vec3 l_t_n = { min.x, min.y, min.z };
@@ -85,12 +137,19 @@ ViMesh* ViMesh::MakeUCube(ViMaterial* aMaterial, vec3 min, vec3 max)
 
 	std::vector<ViVertex> vertices;
 	std::vector<GLuint> indices;
-	ViMesh::MakeQuadRaw(l_t_n, r_t_n, r_b_n, l_b_n, vertices, indices); //front face
-	ViMesh::MakeQuadRaw(r_t_n, r_t_f, r_b_f, r_b_n, vertices, indices);	//right face
-	ViMesh::MakeQuadRaw(r_t_f, l_t_f, l_b_f, r_b_f, vertices, indices);	//back face
-	ViMesh::MakeQuadRaw(l_t_f, l_t_n, l_b_n, l_b_f, vertices, indices);	//left face
-	ViMesh::MakeQuadRaw(l_t_f, r_t_f, r_t_n, l_t_n, vertices, indices);	//top face
-	ViMesh::MakeQuadRaw(r_b_f, l_b_f, l_b_n, r_b_n, vertices, indices);	//bottom face
+
+	if (aFaces & cFACE_FRONT)
+		ViMesh::MakeQuadRaw(l_t_n, r_t_n, r_b_n, l_b_n, vertices, indices); //front face
+	if (aFaces & cFACE_RIGHT)
+		ViMesh::MakeQuadRaw(r_t_n, r_t_f, r_b_f, r_b_n, vertices, indices);	//right face
+	if (aFaces & cFACE_BACK)
+		ViMesh::MakeQuadRaw(r_t_f, l_t_f, l_b_f, r_b_f, vertices, indices);	//back face
+	if (aFaces & cFACE_LEFT)
+		ViMesh::MakeQuadRaw(l_t_f, l_t_n, l_b_n, l_b_f, vertices, indices);	//left face
+	if (aFaces & cFACE_TOP)
+		ViMesh::MakeQuadRaw(l_t_f, r_t_f, r_t_n, l_t_n, vertices, indices);	//top face
+	if (aFaces & cFACE_BOTTOM)
+		ViMesh::MakeQuadRaw(r_b_f, l_b_f, l_b_n, r_b_n, vertices, indices);	//bottom face
 
 	ViMesh* mesh = new ViMesh(aMaterial, vertices, indices);
 

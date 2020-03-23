@@ -77,30 +77,60 @@ void ViVertexBatch::Flush()
 		GLsizeiptr sizeVert = instance.mesh->GetVerticesSize();
 		GLsizeiptr sizeIndex = instance.mesh->GetIndicesSize();
 
-		bool canSkipSendingMeshData = first || (lastInstance.mesh != instance.mesh);
-		bool canSkipSendingTransformData = first || (lastInstance.transform != instance.transform);
+		bool meshChanged = first || (lastInstance.mesh != instance.mesh);
+		bool transformChanged = first || (lastInstance.transform != instance.transform);
 
-		if (canSkipSendingMeshData)
+		if (!instance.mesh->HasGeneratedGLObjects())
 		{
-			glBufferData(GL_ARRAY_BUFFER, sizeVert, instance.mesh->GetVertices().data(), GL_STATIC_DRAW);
-
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeIndex, instance.mesh->GetIndices().data(), GL_STATIC_DRAW);
-
-			glUseProgram(instance.mesh->GetMaterial()->GetProgram()->GetId());
-
-			instance.mesh->GetMaterial()->GetProgram()->BindAttributes();
-			instance.mesh->GetMaterial()->GetProgram()->SetUniforms();
-
-			if (instance.mesh->GetMaterial()->GetTexture() != nullptr)
+			if (mUsedOtherGLObjects)
 			{
-				glBindTexture(GL_TEXTURE_2D, instance.mesh->GetMaterial()->GetTexture()->GetId());
-				mSettings.SetTextureSettings();
+				mUsedOtherGLObjects = false;
+				glBindVertexArray(vao);
+				glBindBuffer(GL_ARRAY_BUFFER, vbo);
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+			}
+
+			if (meshChanged)
+			{
+				glBufferData(GL_ARRAY_BUFFER, sizeVert, instance.mesh->GetVertices().data(), GL_STATIC_DRAW);
+
+				glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeIndex, instance.mesh->GetIndices().data(), GL_STATIC_DRAW);
+
+				glUseProgram(instance.mesh->GetMaterial()->GetProgram()->GetId());
+
+				instance.mesh->GetMaterial()->GetProgram()->BindAttributes();
+				instance.mesh->GetMaterial()->GetProgram()->SetUniforms();
+
+				if (instance.mesh->GetMaterial()->GetTexture() != nullptr)
+				{
+					glBindTexture(GL_TEXTURE_2D, instance.mesh->GetMaterial()->GetTexture()->GetId());
+					mSettings.SetTextureSettings();
+				}
+			}
+
+			if (transformChanged)
+			{
+				instance.mesh->GetMaterial()->GetProgram()->SetObjectMat(instance.transform.Matrix());
 			}
 		}
-
-		if (canSkipSendingTransformData)
+		else
 		{
-			instance.mesh->GetMaterial()->GetProgram()->SetObjectMat(instance.transform.Matrix());
+			mUsedOtherGLObjects = true;
+			//Don't need to worry about unbinding last mesh; after all, we're overwriting thsoe bindings here.
+			if (meshChanged)
+			{
+				instance.mesh->Bind();
+				instance.mesh->GetMaterial()->GetProgram()->SetUniforms();
+
+				if (instance.mesh->GetMaterial()->GetTexture() != nullptr)
+				{
+					glBindTexture(GL_TEXTURE_2D, instance.mesh->GetMaterial()->GetTexture()->GetId());
+					mSettings.SetTextureSettings();
+				}
+			}
+
+			if (transformChanged)
+				instance.mesh->GetMaterial()->GetProgram()->SetObjectMat(instance.transform.Matrix());
 		}
 
 		if (instance.mesh->GetVolatile())

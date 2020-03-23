@@ -27,7 +27,7 @@ public:
 
 	virtual void SetObjectMat(mat4 aObjMat);
 
-	void BindAttributes();
+	void BindAttributes(bool aForceBind = false);
 
 protected:
 

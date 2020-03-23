@@ -31,6 +31,8 @@ private:
 	ViVertexBatchSettings mSettings;
 	DISABLE_WARNING_POP
 
+	bool mUsedOtherGLObjects;
+
 	GLuint vao;
 	GLuint vbo;
 	GLuint ibo;

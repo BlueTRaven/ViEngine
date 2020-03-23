@@ -15,20 +15,35 @@ namespace vigame
 	class Cube
 	{
 	public:
+		enum CubeFace
+		{
+			cFACE_TOP,
+			cFACE_BOTTOM,
+			cFACE_LEFT,
+			cFACE_RIGHT,
+			cFACE_FRONT,
+			cFACE_BACK
+		};
+
 		Cube(VoxelWorld* world, ViMaterial* aMaterial);
 
 		vi_property_named(ViMesh*, mMesh, Mesh);
+		vi_property_get_named(bool, mTransparent, Transparent);
 
 		void SetId(cubeid mId);
-		inline cubeid GetId();
+		cubeid GetId();
+
+		void GetFace(CubeFace aFace, std::vector<ViVertex>& aVertices, std::vector<GLuint>& aIndices);
 
 	protected:
-		inline VoxelWorld* GetWorld();
+		VoxelWorld* GetWorld();
 
 	private:
 		bool idSet;
 
 		cubeid mId;
+
+		bool mTransparent;
 
 		VoxelWorld* mWorld;
 		void CreateMesh(ViMaterial* aMaterial);

@@ -11,7 +11,7 @@ namespace vigame
 	class Chunk
 	{
 	public:
-		Chunk(VoxelWorld* aWorld);
+		Chunk(vec3i aPosition, VoxelWorld* aWorld);
 
 		const int cWIDTH = 16;
 		const int cHEIGHT = 16;
@@ -21,11 +21,13 @@ namespace vigame
 
 		vi_property_get_named(ViMesh*, mOptimizedMesh, OptimizedMesh);
 
+		vi_property_get_named(vec3i, mPosition, Position);
 		vi_property_get_named(VoxelWorld*, mWorld, World);
 
 	private:
 		ViMesh* mOptimizedMesh;
 
+		vec3i mPosition;
 		VoxelWorld* mWorld;
 	};
 }

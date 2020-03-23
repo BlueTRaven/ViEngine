@@ -121,9 +121,9 @@ void ViProgram::CompileAndLink()
 		SetLinked(true);
 }
 
-void ViProgram::BindAttributes()
+void ViProgram::BindAttributes(bool aForceBind)
 {
-	if (!mBoundAttributes)
+	if (!mBoundAttributes || aForceBind)
 	{
 		for (auto attribute : mVertexAttributes)
 		{

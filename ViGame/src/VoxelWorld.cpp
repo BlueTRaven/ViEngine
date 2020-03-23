@@ -13,11 +13,11 @@ vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize) :
 	mCubeRegistry->AddCubeType(new Cube(this, nullptr));
 	mCubeRegistry->AddCubeType(new Cube(this, GET_ASSET_MATERIAL("dirt_01")));
 
-	for (int x = 0; x < WIDTH; x++)
+	for (int z = 0; z < DEPTH; ++z)
 	{
-		for (int y = 0; y < HEIGHT; y++)
+		for (int y = 0; y < HEIGHT; ++y)
 		{
-			for (int z = 0; z < DEPTH; z++)
+			for (int x = 0; x < WIDTH; ++x)
 			{
 				SetCubeInstance({ x, y, z }, mCubeRegistry->GetCubeType(0));
 			}
