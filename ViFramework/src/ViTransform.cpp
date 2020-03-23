@@ -3,14 +3,20 @@
 ViTransform::ViTransform() :
 	mPosition(glm::vec3(0, 0, 0)),
 	mRotation(glm::vec3(0, 0, 0)),
-	mScale(glm::vec3(1, 1, 1))
+	mScale(glm::vec3(1, 1, 1)),
+	mSetPosition(false),
+	mSetRotation(false),
+	mSetScale(false)
 {
 }
 
 ViTransform::ViTransform(glm::vec3 aPosition, glm::vec3 aRotation, glm::vec3 aScale) :
 	mPosition(aPosition),
 	mRotation(aRotation),
-	mScale(aScale)
+	mScale(aScale),
+	mSetPosition(false),
+	mSetRotation(false),
+	mSetScale(false)
 {
 
 }
@@ -57,27 +63,71 @@ glm::vec3 ViTransform::Down()
 
 glm::mat4 ViTransform::Matrix()
 {
-	glm::mat4 scale = glm::scale(glm::identity<glm::mat4>(), mScale);
+	if (!mChanged)
+		return mCachedTransform;
+
+	//Short-circuits
+	//If we've only set position, scale, or rotation, we don't have to bother with multiplying anything together.
+	if (mSetPosition && !mSetScale && !mSetRotation)
+	{
+		mChanged = false;
+		mCachedTransform = glm::translate(glm::identity<glm::mat4>(), mPosition);
+		return mCachedTransform;
+	}
+
+	if (mSetRotation && !mSetScale && !mSetPosition)
+	{
+		glm::mat4 rotX = glm::rotate(glm::identity<glm::mat4>(), glm::radians(mRotation.x), glm::vec3(1.0, 0.0, 0.0));
+		glm::mat4 rotY = glm::rotate(glm::identity<glm::mat4>(), glm::radians(mRotation.y), glm::vec3(0.0, 1.0, 0.0));
+		glm::mat4 rotZ = glm::rotate(glm::identity<glm::mat4>(), glm::radians(mRotation.z), glm::vec3(0.0, 0.0, 1.0));
+
+		mChanged = false;
+		mCachedTransform = rotX * rotY * rotZ;
+		return mCachedTransform;
+	}
+
+	if (mSetScale && !mSetRotation && !mSetPosition)
+	{
+		mChanged = false;
+		mCachedTransform = glm::scale(glm::identity<glm::mat4>(), mScale);
+		return mCachedTransform;
+	}
+
+	glm::mat4 scale = glm::identity<glm::mat4>();
+	if (mSetScale)
+		scale = glm::scale(scale, mScale);
 	
-	glm::mat4 rotX = glm::rotate(glm::identity<glm::mat4>(), glm::radians(mRotation.x), glm::vec3(1.0, 0.0, 0.0));
-	glm::mat4 rotY = glm::rotate(glm::identity<glm::mat4>(), glm::radians(mRotation.y), glm::vec3(0.0, 1.0, 0.0));
-	glm::mat4 rotZ = glm::rotate(glm::identity<glm::mat4>(), glm::radians(mRotation.z), glm::vec3(0.0, 0.0, 1.0));
+	glm::mat4 rot = glm::identity<glm::mat4>();
+	if (mSetRotation)
+	{
+		glm::mat4 rotX = glm::rotate(glm::identity<glm::mat4>(), glm::radians(mRotation.x), glm::vec3(1.0, 0.0, 0.0));
+		glm::mat4 rotY = glm::rotate(glm::identity<glm::mat4>(), glm::radians(mRotation.y), glm::vec3(0.0, 1.0, 0.0));
+		glm::mat4 rotZ = glm::rotate(glm::identity<glm::mat4>(), glm::radians(mRotation.z), glm::vec3(0.0, 0.0, 1.0));
 
-	glm::mat4 rot = rotX * rotY * rotZ;
+		rot = rotX * rotY * rotZ;
+	}
 
-	glm::mat4 trans = glm::translate(glm::identity<glm::mat4>(), mPosition);
+	glm::mat4 trans = glm::identity<glm::mat4>();
+	if (mSetPosition)
+		trans = glm::translate(glm::identity<glm::mat4>(), mPosition);
 
+	mChanged = false;
+	mCachedTransform = trans;
 	return scale * rot * trans;
 }
 
 void ViTransform::Translate(glm::vec3 direction)
 {
 	SetPosition(GetPosition() + direction);
+	mChanged = true;
+	mSetPosition = true;
 }
 
 void ViTransform::Rotate(glm::vec3 rotation)
 {
 	SetRotation(GetRotation() + rotation);
+	mChanged = true;
+	mSetRotation = true;
 }
 
 bool ViTransform::operator==(ViTransform const& obj)
@@ -88,6 +138,27 @@ bool ViTransform::operator==(ViTransform const& obj)
 bool ViTransform::operator!=(ViTransform const & obj)
 {
 	return this != &obj;
+}
+
+void ViTransform::SetPosition(vec3 aPosition)
+{
+	mPosition = aPosition;
+	mSetPosition = true;
+	mChanged = true;
+}
+
+void ViTransform::SetRotation(vec3 aRotation)
+{
+	mRotation = aRotation;
+	mSetRotation = true;
+	mChanged = true;
+}
+
+void ViTransform::SetScale(vec3 aScale)
+{
+	mScale = aScale;
+	mSetScale = true;
+	mChanged = true;
 }
 
 ViTransform ViTransform::Positioned(glm::vec3 aPosition)

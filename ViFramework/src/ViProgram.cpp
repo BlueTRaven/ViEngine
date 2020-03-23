@@ -19,9 +19,11 @@ void ViProgram::SetObjectMat(mat4 aObjectMat)
 	mObjectMat = aObjectMat;
 
 	if (mHasObjectMat)
-		UniformMat4(aObjectMat, false, "object");
+		UniformMat4(aObjectMat, false, cOBJECT_UNIFORM);
 }
 
+//TODO cache using a custom hashmap
+//std::map will definitely not work, too slow
 GLuint ViProgram::GetUniform(std::string name)
 {
 	if (mCachedUniformName == name && mCachedUniform != -1)

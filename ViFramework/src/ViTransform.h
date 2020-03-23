@@ -26,11 +26,17 @@ public:
 	bool operator ==(ViTransform const &obj);
 	bool operator !=(ViTransform const &obj);
 
-	vi_property_named(vec3, mPosition, Position);
-	vi_property_named(vec3, mRotation, Rotation);
-	vi_property_named(vec3, mScale, Scale);
+	void SetPosition(vec3 aPosition);
+	void SetRotation(vec3 aRotation);
+	void SetScale(vec3 aScale);
 
-		const static  ViTransform None;
+	vi_property_get_named(vec3, mPosition, Position);
+	vi_property_get_named(vec3, mRotation, Rotation);
+	vi_property_get_named(vec3, mScale, Scale);
+
+	vi_property_named(bool, mChanged, Changed);
+
+	const static  ViTransform None;
 
 	//Creates a ViTransform positioned at aPosition.
 	static ViTransform Positioned(vec3 aPosition);
@@ -38,4 +44,15 @@ public:
 	static ViTransform Rotated(vec3 aRotation);
 	//Creates a ViTransform scaled at aScale.
 	static ViTransform Scaled(vec3 aScale);
+
+private:
+	mat4 mCachedTransform;
+
+	vec3 mPosition;
+	vec3 mRotation;
+	vec3 mScale;
+
+	bool mSetScale;
+	bool mSetRotation;
+	bool mSetPosition;
 };

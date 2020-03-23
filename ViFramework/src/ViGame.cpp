@@ -88,7 +88,7 @@ void ViGame::PrivateDraw()
 {
 	Draw();
 
-	viEnv->GetVertexBatch()->Flush(ViVertexBatch::cFLUSH_ALL);	//manual flush call - must be done at end of frame
+	viEnv->GetVertexBatch()->Flush();	//manual flush call - must be done at end of frame
 	SDL_GL_SwapWindow(mWindow);
 }
 

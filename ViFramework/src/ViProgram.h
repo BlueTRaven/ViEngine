@@ -56,5 +56,7 @@ private:
 	ViShader* mFragShader;
 
 	std::vector<ViVertexAttribute*> mVertexAttributes;
+
+	const std::string cOBJECT_UNIFORM = "object";
 	DISABLE_WARNING_POP
 };

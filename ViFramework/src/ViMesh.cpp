@@ -3,7 +3,10 @@
 ViMesh::ViMesh(ViMaterial* aMaterial, std::vector<ViVertex> aVertices, std::vector<GLuint> aIndices) :
 	mMaterial(aMaterial),
 	mVertices(aVertices),
-	mIndices(aIndices)
+	mIndices(aIndices),
+	mVerticesSize(aVertices.size() * sizeof(ViVertex)),
+	mIndicesSize(aIndices.size() * sizeof(GLuint)),
+	mVolatile(false)
 {
 }
 
@@ -13,14 +16,16 @@ void ViMesh::Merge(ViMesh* aMesh...)
 
 	for (ViMesh* mesh : aMeshes)
 	{
-		int oldCount = mVertices.size() - 1;
+		int oldCount = (int)mVertices.size() - 1;
 		mVertices.insert(mVertices.end(), mesh->GetVertices().begin(), mesh->GetVertices().end());
+		mVerticesSize += mesh->GetVerticesSize();
 
 		std::vector<GLuint> indices = mesh->GetIndices();
 		for (GLuint index : indices)
 		{	//indices need to be fixed since they're relative to the old mesh
 			mIndices.push_back(index + oldCount);
 		}
+		mIndicesSize += mesh->GetIndicesSize();
 	}
 }
 

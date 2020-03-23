@@ -1,15 +1,16 @@
 #include "ViVertexBatch.h"
 
+#include "ViGlyphInfo.h"
+
 ViVertexBatch::ViVertexBatch() :
-	mSettings(ViVertexBatchSettings::Default),
-	mMaterial(nullptr)
-{ }
+	mSettings(ViVertexBatchSettings::Default)
+{
+}
 
 void ViVertexBatch::Init(ViVertexBatchSettings aSettings)
 {
 	mSettings = aSettings;
 
-	//We only need one of each - so we can gen and bind them here
 	glGenVertexArrays(1, &vao);
 
 	glGenBuffers(1, &vbo);
@@ -21,49 +22,16 @@ void ViVertexBatch::Init(ViVertexBatchSettings aSettings)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 }
 
-void ViVertexBatch::Draw(ViMaterial* aMaterial, ViTransform aTransform, std::vector<ViVertex> aVertices, std::vector<GLuint> aIndices)
+void ViVertexBatch::Draw(ViTransform aTransform, ViMesh* aMesh)
 {
-	FlushMode mode = ShouldFlush(aMaterial, aTransform);
-	Flush(mode);
+	ViVertexBatchInstance instance = ViVertexBatchInstance();
+	instance.transform = aTransform;
+	instance.mesh = aMesh;
 
-	mHasAnything = true;
-	mMaterial = aMaterial;
-	if (mode & cFLUSH_PROGRAM)
-		mMaterialChanged = true;
-	mTransform = aTransform;
-	if (mode & cFLUSH_TRANSFORM)
-		mTransformChanged = true;
-
-	assert(aIndices.size() % 3 == 0);
-
-	mVertices.insert(mVertices.end(), aVertices.begin(), aVertices.end());
-	mIndices.insert(mIndices.end(), aIndices.begin(), aIndices.end());
+	mInstances.push_back(instance);
 }
 
-void ViVertexBatch::DrawMesh(ViMesh* aMesh, ViTransform aTransform)
-{
-	Draw(aMesh->GetMaterial(), aTransform, aMesh->GetVertices(), aMesh->GetIndices());
-}
-
-void ViVertexBatch::DrawQuad(ViMaterial * aMaterial, ViTransform aTransform, glm::vec3 pointA, glm::vec3 pointB, glm::vec3 pointC, glm::vec3 pointD)
-{
-	std::vector<ViVertex> vertices
-	{
-		ViVertex(pointA, vicolors::WHITE, glm::vec2(0.0, 0.0)),
-		ViVertex(pointB, vicolors::WHITE, glm::vec2(1.0, 0.0)),
-		ViVertex(pointC, vicolors::WHITE, glm::vec2(1.0, 1.0)),
-		ViVertex(pointD, vicolors::WHITE, glm::vec2(0.0, 1.0))
-	};
-
-	std::vector<GLuint> indices
-	{
-		0, 1, 3, 1, 2, 3
-	};
-
-	Draw(aMaterial, aTransform, vertices, indices);
-}
-
-void ViVertexBatch::DrawString(ViMaterial* aMaterial, ViTransform aTransform, ViFont* aFont, std::string aText)
+void ViVertexBatch::DrawString(ViTransform aTransform, ViMaterial* aMaterial, ViFont* aFont, std::string aText)
 {
 	std::vector<ViVertex> vertices;
 	std::vector<GLuint> indices;
@@ -91,126 +59,64 @@ void ViVertexBatch::DrawString(ViMaterial* aMaterial, ViTransform aTransform, Vi
 		lastIndex += 4;
 	}
 
-	Draw(aMaterial, aTransform, vertices, indices);
+	//TODO cache font character meshes
+	ViMesh* mesh = new ViMesh(aMaterial, vertices, indices);
+	mesh->SetVolatile(true);
+	Draw(aTransform, mesh);
 }
 
-void ViVertexBatch::Flush(int aFlushMode)
+void ViVertexBatch::Flush()
 {
-	if (!mHasAnything || aFlushMode == FlushMode::cFLUSH_NONE)
-		return;
+	ViVertexBatchInstance lastInstance;
+	bool first = true;
 
-	if (mSettingsChanged)
+	mSettings.SetSettings();
+
+	for (ViVertexBatchInstance instance : mInstances)
 	{
-		mSettings.SetSettings();
-	}
+		GLsizeiptr sizeVert = instance.mesh->GetVerticesSize();
+		GLsizeiptr sizeIndex = instance.mesh->GetIndicesSize();
 
-	GLsizeiptr sizeVert = mVertices.size() * sizeof(ViVertex);
-	glBufferData(GL_ARRAY_BUFFER, sizeVert, mVertices.data(), GL_STATIC_DRAW);
+		bool canSkipSendingMeshData = first || (lastInstance.mesh != instance.mesh);
+		bool canSkipSendingTransformData = first || (lastInstance.transform != instance.transform);
 
-	GLsizeiptr sizeIndex = mIndices.size() * sizeof(GLuint);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeIndex, mIndices.data(), GL_STATIC_DRAW);
-
-	if (mMaterialChanged)
-	{
-		glUseProgram(mMaterial->GetProgram()->GetId());
-
-		mMaterial->GetProgram()->BindAttributes();
-		mMaterial->GetProgram()->SetUniforms();
-	}
-
-	if (mMaterialChanged || mTransformChanged)
-		mMaterial->GetProgram()->SetObjectMat(mTransform.Matrix());
-	
-	//note that we don't have to have a texture, so we simply skip this step if we don't have one
-	if (mMaterial->GetTexture() != nullptr)
-	{
-		GLuint id = mMaterial->GetTexture()->GetId();
-		glBindTexture(GL_TEXTURE_2D, id);
-
-		switch (mSettings.textureMode)
+		if (canSkipSendingMeshData)
 		{
-		case ViVertexBatchSettings::TexMode::cWRAP_LINEAR:
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glBufferData(GL_ARRAY_BUFFER, sizeVert, instance.mesh->GetVertices().data(), GL_STATIC_DRAW);
 
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			break;
-		case ViVertexBatchSettings::TexMode::cWRAPM_LINEAR:
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeIndex, instance.mesh->GetIndices().data(), GL_STATIC_DRAW);
 
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			break;
-		case ViVertexBatchSettings::TexMode::cCLAMP_LINEAR:
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glUseProgram(instance.mesh->GetMaterial()->GetProgram()->GetId());
 
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			break;
-		case ViVertexBatchSettings::TexMode::cWRAP_POINT:
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			instance.mesh->GetMaterial()->GetProgram()->BindAttributes();
+			instance.mesh->GetMaterial()->GetProgram()->SetUniforms();
 
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			break;
-		case ViVertexBatchSettings::TexMode::cWRAPM_POINT:
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			break;
-		case ViVertexBatchSettings::TexMode::cCLAMP_POINT:
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			break;
+			if (instance.mesh->GetMaterial()->GetTexture() != nullptr)
+			{
+				glBindTexture(GL_TEXTURE_2D, instance.mesh->GetMaterial()->GetTexture()->GetId());
+				mSettings.SetTextureSettings();
+			}
 		}
+
+		if (canSkipSendingTransformData)
+		{
+			instance.mesh->GetMaterial()->GetProgram()->SetObjectMat(instance.transform.Matrix());
+		}
+
+		if (instance.mesh->GetVolatile())
+			delete instance.mesh;
+
+		glDrawElements(GL_TRIANGLES, (GLsizei)sizeIndex, GL_UNSIGNED_INT, NULL);
+
+		lastInstance = instance;
+		first = false;
 	}
 
-	//Note that we pass NULL into offsets
-	//We're only going to be drawing once per material; which means all indices will belong to that material
-	//therefore we don't need any offsets
-	glDrawElements(GL_TRIANGLES, (GLsizei)mIndices.size(), GL_UNSIGNED_INT, NULL);
-
-	mVertices.clear();
-	mIndices.clear();
-
-	mHasAnything = false;
-
-	mMaterial->GetProgram()->SetDirty(false);
-	mMaterialChanged = false;
-	mTransformChanged = false;
-	mSettingsChanged = false;
-	mIndicesChanged = false;
-	mVerticesChanged = false;
+	mInstances.clear();
 }
 
 void ViVertexBatch::SetSettings(ViVertexBatchSettings aSettings)
 {
-	Flush(FlushMode::cFLUSH_SETTINGS | FlushMode::cFLUSH_VERTICES);
-	mSettingsChanged = true;
+	Flush();
 	mSettings = aSettings;
-}
-
-ViVertexBatch::FlushMode ViVertexBatch::ShouldFlush(ViMaterial* aMaterial, ViTransform aTransform)
-{
-	if (aMaterial != mMaterial)
-		return (FlushMode)(FlushMode::cFLUSH_PROGRAM | FlushMode::cFLUSH_VERTICES);
-
-	FlushMode mode = FlushMode::cFLUSH_VERTICES;
-
-	if (aMaterial->GetProgram()->GetDirty())
-		mode = (FlushMode)(mode | FlushMode::cFLUSH_PROGRAM);
-
-	if (aTransform != mTransform)
-		mode = (FlushMode)(mode | FlushMode::cFLUSH_TRANSFORM);
-
-	return mode;
 }

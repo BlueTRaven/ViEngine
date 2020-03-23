@@ -4,11 +4,13 @@
 #include <map>
 
 #include "ViUtil.h"
-#include "ViVertexBatch.h"
 
 #include "Cube.h"
 #include "CubeInstance.h"
+#include "CubeRegistry.h"
 #include "ViGameUtil.h"
+
+class ViVertexBatch;
 
 namespace vigame
 {
@@ -24,25 +26,20 @@ namespace vigame
 
 		void Draw(ViVertexBatch* batch);
 
-		void AddCube(Cube* aCube);
-		inline cubeid GetId(Cube* aCube);
-		inline Cube* GetCube(cubeid aId);
-
 		vi_property_get_named(float, mGridSize, GridSize);
+		vi_property_get_named(CubeRegistry*, mCubeRegistry, CubeRegistry);
 
 	private:
 		vec3i mSize;
 		float mGridSize;
 
-		cubeid mCachedCubeid;
-		Cube* mCachedCube;
+		//1d array of cubes - equal to [WIDTH * HEIGHT * DEPTH]
 		CubeInstance* mCubes;
+
+		CubeRegistry* mCubeRegistry;
 
 #define WIDTH mSize.x
 #define HEIGHT mSize.y
 #define DEPTH mSize.z
-
-		std::vector<Cube*> mCubeTypes;
-		std::map<Cube*, cubeid> mIdCubeMappings;
 	};
 }

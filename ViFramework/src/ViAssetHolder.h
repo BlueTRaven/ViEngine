@@ -95,7 +95,7 @@ void ViAssetHolder<T>::Find(std::string aPath)
 	}
 
 #if _DEBUG
-	printf("Debug: Loaded %i asset definitions from vif %s.\n", mAssetsDefinitions.size(), aPath.c_str());
+	printf("Debug: Loaded %i asset definitions from vif %s.\n", (int)mAssetsDefinitions.size(), aPath.c_str());
 #endif
 };
 
