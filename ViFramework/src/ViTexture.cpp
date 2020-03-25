@@ -1,8 +1,8 @@
 #include "ViTexture.h"
 
-ViTexture* ViTexture::Load(std::string path)
+ViTexture* ViTexture::Load(std::string path, bool aAlpha, GLint aInternalFormat)
 {
-	int format = STBI_rgb_alpha;
+	int format = aAlpha ? STBI_rgb_alpha : STBI_rgb;
 	int width, height, orig_format;
 	uint8_t* data = stbi_load(path.c_str(), &width, &height, &orig_format, format);
 
@@ -12,7 +12,9 @@ ViTexture* ViTexture::Load(std::string path)
 		return NULL;
 	}
 
-	ViTexture* texture = new ViTexture(data, width, height);
+	GLenum texFormat = aAlpha ? GL_RGBA : GL_RGB;
+
+	ViTexture* texture = new ViTexture(data, width, height, aInternalFormat, texFormat);
 	stbi_image_free(data);
 
 	return texture;
@@ -25,8 +27,12 @@ ViTexture::ViTexture(uint8_t* aData, GLsizei aWidth, GLsizei aHeight, GLint aInt
 	mFormat(aFormat),
 	mPack(aPack),
 	mUnpack(aUnpack),
-	mMipMap(aMipMap)
+	mMipMap(aMipMap),
+	mAlpha(false)
 {
+	if (aInternalFormat == GL_RGBA)
+		mAlpha = true;
+
 	glGenTextures(1, &mId);
 	glBindTexture(GL_TEXTURE_2D, mId);
 

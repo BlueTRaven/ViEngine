@@ -7,5 +7,26 @@ ViTexture* ViAssetHolderTexture::LoadAsset(ViAssetDefinition aDefinition)
 
 	std::string location = FindLine(aDefinition, "location").mWords[1];
 
-	return ViTexture::Load(GetBasePath() + "/" + location);
+	bool alpha = true;
+	GLuint format = GL_RGBA;
+	ViVifLine formatLine = FindLine(aDefinition, "format");
+
+	if (!formatLine.mIsEmpty)
+	{
+		std::string formatStr = formatLine.mWords[1];
+
+		//TODO support more formatting options
+		if (formatStr == "RGB")
+		{
+			alpha = false;
+			format = GL_RGB;
+		}
+		else if (formatStr == "RGBA")
+		{
+			alpha = true;
+			format = GL_RGBA;
+		}
+	}
+
+	return ViTexture::Load(GetBasePath() + "/" + location, alpha, format);
 }

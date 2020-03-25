@@ -2,6 +2,10 @@ material dirt_01
 program generic
 texture dirt_01
 
+material glass_01
+program generic
+texture glass_01
+
 material font_arial_32
 program text
 font arial_32

@@ -122,7 +122,7 @@ void ViMesh::MakeQuadRaw(vec3 pointA, vec3 pointB, vec3 pointC, vec3 pointD, std
 ViMesh* ViMesh::MakeUCube(ViMaterial* aMaterial, vec3 min, vec3 max, int aFaces)
 {
 	if (aFaces == cFACE_NONE)
-		return nullptr;
+		return ViMesh::GetEmpty();
 	//<near/far - n/f>_<top/bottom - t/b>_<left/right - l/r>
 
 	vec3 l_t_n = { min.x, min.y, min.z };
@@ -154,4 +154,14 @@ ViMesh* ViMesh::MakeUCube(ViMaterial* aMaterial, vec3 min, vec3 max, int aFaces)
 	ViMesh* mesh = new ViMesh(aMaterial, vertices, indices);
 
 	return mesh;
+}
+
+ViMesh* ViMesh::Empty = nullptr;
+
+ViMesh* ViMesh::GetEmpty()
+{
+	if (Empty == nullptr)
+		Empty = new ViMesh(nullptr, {}, {});
+
+	return Empty;
 }

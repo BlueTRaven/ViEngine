@@ -35,6 +35,7 @@ namespace vigame
 
 		//1d array of cubes - equal to [WIDTH * HEIGHT * DEPTH]
 		CubeInstance* mCubes;
+		const CubeInstance voidCube = CubeInstance(0);
 
 		CubeRegistry* mCubeRegistry;
 

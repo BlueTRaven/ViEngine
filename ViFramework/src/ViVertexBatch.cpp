@@ -72,8 +72,21 @@ void ViVertexBatch::Flush()
 
 	mSettings.SetSettings();
 
+	std::sort(mInstances.begin(), mInstances.end(), 
+		[](ViVertexBatchInstance a, ViVertexBatchInstance b) 
+	{ 
+		if (a.mesh->GetMaterial() == nullptr || b.mesh->GetMaterial() == nullptr)
+			return false;
+		if (a.mesh->GetMaterial()->GetTexture()->GetAlpha() && !b.mesh->GetMaterial()->GetTexture()->GetAlpha())
+			return a.mesh->GetMaterial()->GetTexture()->GetAlpha() < a.mesh->GetMaterial()->GetTexture()->GetAlpha();
+		return a.mesh < b.mesh; 
+	});
+
 	for (ViVertexBatchInstance instance : mInstances)
 	{
+		if (instance.mesh == ViMesh::GetEmpty())
+			continue;	//don't draw if we're the empty instance mesh
+
 		GLsizeiptr sizeVert = instance.mesh->GetVerticesSize();
 		GLsizeiptr sizeIndex = instance.mesh->GetIndicesSize();
 

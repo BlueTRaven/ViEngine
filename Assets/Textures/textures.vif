@@ -1,8 +1,15 @@
 texture dirt_01
 location "dirt_01.png"
+format RGB
+
+texture glass_01
+location "glass_01.png"
+format RGBA
 
 texture player_size
 location "player_size.png"
+format RGB
 
 texture white_pixel
 location "white_pixel"
+format RGBA	#we want to be able to draw 2d primitives (rectangles and stuff) with this, so best to support alpha.

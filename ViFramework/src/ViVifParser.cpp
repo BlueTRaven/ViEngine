@@ -46,7 +46,7 @@ void ViVifParser::Parse(std::string path)
 				continue;	//don't add to currstr
 			}
 
-			if (c == ' ' || c == '\n' || c == 0x0d || c == 0x0a)
+			if (c == ' ' || c == '\n' || c == 0x0d || c == 0x0a || c == '#')
 			{
 				outstrs.push_back(currstr);
 				currstr = "";

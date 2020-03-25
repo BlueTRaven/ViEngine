@@ -10,8 +10,9 @@ vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize) :
 	mCubes((CubeInstance*)malloc(aSize.x * aSize.y * aSize.z))
 {
 	//Cube with no mesh
-	mCubeRegistry->AddCubeType(new Cube(this, nullptr));
-	mCubeRegistry->AddCubeType(new Cube(this, GET_ASSET_MATERIAL("dirt_01")));
+	mCubeRegistry->AddCubeType(new Cube(this, nullptr, false));
+	mCubeRegistry->AddCubeType(new Cube(this, GET_ASSET_MATERIAL("dirt_01"), false));
+	mCubeRegistry->AddCubeType(new Cube(this, GET_ASSET_MATERIAL("glass_01"), true));
 
 	for (int z = 0; z < DEPTH; ++z)
 	{
@@ -32,6 +33,9 @@ void vigame::VoxelWorld::SetCubeInstance(vec3i aPosition, Cube* aCube)
 
 vigame::CubeInstance& vigame::VoxelWorld::GetCubeInstance(vec3i aPosition)
 {
+	if (aPosition.x < 0 || aPosition.y < 0 || aPosition.z < 0 || aPosition.x > WIDTH || aPosition.y > HEIGHT || aPosition.z > DEPTH)
+		return mCubes[0];
+
 	return mCubes[aPosition.x + WIDTH * (aPosition.y + DEPTH * aPosition.z)];
 }
 
@@ -48,9 +52,17 @@ void vigame::VoxelWorld::Draw(ViVertexBatch* batch)
 		{
 			for (int z = 0; z < DEPTH; z++)
 			{
-				Cube* cube = mCubeRegistry->GetCubeType(GetCubeInstance({ x, y, z }).mId);
-				if (cube->GetMesh() != nullptr)
-					batch->Draw(ViTransform::Positioned(vec3(x, y, z) * GetGridSize()), cube->GetMesh());
+				CubeInstance cubeInstance = GetCubeInstance({ x, y, z });
+				if (cubeInstance.mId == 0)
+					continue;
+
+				Cube* cube = mCubeRegistry->GetCubeType(cubeInstance.mId);
+
+				uint8_t adjacents = cube->GetAdjacents(cubeInstance, { x, y, z });
+				ViMesh* mesh = cube->GetMeshWithFace(adjacents);
+
+				if (mesh != nullptr)
+					batch->Draw(ViTransform::Positioned(vec3(x, y, z) * GetGridSize()), mesh);
 			}
 		}
 	}

@@ -24,14 +24,18 @@ void vigame::VoxelIslandGame::Init()
 	mProgramGeneric = static_cast<ViProgramGeneric*>(GET_ASSET_PROGRAM("generic"));
 
 	world = new VoxelWorld({ 16, 16, 16 }, 0.05f);
-
-	for (int x = 0; x < 16; x++)
+	
+	const int offset = 4;
+	const int size = 8;
+	for (int x = 0; x < size; x++)
 	{
-		for (int y = 0; y < 16; y++)
+		for (int y = 0; y < size; y++)
 		{
-			for (int z = 0; z < 16; z++)
+			for (int z = 0; z < size; z++)
 			{
-				world->SetCubeInstance({ x, y, z }, world->GetCubeRegistry()->GetCubeType(1));
+				if (z == size - 2)
+					world->SetCubeInstance(vec3i(x + offset, y + offset, z + offset), world->GetCubeRegistry()->GetCubeType(2));
+				else world->SetCubeInstance({ x + offset, y + offset, z + offset }, world->GetCubeRegistry()->GetCubeType(1));
 			}
 		}
 	}
@@ -97,7 +101,7 @@ void vigame::VoxelIslandGame::Draw()
 	glClearColor(color.r, color.g, color.b, color.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_LESS, ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_ALPHABLEND));
+	VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_LESS, ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_NONPREMULTIPLIED));
 	world->Draw(VERTEX_BATCH);
 
 	VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_NONE, ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_ALPHABLEND));

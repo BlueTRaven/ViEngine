@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "glm/glm.hpp"
 
 #include "ViUtil.h"
@@ -11,29 +13,21 @@
 namespace vigame
 {
 	class VoxelWorld;
+	struct CubeInstance;
 
 	class Cube
 	{
 	public:
-		enum CubeFace
-		{
-			cFACE_TOP,
-			cFACE_BOTTOM,
-			cFACE_LEFT,
-			cFACE_RIGHT,
-			cFACE_FRONT,
-			cFACE_BACK
-		};
+		Cube(VoxelWorld* world, ViMaterial* aMaterial, bool aTransparent);
 
-		Cube(VoxelWorld* world, ViMaterial* aMaterial);
-
-		vi_property_named(ViMesh*, mMesh, Mesh);
 		vi_property_get_named(bool, mTransparent, Transparent);
 
 		void SetId(cubeid mId);
 		cubeid GetId();
 
-		void GetFace(CubeFace aFace, std::vector<ViVertex>& aVertices, std::vector<GLuint>& aIndices);
+		uint8_t GetAdjacents(const CubeInstance& aCubeInstance, vec3i aPosition);
+
+		ViMesh* GetMeshWithFace(uint8_t aFaces);
 
 	protected:
 		VoxelWorld* GetWorld();
@@ -47,5 +41,10 @@ namespace vigame
 
 		VoxelWorld* mWorld;
 		void CreateMesh(ViMaterial* aMaterial);
+
+		bool GetAdjacentCubeShouldHideFace(vec3i aPosition);
+
+		ViMaterial* mMaterial;
+		std::vector<ViMesh*> mFaceMeshes;
 	};
 }

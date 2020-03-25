@@ -7,6 +7,8 @@
 #include "ViVertex.h"
 #include "ViUtil.h"
 
+#include "ViMeshSubsection.h"
+
 class VIENGINE_EXPORT ViMesh
 {
 public:
@@ -20,7 +22,7 @@ public:
 		cFACE_RIGHT		= 1 << 3,
 		cFACE_FRONT		= 1 << 4,
 		cFACE_BACK		= 1 << 5,
-		cFACE_ALL		= ~0
+		cFACE_ALL		= cFACE_TOP | cFACE_BOTTOM | cFACE_LEFT | cFACE_RIGHT | cFACE_FRONT | cFACE_BACK
 	};
 
 	ViMesh(ViMaterial* aMaterial, std::vector<ViVertex> aVertices, std::vector<GLuint> aIndices);
@@ -28,6 +30,7 @@ public:
 	void Merge(ViMesh* aMesh...);
 	
 	vi_property_named(ViMaterial*, mMaterial, Material);
+	vi_property_named(std::vector<ViMeshSubsection>, mSubsections, Subsections);
 	vi_property_named(std::vector<ViVertex>, mVertices, Vertices);
 	vi_property_named(std::vector<GLuint>, mIndices, Indices);
 
@@ -54,6 +57,8 @@ public:
 	//Makes an unrotated cube. This assumes it is axis aligned in world space, and thus takes only two points, a minimum and maximum. min = x left, y top, z near. max = x right, y bottom, z far
 	static ViMesh* MakeUCube(ViMaterial* aMaterial, vec3 min, vec3 max, int aFaces = cFACE_ALL);
 
+	static ViMesh* GetEmpty();
+
 private:
 	GLsizeiptr mVerticesSize;
 	GLsizeiptr mIndicesSize;
@@ -62,4 +67,6 @@ private:
 	GLuint mVAO;
 	GLuint mVBO;
 	GLuint mIBO;
+
+	static ViMesh* Empty;
 };

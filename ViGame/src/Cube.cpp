@@ -1,10 +1,12 @@
 #include "Cube.h"
 
 #include "VoxelWorld.h"
+#include "CubeInstance.h"
 
-vigame::Cube::Cube(VoxelWorld* world, ViMaterial* aMaterial) :
+vigame::Cube::Cube(VoxelWorld* world, ViMaterial* aMaterial, bool aTransparent) :
 	mWorld(world),
-	idSet(false)
+	idSet(false),
+	mTransparent(aTransparent)
 {
 	CreateMesh(aMaterial);
 }
@@ -22,96 +24,32 @@ inline vigame::cubeid vigame::Cube::GetId()
 	return mId;
 }
 
-void vigame::Cube::GetFace(CubeFace aFace, std::vector<ViVertex>& aVertices, std::vector<GLuint>& aIndices)
+uint8_t vigame::Cube::GetAdjacents(const CubeInstance& aCubeInstance, vec3i aPosition)
 {
-	/*if (mTransparent || GetMesh() == nullptr)
-		return;
+	VoxelWorld* world = GetWorld();
 
-	const int vertSize = 4;
-	const int indSize = 6;
+	uint8_t notFaces = 0;
 
-	ViMesh* mesh = GetMesh();
-	switch (aFace)
-	{
-	case CubeFace::cFACE_TOP:
-	{
-		int start = 4;
-		int offVert = vertSize * start;
-		int offInd = indSize * start;
+	//TODO check transparent cubes
+	if (GetAdjacentCubeShouldHideFace(aPosition + vec3i(1, 0, 0)))
+		notFaces = notFaces | ViMesh::cFACE_RIGHT;
+	if (GetAdjacentCubeShouldHideFace(aPosition + vec3i(-1, 0, 0)))
+		notFaces = notFaces | ViMesh::cFACE_LEFT;
+	if (GetAdjacentCubeShouldHideFace(aPosition + vec3i(0, 1, 0)))
+		notFaces = notFaces | ViMesh::cFACE_TOP;
+	if (GetAdjacentCubeShouldHideFace(aPosition + vec3i(0, -1, 0)))
+		notFaces = notFaces | ViMesh::cFACE_BOTTOM;
+	if (GetAdjacentCubeShouldHideFace(aPosition + vec3i(0, 0, 1)))
+		notFaces = notFaces | ViMesh::cFACE_FRONT;
+	if (GetAdjacentCubeShouldHideFace(aPosition + vec3i(0, 0, -1)))
+		notFaces = notFaces | ViMesh::cFACE_BACK;
 
-		auto vertIterBegin = mesh->GetVertices().begin() + offVert;
-		auto indIterBegin = mesh->GetVertices().begin() + offInd;
+	return ~notFaces & ViMesh::cFACE_ALL;
+}
 
-		aVertices.insert(aVertices.begin(), vertIterBegin, vertIterBegin + vertSize);
-		aIndices.insert(aIndices.begin(), indIterBegin, indIterBegin + indSize);
-		break;
-	}
-	case CubeFace::cFACE_BOTTOM:
-	{
-		int start = 5;
-		int offVert = vertSize * start;
-		int offInd = indSize * start;
-
-		auto vertIterBegin = mesh->GetVertices().begin() + offVert;
-		auto indIterBegin = mesh->GetVertices().begin() + offInd;
-
-		aVertices.insert(aVertices.begin(), vertIterBegin, vertIterBegin + vertSize);
-		aIndices.insert(aIndices.begin(), indIterBegin, indIterBegin + indSize);
-		break;
-	}
-	case CubeFace::cFACE_LEFT:
-	{
-		int start = 3;
-		int offVert = vertSize * start;
-		int offInd = indSize * start;
-
-		auto vertIterBegin = mesh->GetVertices().begin() + offVert;
-		auto indIterBegin = mesh->GetVertices().begin() + offInd;
-
-		aVertices.insert(aVertices.begin(), vertIterBegin, vertIterBegin + vertSize);
-		aIndices.insert(aIndices.begin(), indIterBegin, indIterBegin + indSize);
-		break;
-	}
-	case CubeFace::cFACE_RIGHT:
-	{
-		int start = 1;
-		int offVert = vertSize * start;
-		int offInd = indSize * start;
-
-		auto vertIterBegin = mesh->GetVertices().begin() + offVert;
-		auto indIterBegin = mesh->GetVertices().begin() + offInd;
-
-		aVertices.insert(aVertices.begin(), vertIterBegin, vertIterBegin + vertSize);
-		aIndices.insert(aIndices.begin(), indIterBegin, indIterBegin + indSize);
-		break;
-	}
-	case CubeFace::cFACE_FRONT:
-	{
-		int start = 0;
-		int offVert = vertSize * start;
-		int offInd = indSize * start;
-
-		auto vertIterBegin = mesh->GetVertices().begin() + offVert;
-		auto indIterBegin = mesh->GetVertices().begin() + offInd;
-
-		aVertices.insert(aVertices.begin(), vertIterBegin, vertIterBegin + vertSize);
-		aIndices.insert(aIndices.begin(), indIterBegin, indIterBegin + indSize);
-		break;
-	}
-	case CubeFace::cFACE_BACK:
-	{
-		int start = 2;
-		int offVert = vertSize * start;
-		int offInd = indSize * start;
-
-		auto vertIterBegin = mesh->GetVertices().begin() + offVert;
-		auto indIterBegin = mesh->GetVertices().begin() + offInd;
-
-		aVertices.insert(aVertices.begin(), vertIterBegin, vertIterBegin + vertSize);
-		aIndices.insert(aIndices.begin(), indIterBegin, indIterBegin + indSize);
-		break;
-	}
-	}*/
+ViMesh* vigame::Cube::GetMeshWithFace(uint8_t aFaces)
+{
+	return mFaceMeshes[aFaces];
 }
 
 vigame::VoxelWorld* vigame::Cube::GetWorld()
@@ -120,16 +58,32 @@ vigame::VoxelWorld* vigame::Cube::GetWorld()
 }
 
 void vigame::Cube::CreateMesh(ViMaterial* aMaterial)
-{	
+{
 	if (aMaterial == nullptr)
-	{
-		SetMesh(nullptr);
 		return;
-	}
 
 	float scale = GetWorld()->GetGridSize() / 2;	//since we start in the middle...
 	vec3 min = { -scale, scale, scale };
 	vec3 max = { scale, -scale, -scale };
-	SetMesh(ViMesh::MakeUCube(aMaterial, min, max));
-	GetMesh()->UploadData();
+
+	for (uint8_t i = 0; i < ViMesh::cFACE_ALL; i++)
+	{
+		ViMesh* mesh = ViMesh::MakeUCube(aMaterial, min, max, i);
+		if (mesh != ViMesh::GetEmpty())
+			mesh->UploadData();
+		mFaceMeshes.push_back(mesh);
+	}
+}
+
+bool vigame::Cube::GetAdjacentCubeShouldHideFace(vec3i aPosition)
+{
+	CubeInstance instance = GetWorld()->GetCubeInstance(aPosition);
+	if (instance.mId == 0)
+		return false;
+
+	if (GetWorld()->GetCubeRegistry()->GetCubeType(instance.mId)->GetTransparent() && !mTransparent)
+		return false;
+
+	return true;
+
 }
