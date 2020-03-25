@@ -59,6 +59,9 @@ void vigame::VoxelWorld::Draw(ViVertexBatch* batch)
 				Cube* cube = mCubeRegistry->GetCubeType(cubeInstance.mId);
 
 				uint8_t adjacents = cube->GetAdjacents(cubeInstance, { x, y, z });
+				if (adjacents == 0)
+					continue;
+
 				ViMesh* mesh = cube->GetMeshWithFace(adjacents);
 
 				if (mesh != nullptr)

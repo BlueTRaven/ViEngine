@@ -24,6 +24,9 @@ void ViVertexBatch::Init(ViVertexBatchSettings aSettings)
 
 void ViVertexBatch::Draw(ViTransform aTransform, ViMesh* aMesh)
 {
+	if (aMesh == ViMesh::GetEmpty())
+		return;	//don't draw, since Empty has nothing to draw...
+
 	std::vector<ViMeshSubsection> subsections = aMesh->GetSubsections();
 
 	for (int i = 0; i < subsections.size(); i++)

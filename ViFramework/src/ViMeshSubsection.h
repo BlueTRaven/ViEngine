@@ -12,7 +12,7 @@ struct ViMeshSubsection
 		size(0)
 	{ }
 
-	ViMeshSubsection(ViMaterial* aMaterial, GLuint aStart, GLuint aSize) :
+	ViMeshSubsection(ViMaterial* aMaterial, GLuint aStart, GLsizeiptr aSize) :
 		material(aMaterial),
 		start(aStart),
 		size(aSize)
@@ -21,5 +21,5 @@ struct ViMeshSubsection
 
 	ViMaterial* material;
 	GLuint start;
-	GLuint size;
+	GLsizeiptr size;
 };
