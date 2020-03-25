@@ -123,9 +123,10 @@ void ViProgram::CompileAndLink()
 
 void ViProgram::BindAttributes(bool aForceBind)
 {
-	if (!mBoundAttributes || aForceBind)
+	//TODO optimize
+	for (auto attribute : mVertexAttributes)
 	{
-		for (auto attribute : mVertexAttributes)
+		if (!mBoundAttributes)
 		{
 			if (attribute->Get_elements() > 4)
 			{
@@ -143,12 +144,12 @@ void ViProgram::BindAttributes(bool aForceBind)
 
 			attribute->Set_id(attribId);
 
-			glVertexAttribPointer(attribId, attribute->Get_elements(), GL_FLOAT, GL_FALSE, (GLsizei)attribute->Get_size(), attribute->Get_offset());
-			glBindAttribLocation(mId, attribId, attribute->Get_name().c_str());
-
-			glEnableVertexAttribArray(attribId);
+			glBindAttribLocation(mId, attribute->Get_id(), attribute->Get_name().c_str());
 		}
 
-		mBoundAttributes = true;
+		glVertexAttribPointer(attribute->Get_id(), attribute->Get_elements(), GL_FLOAT, GL_FALSE, (GLsizei)attribute->Get_size(), attribute->Get_offset());
+		glEnableVertexAttribArray(attribute->Get_id());
 	}
+
+	mBoundAttributes = true;
 }

@@ -1,7 +1,22 @@
 #include "ViMesh.h"
 
 ViMesh::ViMesh(ViMaterial* aMaterial, std::vector<ViVertex> aVertices, std::vector<GLuint> aIndices) :
-	mMaterial(aMaterial),
+	mVertices(aVertices),
+	mIndices(aIndices),
+	mVerticesSize(aVertices.size() * sizeof(ViVertex)),
+	mIndicesSize(aIndices.size() * sizeof(GLuint)),
+	mCanGenerateGLObjects(false),
+	mHasGLObjects(false),
+	mVAO(0),
+	mVBO(0),
+	mIBO(0),
+	mVolatile(false)
+{
+	mSubsections = std::vector<ViMeshSubsection>{ ViMeshSubsection(aMaterial, 0, mIndicesSize) };
+}
+
+ViMesh::ViMesh(std::vector<ViMeshSubsection> aSubsections, std::vector<ViVertex> aVertices, std::vector<GLuint> aIndices) : 
+	mSubsections(aSubsections),
 	mVertices(aVertices),
 	mIndices(aIndices),
 	mVerticesSize(aVertices.size() * sizeof(ViVertex)),
@@ -54,7 +69,27 @@ void ViMesh::Bind()
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIBO);
 
-	glUseProgram(mMaterial->GetProgram()->GetId());
+}
+
+void ViMesh::BindSubsection(ViMeshSubsection aMeshSubsection)
+{
+	glUseProgram(aMeshSubsection.material->GetProgram()->GetId());
+	aMeshSubsection.material->GetProgram()->BindAttributes();
+	aMeshSubsection.material->GetProgram()->SetUniforms();
+
+	if (aMeshSubsection.material->GetTexture() != nullptr)
+		glBindTexture(GL_TEXTURE_2D, aMeshSubsection.material->GetTexture()->GetId());
+}
+
+ViMeshSubsection ViMesh::GetSubsection(int aIndex)
+{
+	if (aIndex < 0 || aIndex >= mSubsections.size())
+	{
+		printf("Error: Could not get subsection %i as it was out of bounds. Size is %i.\n", aIndex, (int)mSubsections.size());
+		return ViMeshSubsection();
+	}
+
+	return mSubsections[aIndex];
 }
 
 void ViMesh::Unbind()
@@ -74,7 +109,7 @@ void ViMesh::UploadData()
 	glBufferData(GL_ARRAY_BUFFER, mVerticesSize, mVertices.data(), GL_STATIC_DRAW);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, mIndicesSize, mIndices.data(), GL_STATIC_DRAW);
 
-	mMaterial->GetProgram()->BindAttributes(true);
+	//mMaterial->GetProgram()->BindAttributes(true);
 
 	Unbind();
 }

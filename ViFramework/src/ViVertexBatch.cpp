@@ -24,9 +24,20 @@ void ViVertexBatch::Init(ViVertexBatchSettings aSettings)
 
 void ViVertexBatch::Draw(ViTransform aTransform, ViMesh* aMesh)
 {
+	std::vector<ViMeshSubsection> subsections = aMesh->GetSubsections();
+
+	for (int i = 0; i < subsections.size(); i++)
+	{
+		Draw(aTransform, aMesh, i);
+	}
+}
+
+void ViVertexBatch::Draw(ViTransform aTransform, ViMesh* aMesh, int aMeshSubsection)
+{
 	ViVertexBatchInstance instance = ViVertexBatchInstance();
 	instance.transform = aTransform;
 	instance.mesh = aMesh;
+	instance.meshSubsection = aMeshSubsection;
 
 	mInstances.push_back(instance);
 }
@@ -75,10 +86,6 @@ void ViVertexBatch::Flush()
 	std::sort(mInstances.begin(), mInstances.end(), 
 		[](ViVertexBatchInstance a, ViVertexBatchInstance b) 
 	{ 
-		if (a.mesh->GetMaterial() == nullptr || b.mesh->GetMaterial() == nullptr)
-			return false;
-		if (a.mesh->GetMaterial()->GetTexture()->GetAlpha() && !b.mesh->GetMaterial()->GetTexture()->GetAlpha())
-			return a.mesh->GetMaterial()->GetTexture()->GetAlpha() < a.mesh->GetMaterial()->GetTexture()->GetAlpha();
 		return a.mesh < b.mesh; 
 	});
 
@@ -95,6 +102,8 @@ void ViVertexBatch::Flush()
 
 		if (!instance.mesh->HasGeneratedGLObjects())
 		{
+			ViMeshSubsection subsection = instance.mesh->GetSubsection(instance.meshSubsection);
+
 			if (mUsedOtherGLObjects)
 			{
 				mUsedOtherGLObjects = false;
@@ -109,7 +118,8 @@ void ViVertexBatch::Flush()
 
 				glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeIndex, instance.mesh->GetIndices().data(), GL_STATIC_DRAW);
 
-				glUseProgram(instance.mesh->GetMaterial()->GetProgram()->GetId());
+				instance.mesh->BindSubsection(subsection);
+				/*glUseProgram(instance.mesh->GetMaterial()->GetProgram()->GetId());
 
 				instance.mesh->GetMaterial()->GetProgram()->BindAttributes();
 				instance.mesh->GetMaterial()->GetProgram()->SetUniforms();
@@ -118,38 +128,48 @@ void ViVertexBatch::Flush()
 				{
 					glBindTexture(GL_TEXTURE_2D, instance.mesh->GetMaterial()->GetTexture()->GetId());
 					mSettings.SetTextureSettings();
-				}
+				}*/
 			}
 
 			if (transformChanged)
-			{
-				instance.mesh->GetMaterial()->GetProgram()->SetObjectMat(instance.transform.Matrix());
-			}
+				subsection.material->GetProgram()->SetObjectMat(instance.transform.Matrix());
+
+			if (instance.mesh->GetVolatile())
+				delete instance.mesh;
+
+			void* offset = subsection.start == 0 ? nullptr : (void*)subsection.start;
+			glDrawElements(GL_TRIANGLES, (GLsizei)subsection.size, GL_UNSIGNED_INT, offset);
 		}
 		else
 		{
 			mUsedOtherGLObjects = true;
-			//Don't need to worry about unbinding last mesh; after all, we're overwriting thsoe bindings here.
+
+			ViMeshSubsection subsection = instance.mesh->GetSubsection(instance.meshSubsection);
+
 			if (meshChanged)
 			{
+				//Don't need to worry about unbinding last mesh; after all, we're overwriting thsoe bindings here.
 				instance.mesh->Bind();
-				instance.mesh->GetMaterial()->GetProgram()->SetUniforms();
+				instance.mesh->BindSubsection(subsection);
+				mSettings.SetTextureSettings();
+				/*instance.mesh->GetMaterial()->GetProgram()->SetUniforms();
 
 				if (instance.mesh->GetMaterial()->GetTexture() != nullptr)
 				{
 					glBindTexture(GL_TEXTURE_2D, instance.mesh->GetMaterial()->GetTexture()->GetId());
 					mSettings.SetTextureSettings();
-				}
+				}*/
 			}
 
 			if (transformChanged)
-				instance.mesh->GetMaterial()->GetProgram()->SetObjectMat(instance.transform.Matrix());
+				subsection.material->GetProgram()->SetObjectMat(instance.transform.Matrix());
+
+			if (instance.mesh->GetVolatile())
+				delete instance.mesh;
+
+			void* offset = subsection.start == 0 ? nullptr : (void*)subsection.start;
+			glDrawElements(GL_TRIANGLES, (GLsizei)subsection.size, GL_UNSIGNED_INT, offset);
 		}
-
-		if (instance.mesh->GetVolatile())
-			delete instance.mesh;
-
-		glDrawElements(GL_TRIANGLES, (GLsizei)sizeIndex, GL_UNSIGNED_INT, NULL);
 
 		lastInstance = instance;
 		first = false;

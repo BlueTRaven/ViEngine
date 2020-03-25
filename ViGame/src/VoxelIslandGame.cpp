@@ -23,7 +23,7 @@ void vigame::VoxelIslandGame::Init()
 	mProgramText = static_cast<ViProgramText*>(GET_ASSET_PROGRAM("text"));
 	mProgramGeneric = static_cast<ViProgramGeneric*>(GET_ASSET_PROGRAM("generic"));
 
-	world = new VoxelWorld({ 16, 16, 16 }, 0.05f);
+	world = new VoxelWorld({ 24, 24, 24 }, 0.05f);
 	
 	const int offset = 4;
 	const int size = 8;
@@ -39,6 +39,8 @@ void vigame::VoxelIslandGame::Init()
 			}
 		}
 	}
+
+	world->SetCubeInstance(vec3i(21, 21, 21), world->GetCubeRegistry()->GetCubeType(2));
 
 	ViGame::Init();
 }

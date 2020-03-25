@@ -7,5 +7,6 @@
 struct ViVertexBatchInstance
 {
 	ViMesh* mesh;
+	int meshSubsection;
 	ViTransform transform;
 };

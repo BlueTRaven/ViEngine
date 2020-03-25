@@ -66,7 +66,7 @@ void vigame::Cube::CreateMesh(ViMaterial* aMaterial)
 	vec3 min = { -scale, scale, scale };
 	vec3 max = { scale, -scale, -scale };
 
-	for (uint8_t i = 0; i < ViMesh::cFACE_ALL; i++)
+	for (uint8_t i = 0; i <= ViMesh::cFACE_ALL; i++)
 	{
 		ViMesh* mesh = ViMesh::MakeUCube(aMaterial, min, max, i);
 		if (mesh != ViMesh::GetEmpty())
