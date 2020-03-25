@@ -33,9 +33,9 @@ void vigame::VoxelIslandGame::Init()
 		{
 			for (int z = 0; z < size; z++)
 			{
-				if (z == size - 2)
+				/*if (z == size - 2)
 					world->SetCubeInstance(vec3i(x + offset, y + offset, z + offset), world->GetCubeRegistry()->GetCubeType(2));
-				else world->SetCubeInstance({ x + offset, y + offset, z + offset }, world->GetCubeRegistry()->GetCubeType(1));
+				else*/ world->SetCubeInstance({ x + offset, y + offset, z + offset }, world->GetCubeRegistry()->GetCubeType(1));
 			}
 		}
 	}

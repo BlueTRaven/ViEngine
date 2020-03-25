@@ -10,6 +10,8 @@
 
 #include "ViGameUtil.h"
 
+class ViVertexBatch;
+
 namespace vigame
 {
 	class VoxelWorld;
@@ -27,7 +29,9 @@ namespace vigame
 
 		uint8_t GetAdjacents(const CubeInstance& aCubeInstance, vec3i aPosition);
 
-		ViMesh* GetMeshWithFace(uint8_t aFaces);
+		//ViMesh* GetMeshWithFace(uint8_t aFaces);
+
+		void Draw(const CubeInstance& aCubeInstance, vec3i aPosition, ViVertexBatch* aBatch);
 
 	protected:
 		VoxelWorld* GetWorld();
@@ -45,6 +49,6 @@ namespace vigame
 		bool GetAdjacentCubeShouldHideFace(vec3i aPosition);
 
 		ViMaterial* mMaterial;
-		std::vector<ViMesh*> mFaceMeshes;
+		ViMesh* mMesh;
 	};
 }

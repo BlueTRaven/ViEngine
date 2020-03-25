@@ -44,7 +44,7 @@ vigame::CubeInstance vigame::VoxelWorld::MakeInstance(Cube* aCube)
 	return CubeInstance(mCubeRegistry->GetCubeId(aCube));
 }
 
-void vigame::VoxelWorld::Draw(ViVertexBatch* batch)
+void vigame::VoxelWorld::Draw(ViVertexBatch* aBatch)
 {
 	for (int x = 0; x < WIDTH; x++)
 	{
@@ -57,15 +57,15 @@ void vigame::VoxelWorld::Draw(ViVertexBatch* batch)
 					continue;
 
 				Cube* cube = mCubeRegistry->GetCubeType(cubeInstance.mId);
-
-				uint8_t adjacents = cube->GetAdjacents(cubeInstance, { x, y, z });
+				cube->Draw(cubeInstance, { x, y, z }, aBatch);
+				/*uint8_t adjacents = cube->GetAdjacents(cubeInstance, { x, y, z });
 				if (adjacents == 0)
 					continue;
 
 				ViMesh* mesh = cube->GetMeshWithFace(adjacents);
 
 				if (mesh != nullptr)
-					batch->Draw(ViTransform::Positioned(vec3(x, y, z) * GetGridSize()), mesh);
+					batch->Draw(ViTransform::Positioned(vec3(x, y, z) * GetGridSize()), mesh);*/
 			}
 		}
 	}

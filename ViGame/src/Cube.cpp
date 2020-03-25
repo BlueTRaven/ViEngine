@@ -1,5 +1,6 @@
 #include "Cube.h"
 
+#include "ViVertexBatch.h"
 #include "VoxelWorld.h"
 #include "CubeInstance.h"
 
@@ -47,9 +48,22 @@ uint8_t vigame::Cube::GetAdjacents(const CubeInstance& aCubeInstance, vec3i aPos
 	return ~notFaces & ViMesh::cFACE_ALL;
 }
 
-ViMesh* vigame::Cube::GetMeshWithFace(uint8_t aFaces)
+void vigame::Cube::Draw(const CubeInstance& aCubeInstance, vec3i aPosition, ViVertexBatch* aBatch)
 {
-	return mFaceMeshes[aFaces];
+	uint8_t adjacents = GetAdjacents(aCubeInstance, aPosition);
+
+	if (adjacents & ViMesh::cFACE_FRONT)
+		aBatch->Draw(ViTransform::Positioned(glm::vec3(aPosition) * mWorld->GetGridSize()), mMesh, 0);
+	if (adjacents & ViMesh::cFACE_RIGHT)
+		aBatch->Draw(ViTransform::Positioned(glm::vec3(aPosition) * mWorld->GetGridSize()), mMesh, 1);
+	if (adjacents & ViMesh::cFACE_BACK)
+		aBatch->Draw(ViTransform::Positioned(glm::vec3(aPosition) * mWorld->GetGridSize()), mMesh, 2);
+	if (adjacents & ViMesh::cFACE_LEFT)
+		aBatch->Draw(ViTransform::Positioned(glm::vec3(aPosition) * mWorld->GetGridSize()), mMesh, 3);
+	if (adjacents & ViMesh::cFACE_TOP)
+		aBatch->Draw(ViTransform::Positioned(glm::vec3(aPosition) * mWorld->GetGridSize()), mMesh, 4);
+	if (adjacents & ViMesh::cFACE_BOTTOM)
+		aBatch->Draw(ViTransform::Positioned(glm::vec3(aPosition) * mWorld->GetGridSize()), mMesh, 5);
 }
 
 vigame::VoxelWorld* vigame::Cube::GetWorld()
@@ -66,13 +80,16 @@ void vigame::Cube::CreateMesh(ViMaterial* aMaterial)
 	vec3 min = { -scale, scale, scale };
 	vec3 max = { scale, -scale, -scale };
 
-	for (uint8_t i = 0; i <= ViMesh::cFACE_ALL; i++)
+	mMesh = ViMesh::MakeUCube(aMaterial, min, max, ViMesh::cFACE_ALL);
+	if (mMesh != ViMesh::GetEmpty())
+		mMesh->UploadData();
+	/*for (uint8_t i = 0; i <= ViMesh::cFACE_ALL; i++)
 	{
 		ViMesh* mesh = ViMesh::MakeUCube(aMaterial, min, max, i);
 		if (mesh != ViMesh::GetEmpty())
 			mesh->UploadData();
 		mFaceMeshes.push_back(mesh);
-	}
+	}*/
 }
 
 bool vigame::Cube::GetAdjacentCubeShouldHideFace(vec3i aPosition)

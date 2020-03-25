@@ -122,16 +122,6 @@ void ViVertexBatch::Flush()
 				glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeIndex, instance.mesh->GetIndices().data(), GL_STATIC_DRAW);
 
 				instance.mesh->BindSubsection(subsection);
-				/*glUseProgram(instance.mesh->GetMaterial()->GetProgram()->GetId());
-
-				instance.mesh->GetMaterial()->GetProgram()->BindAttributes();
-				instance.mesh->GetMaterial()->GetProgram()->SetUniforms();
-
-				if (instance.mesh->GetMaterial()->GetTexture() != nullptr)
-				{
-					glBindTexture(GL_TEXTURE_2D, instance.mesh->GetMaterial()->GetTexture()->GetId());
-					mSettings.SetTextureSettings();
-				}*/
 			}
 
 			if (transformChanged)
@@ -155,13 +145,6 @@ void ViVertexBatch::Flush()
 				instance.mesh->Bind();
 				instance.mesh->BindSubsection(subsection);
 				mSettings.SetTextureSettings();
-				/*instance.mesh->GetMaterial()->GetProgram()->SetUniforms();
-
-				if (instance.mesh->GetMaterial()->GetTexture() != nullptr)
-				{
-					glBindTexture(GL_TEXTURE_2D, instance.mesh->GetMaterial()->GetTexture()->GetId());
-					mSettings.SetTextureSettings();
-				}*/
 			}
 
 			if (transformChanged)
