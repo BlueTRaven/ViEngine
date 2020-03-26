@@ -4,6 +4,7 @@
 
 #include "glm/glm.hpp"
 
+#include "ViTransform.h"
 #include "ViUtil.h"
 #include "ViMesh.h"
 #include "ViColorsGL.h"
@@ -23,13 +24,16 @@ namespace vigame
 		Cube(VoxelWorld* world, ViMaterial* aMaterial, bool aTransparent);
 
 		vi_property_get_named(bool, mTransparent, Transparent);
+		vi_property_get_named(ViMesh*, mMesh, Mesh);
 
 		void SetId(cubeid mId);
 		cubeid GetId();
 
 		uint8_t GetAdjacents(const CubeInstance& aCubeInstance, vec3i aPosition);
 
-		//ViMesh* GetMeshWithFace(uint8_t aFaces);
+		std::vector<int> GetSubsectionsToDraw(const CubeInstance& aCubeInstance, vec3i aPosition);
+		
+		ViTransform GetWorldSpaceTransform(const CubeInstance& aCubeInstance, vec3i aPosition);
 
 		void Draw(const CubeInstance& aCubeInstance, vec3i aPosition, ViVertexBatch* aBatch);
 

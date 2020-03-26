@@ -12,7 +12,7 @@ ViMesh::ViMesh(ViMaterial* aMaterial, std::vector<ViVertex> aVertices, std::vect
 	mIBO(0),
 	mVolatile(false)
 {
-	mSubsections = std::vector<ViMeshSubsection>{ ViMeshSubsection(aMaterial, 0, mIndicesSize) };
+	mSubsections = std::vector<ViMeshSubsection>{ ViMeshSubsection(aMaterial, 0, mIndices.size()) };
 }
 
 ViMesh::ViMesh(std::vector<ViMeshSubsection> aSubsections, std::vector<ViVertex> aVertices, std::vector<GLuint> aIndices) : 

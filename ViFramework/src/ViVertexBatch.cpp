@@ -153,8 +153,7 @@ void ViVertexBatch::Flush()
 			if (instance.mesh->GetVolatile())
 				delete instance.mesh;
 
-			void* offset = subsection.start == 0 ? nullptr : (void*)subsection.start;
-			glDrawElements(GL_TRIANGLES, (GLsizei)subsection.size, GL_UNSIGNED_INT, offset);
+			glDrawElements(GL_TRIANGLES, (GLsizei)subsection.size, GL_UNSIGNED_INT, (void*)(subsection.start));
 		}
 
 		lastInstance = instance;

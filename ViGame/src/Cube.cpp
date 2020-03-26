@@ -48,22 +48,38 @@ uint8_t vigame::Cube::GetAdjacents(const CubeInstance& aCubeInstance, vec3i aPos
 	return ~notFaces & ViMesh::cFACE_ALL;
 }
 
-void vigame::Cube::Draw(const CubeInstance& aCubeInstance, vec3i aPosition, ViVertexBatch* aBatch)
+std::vector<int> vigame::Cube::GetSubsectionsToDraw(const CubeInstance& aCubeInstance, vec3i aPosition)
 {
 	uint8_t adjacents = GetAdjacents(aCubeInstance, aPosition);
+	if (adjacents == 0)
+		return std::vector<int>();
 
+	std::vector<int> subsections;
 	if (adjacents & ViMesh::cFACE_FRONT)
-		aBatch->Draw(ViTransform::Positioned(glm::vec3(aPosition) * mWorld->GetGridSize()), mMesh, 0);
+		subsections.push_back(0);
 	if (adjacents & ViMesh::cFACE_RIGHT)
-		aBatch->Draw(ViTransform::Positioned(glm::vec3(aPosition) * mWorld->GetGridSize()), mMesh, 1);
+		subsections.push_back(1);
 	if (adjacents & ViMesh::cFACE_BACK)
-		aBatch->Draw(ViTransform::Positioned(glm::vec3(aPosition) * mWorld->GetGridSize()), mMesh, 2);
+		subsections.push_back(2);
 	if (adjacents & ViMesh::cFACE_LEFT)
-		aBatch->Draw(ViTransform::Positioned(glm::vec3(aPosition) * mWorld->GetGridSize()), mMesh, 3);
+		subsections.push_back(3);
 	if (adjacents & ViMesh::cFACE_TOP)
-		aBatch->Draw(ViTransform::Positioned(glm::vec3(aPosition) * mWorld->GetGridSize()), mMesh, 4);
+		subsections.push_back(4);
 	if (adjacents & ViMesh::cFACE_BOTTOM)
-		aBatch->Draw(ViTransform::Positioned(glm::vec3(aPosition) * mWorld->GetGridSize()), mMesh, 5);
+		subsections.push_back(5);
+
+	return subsections;
+}
+
+ViTransform vigame::Cube::GetWorldSpaceTransform(const CubeInstance& aCubeInstance, vec3i aPosition)
+{
+	return ViTransform::Positioned(glm::vec3(aPosition) * mWorld->GetGridSize());
+}
+
+void vigame::Cube::Draw(const CubeInstance& aCubeInstance, vec3i aPosition, ViVertexBatch* aBatch)
+{
+	for (int subsection : GetSubsectionsToDraw(aCubeInstance, aPosition))
+		aBatch->Draw(GetWorldSpaceTransform(aCubeInstance, aPosition), mMesh, subsection);
 }
 
 vigame::VoxelWorld* vigame::Cube::GetWorld()

@@ -5,7 +5,9 @@
 #include <math.h>
 
 #include "ViGame.h"
+
 #include "VoxelWorld.h"
+#include "Chunk.h"
 
 namespace vigame
 {
@@ -22,6 +24,8 @@ namespace vigame
 
 	private:
 		VoxelWorld* world;
+
+		Chunk* mTestChunk;
 
 		ViProgramGeneric* mProgramGeneric;
 		ViProgramText* mProgramText;

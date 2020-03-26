@@ -13,9 +13,9 @@ namespace vigame
 	public:
 		Chunk(vec3i aPosition, VoxelWorld* aWorld);
 
-		const int cWIDTH = 16;
-		const int cHEIGHT = 16;
-		const int cDEPTH = 16;
+		const int cWIDTH = 8;
+		const int cHEIGHT = 8;
+		const int cDEPTH = 8;
 
 		void OptimizeMesh();
 
