@@ -15,7 +15,6 @@ void ViProgram::SetUniforms()
 
 void ViProgram::SetObjectMat(mat4 aObjectMat)
 {
-	SetDirty(true);
 	mObjectMat = aObjectMat;
 
 	if (mHasObjectMat)

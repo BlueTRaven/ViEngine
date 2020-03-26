@@ -30,14 +30,14 @@ void ViGame::Start()
 
 	while (mRunning)
 	{
-		double time = mTimer->GetSec();
+		double time = mTimer->GetMs();
 		mTimer->Update();
-		double deltaTime = mTimer->GetSec() / time;
+		double deltaTime = (mTimer->GetMs() - time) / 1000.0f;
 
 		mFpsTimer->Update();
 
-		PrivateUpdate();
-		PrivateDraw();
+		PrivateUpdate(deltaTime);
+		PrivateDraw(deltaTime);
 		Events();
 
 		mCounter++;
@@ -67,26 +67,26 @@ float ViGame::GetFPS()
 	return mFps;
 }
 
-void ViGame::PrivateUpdate()
+void ViGame::PrivateUpdate(double aDeltaTime)
 {
 	viEnv->GetInputManager()->Update();
 
-	Update();
+	Update(aDeltaTime);
 
 	viEnv->GetInputManager()->LateUpdate();
 }
 
-void ViGame::Update()
+void ViGame::Update(double aDeltaTime)
 {
 }
 
-void ViGame::Draw()
+void ViGame::Draw(double aDeltaTime)
 {
 }
 
-void ViGame::PrivateDraw()
+void ViGame::PrivateDraw(double aDeltaTime)
 {
-	Draw();
+	Draw(aDeltaTime);
 
 	viEnv->GetVertexBatch()->Flush();	//manual flush call - must be done at end of frame
 	SDL_GL_SwapWindow(mWindow);

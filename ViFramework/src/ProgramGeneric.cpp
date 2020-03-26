@@ -20,6 +20,9 @@ ViProgramGeneric::ViProgramGeneric() :
 
 void ViProgramGeneric::SetUniforms()
 {
+	if (!GetDirty())
+		return;
+
 	UniformMat4(mProjection, false, "projection");
 	UniformMat4(mCamera, false, "camera");
 	UniformVec4(glm::vec4(mColor.r, mColor.g, mColor.b, mColor.a), "tint_color");

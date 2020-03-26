@@ -19,6 +19,9 @@ ViProgramText::ViProgramText() :
 
 void ViProgramText::SetUniforms()
 {
+	if (!GetDirty())
+		return;
+
 	UniformMat4(mProjection, false, "projection");
 	UniformVec4(glm::vec4(mColor.r, mColor.g, mColor.b, mColor.a), "tint_color");
 }

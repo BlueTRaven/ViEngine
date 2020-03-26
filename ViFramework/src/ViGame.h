@@ -24,8 +24,8 @@ public:
 	virtual void Quit();
 
 protected:
-	virtual void Update();
-	virtual void Draw();
+	virtual void Update(double aDeltaTime);
+	virtual void Draw(double aDeltaTime);
 	virtual void Events();
 
 	virtual void Init();
@@ -40,8 +40,8 @@ protected:
 	float GetFPS();
 
 private:
-	void PrivateUpdate();
-	void PrivateDraw();
+	void PrivateUpdate(double aDeltaTime);
+	void PrivateDraw(double aDeltaTime);
 	void PrivateInit();
 
 	uint32_t mCounter;	//number of frames since the start

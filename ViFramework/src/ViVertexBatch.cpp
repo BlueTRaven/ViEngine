@@ -97,16 +97,14 @@ void ViVertexBatch::Flush()
 		if (instance.mesh == ViMesh::GetEmpty())
 			continue;	//don't draw if we're the empty instance mesh
 
-		GLsizeiptr sizeVert = instance.mesh->GetVerticesSize();
-		GLsizeiptr sizeIndex = instance.mesh->GetIndicesSize();
+		ViMeshSubsection subsection = instance.mesh->GetSubsection(instance.meshSubsection);
 
 		bool meshChanged = first || (lastInstance.mesh != instance.mesh);
 		bool transformChanged = first || (lastInstance.transform != instance.transform);
+		bool materialChanged = first || (lastInstance.mesh->GetSubsection(lastInstance.meshSubsection).material != subsection.material);
 
 		if (!instance.mesh->HasGeneratedGLObjects())
 		{
-			ViMeshSubsection subsection = instance.mesh->GetSubsection(instance.meshSubsection);
-
 			if (mUsedOtherGLObjects)
 			{
 				mUsedOtherGLObjects = false;
@@ -117,12 +115,16 @@ void ViVertexBatch::Flush()
 
 			if (meshChanged)
 			{
+				GLsizeiptr sizeVert = instance.mesh->GetVerticesSize();
+				GLsizeiptr sizeIndex = instance.mesh->GetIndicesSize();
+
 				glBufferData(GL_ARRAY_BUFFER, sizeVert, instance.mesh->GetVertices().data(), GL_STATIC_DRAW);
 
 				glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeIndex, instance.mesh->GetIndices().data(), GL_STATIC_DRAW);
-
-				instance.mesh->BindSubsection(subsection);
 			}
+
+			if (materialChanged)
+				instance.mesh->BindSubsection(subsection);
 
 			if (transformChanged)
 				subsection.material->GetProgram()->SetObjectMat(instance.transform.Matrix());
@@ -131,18 +133,20 @@ void ViVertexBatch::Flush()
 				delete instance.mesh;
 
 			void* offset = subsection.start == 0 ? nullptr : (void*)subsection.start;
-			glDrawElements(GL_TRIANGLES, (GLsizei)subsection.size, GL_UNSIGNED_INT, offset);
+			glDrawElements(GL_TRIANGLES, subsection.size, GL_UNSIGNED_INT, (void*)(subsection.start * sizeof(GLuint)));
 		}
 		else
 		{
 			mUsedOtherGLObjects = true;
 
-			ViMeshSubsection subsection = instance.mesh->GetSubsection(instance.meshSubsection);
-
 			if (meshChanged)
 			{
 				//Don't need to worry about unbinding last mesh; after all, we're overwriting thsoe bindings here.
 				instance.mesh->Bind();
+			}
+
+			if (materialChanged)
+			{
 				instance.mesh->BindSubsection(subsection);
 				mSettings.SetTextureSettings();
 			}
@@ -153,7 +157,7 @@ void ViVertexBatch::Flush()
 			if (instance.mesh->GetVolatile())
 				delete instance.mesh;
 
-			glDrawElements(GL_TRIANGLES, (GLsizei)subsection.size, GL_UNSIGNED_INT, (void*)(subsection.start));
+			glDrawElements(GL_TRIANGLES, subsection.size, GL_UNSIGNED_INT, (void*)(subsection.start * sizeof(GLuint)));
 		}
 
 		lastInstance = instance;

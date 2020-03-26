@@ -178,49 +178,39 @@ ViMesh* ViMesh::MakeUCube(ViMaterial* aMaterial, vec3 min, vec3 max, int aFaces)
 	if (aFaces & cFACE_FRONT)
 	{
 		ViMesh::MakeQuadRaw(l_t_n, r_t_n, r_b_n, l_b_n, vertices, indices); //front face
-		subsections.push_back(ViMeshSubsection(aMaterial, numIndices * sizeof(GLuint), 6));
+		subsections.push_back(ViMeshSubsection(aMaterial, numIndices, 6));
 		numIndices += 6;
 	}
 	if (aFaces & cFACE_RIGHT)
 	{
 		ViMesh::MakeQuadRaw(r_t_n, r_t_f, r_b_f, r_b_n, vertices, indices);	//right face
-		subsections.push_back(ViMeshSubsection(aMaterial, numIndices * sizeof(GLuint), 6));
+		subsections.push_back(ViMeshSubsection(aMaterial, numIndices, 6));
 		numIndices += 6;
 	}
 	if (aFaces & cFACE_BACK)
 	{
 		ViMesh::MakeQuadRaw(r_t_f, l_t_f, l_b_f, r_b_f, vertices, indices);	//back face
-		subsections.push_back(ViMeshSubsection(aMaterial, numIndices * sizeof(GLuint), 6));
+		subsections.push_back(ViMeshSubsection(aMaterial, numIndices, 6));
 		numIndices += 6;
 	}
 	if (aFaces & cFACE_LEFT)
 	{
 		ViMesh::MakeQuadRaw(l_t_f, l_t_n, l_b_n, l_b_f, vertices, indices);	//left face
-		subsections.push_back(ViMeshSubsection(aMaterial, numIndices * sizeof(GLuint), 6));
+		subsections.push_back(ViMeshSubsection(aMaterial, numIndices, 6));
 		numIndices += 6;
 	}
 	if (aFaces & cFACE_TOP)
 	{
 		ViMesh::MakeQuadRaw(l_t_f, r_t_f, r_t_n, l_t_n, vertices, indices);	//top face
-		subsections.push_back(ViMeshSubsection(aMaterial, numIndices * sizeof(GLuint), 6));
+		subsections.push_back(ViMeshSubsection(aMaterial, numIndices, 6));
 		numIndices += 6;
 	}
 	if (aFaces & cFACE_BOTTOM)
 	{
 		ViMesh::MakeQuadRaw(r_b_f, l_b_f, l_b_n, r_b_n, vertices, indices);	//bottom face
-		subsections.push_back(ViMeshSubsection(aMaterial, numIndices * sizeof(GLuint), 6));
+		subsections.push_back(ViMeshSubsection(aMaterial, numIndices, 6));
 		numIndices += 6;
 	}
-
-	/*std::vector<ViMeshSubsection> subsections =
-	{
-		ViMeshSubsection(aMaterial, 0, 6 * sizeof(GLuint)),
-		ViMeshSubsection(aMaterial, 6, 6 * sizeof(GLuint)),
-		ViMeshSubsection(aMaterial, 12, 6 * sizeof(GLuint)),
-		ViMeshSubsection(aMaterial, 18, 6 * sizeof(GLuint)),
-		ViMeshSubsection(aMaterial, 24, 6 * sizeof(GLuint)),
-		ViMeshSubsection(aMaterial, 30, 6 * sizeof(GLuint))
-	};*/
 
 	ViMesh* mesh = new ViMesh(subsections, vertices, indices);
 
