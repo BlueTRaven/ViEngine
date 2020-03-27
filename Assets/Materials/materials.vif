@@ -6,6 +6,10 @@ material glass_01
 program generic
 texture glass_01
 
+material white_pixel
+program generic
+texture white_pixel
+
 material font_arial_32
 program text
 font arial_32

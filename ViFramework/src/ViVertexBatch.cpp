@@ -59,10 +59,10 @@ void ViVertexBatch::DrawString(ViTransform aTransform, ViMaterial* aMaterial, Vi
 		offX = glyph.offX;
 		offY = glyph.offY;
 
-		vertices.emplace_back(ViVertex(glyph.positions[0], ViColorGL(1.0, 1.0, 1.0, 1.), glyph.uvs[0]));
-		vertices.emplace_back(ViVertex(glyph.positions[1], ViColorGL(1.0, 1.0, 1.0, 1.), glyph.uvs[1]));
-		vertices.emplace_back(ViVertex(glyph.positions[2], ViColorGL(1.0, 1.0, 1.0, 1.), glyph.uvs[2]));
-		vertices.emplace_back(ViVertex(glyph.positions[3], ViColorGL(1.0, 1.0, 1.0, 1.), glyph.uvs[3]));
+		vertices.emplace_back(ViVertex({ 0.0, 0.0, -1.0 }, glyph.positions[0], ViColorGL(1.0, 1.0, 1.0, 1.), glyph.uvs[0]));
+		vertices.emplace_back(ViVertex({ 0.0, 0.0, -1.0 }, glyph.positions[1], ViColorGL(1.0, 1.0, 1.0, 1.), glyph.uvs[1]));
+		vertices.emplace_back(ViVertex({ 0.0, 0.0, -1.0 }, glyph.positions[2], ViColorGL(1.0, 1.0, 1.0, 1.), glyph.uvs[2]));
+		vertices.emplace_back(ViVertex({ 0.0, 0.0, -1.0 }, glyph.positions[3], ViColorGL(1.0, 1.0, 1.0, 1.), glyph.uvs[3]));
 		indices.push_back(lastIndex);
 		indices.push_back(lastIndex + 1);
 		indices.push_back(lastIndex + 2);
@@ -83,6 +83,7 @@ void ViVertexBatch::Flush()
 {
 	ViVertexBatchInstance lastInstance;
 	bool first = true;
+	bool deletedLast = true;	//true by default - in the case that we don't have any instances to flush
 
 	mSettings.SetSettings();
 
@@ -129,9 +130,6 @@ void ViVertexBatch::Flush()
 			if (transformChanged)
 				subsection.material->GetProgram()->SetObjectMat(instance.transform.Matrix());
 
-			if (instance.mesh->GetVolatile())
-				delete instance.mesh;
-
 			void* offset = subsection.start == 0 ? nullptr : (void*)subsection.start;
 			glDrawElements(GL_TRIANGLES, subsection.size, GL_UNSIGNED_INT, (void*)(subsection.start * sizeof(GLuint)));
 		}
@@ -145,24 +143,32 @@ void ViVertexBatch::Flush()
 				instance.mesh->Bind();
 			}
 
-			if (materialChanged)
+			instance.mesh->BindSubsection(subsection);
+			mSettings.SetTextureSettings();
+			
+			/*if (materialChanged)
 			{
-				instance.mesh->BindSubsection(subsection);
-				mSettings.SetTextureSettings();
-			}
+			}*/
 
 			if (transformChanged)
 				subsection.material->GetProgram()->SetObjectMat(instance.transform.Matrix());
 
-			if (instance.mesh->GetVolatile())
-				delete instance.mesh;
-
 			glDrawElements(GL_TRIANGLES, subsection.size, GL_UNSIGNED_INT, (void*)(subsection.start * sizeof(GLuint)));
 		}
+
+		if (!deletedLast && lastInstance.mesh->GetVolatile())
+		{
+			delete lastInstance.mesh;
+			deletedLast = true;
+		}
+		else deletedLast = false;
 
 		lastInstance = instance;
 		first = false;
 	}
+
+	if (!deletedLast && lastInstance.mesh->GetVolatile())
+		delete lastInstance.mesh;
 
 	mInstances.clear();
 }

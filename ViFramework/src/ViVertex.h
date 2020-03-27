@@ -8,8 +8,9 @@
 
 struct VIENGINE_EXPORT ViVertex
 {
-	ViVertex(vec3 pos, ViColorGL color, vec2 texCoord);
+	ViVertex(vec3 nrm, vec3 pos, ViColorGL color, vec2 texCoord);
 
+	vec3 nrm;
 	vec3 pos;
 	ViColorGL color;
 	vec2 texCoord;

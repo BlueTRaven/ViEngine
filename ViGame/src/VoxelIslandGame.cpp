@@ -1,5 +1,7 @@
 #include "VoxelIslandGame.h"
 
+#include "WorldGenerator.h"
+
 vigame::VoxelIslandGame::VoxelIslandGame() : ViGame(640 * 2, 480 * 2),
 	transform(ViTransform::Positioned({ 0.0, 0.0, -1.0 }))
 {
@@ -23,38 +25,21 @@ void vigame::VoxelIslandGame::Init()
 	mProgramText = static_cast<ViProgramText*>(GET_ASSET_PROGRAM("text"));
 	mProgramGeneric = static_cast<ViProgramGeneric*>(GET_ASSET_PROGRAM("generic"));
 
-	world = new VoxelWorld({ 64, 64, 64 }, 0.05f);
-	
-	const int offset = 4;
-	const int size = 16;
-	for (int x = 0; x < size; x++)
-	{
-		for (int y = 0; y < size; y++)
-		{
-			for (int z = 0; z < size; z++)
-			{
-				if (z == size - 2)
-					world->SetCubeInstance(vec3i(x + offset, y + offset, z + offset), world->GetCubeRegistry()->GetCubeType(2));
-				else world->SetCubeInstance({ x + offset, y + offset, z + offset }, world->GetCubeRegistry()->GetCubeType(1));
-			}
-		}
-	}
+	mProgramGeneric->SetAmbientStrength(0.1f);
 
-	world->SetCubeInstance(vec3i(21, 21, 21), world->GetCubeRegistry()->GetCubeType(2));
-
-	mTestChunk = new Chunk(vec3i(0, 0, 0), world);
-	mTestChunk->OptimizeMesh();
+	int worldSize = 256;
+	world = new VoxelWorld({ worldSize, 64, worldSize }, 0.05f, new WorldGenerator);
 
 	ViGame::Init();
 }
 
-void vigame::VoxelIslandGame::Update()
+void vigame::VoxelIslandGame::Update(double aDeltaTime)
 {
 	int width = 0, height = 0;
 
 	SDL_GetWindowSize(GetWindow(), &width, &height);
 
-	float moveMult = -0.01f;
+	float moveMult = -1 * aDeltaTime;
 	float mouseSens = -100;
 
 	if (INPUT_MANAGER->KeyHeld(SDL_SCANCODE_ESCAPE))
@@ -92,13 +77,13 @@ void vigame::VoxelIslandGame::Update()
 
 	mProgramGeneric->SetCamera(transform.Matrix());
 
-	ViGame::Update();
+	ViGame::Update(aDeltaTime);
 	
 	if (SDL_GetWindowFlags(GetWindow()) & SDL_WINDOW_INPUT_FOCUS)
 		SDL_WarpMouseInWindow(GetWindow(), width / 2, height / 2);
 }
 
-void vigame::VoxelIslandGame::Draw()
+void vigame::VoxelIslandGame::Draw(double aDeltaTime)
 {
 	glViewport(0, 0, viEnv->GetScreenWidth(), viEnv->GetScreenHeight());
 
@@ -106,7 +91,7 @@ void vigame::VoxelIslandGame::Draw()
 	glClearColor(color.r, color.g, color.b, color.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_NONE, ViVertexBatchSettings::cDEPTH_LESS, ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_NONPREMULTIPLIED));
+	VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_LESS, ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_NONPREMULTIPLIED));
 	//VERTEX_BATCH->Draw(ViTransform::Positioned(vec3(0, 0, 0)), mTestChunk->GetOptimizedMesh());
 	world->Draw(VERTEX_BATCH);
 
@@ -114,5 +99,5 @@ void vigame::VoxelIslandGame::Draw()
 	VERTEX_BATCH->DrawString(ViTransform::Positioned(vec3(0, 0, 0)), textMaterial, testFont, "Avg. FPS: " + std::to_string(GetAvgFPS()));
 	VERTEX_BATCH->DrawString(ViTransform::Positioned(vec3(0, testFont->GetSize() + 8, 0)), textMaterial, testFont, "FPS: " + std::to_string(GetFPS()));
 
-	ViGame::Draw();
+	ViGame::Draw(aDeltaTime);
 }

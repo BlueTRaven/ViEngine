@@ -55,11 +55,11 @@ public:
 	void UploadData();
 
 	//Makes a quad ViMesh.
-	static ViMesh* MakeQuad(ViMaterial* aMaterial, vec3 pointA, vec3 pointB, vec3 pointC, vec3 pointD);
+	static ViMesh* MakeQuad(ViMaterial* aMaterial, vec3 pointA, vec3 pointB, vec3 pointC, vec3 pointD, vec3 nrm);
 	//Makes a quad. If aOverwrite is false, adds to aVertices and aIndices; otherwise, overwrites them completely.
-	static void MakeQuadRaw(vec3 pointA, vec3 pointB, vec3 pointC, vec3 pointD, std::vector<ViVertex> &aVertices, std::vector<GLuint> &aIndices, bool aOverwrite = false);
+	static void MakeQuadRaw(vec3 pointA, vec3 pointB, vec3 pointC, vec3 pointD, vec3 nrm, std::vector<ViVertex> &aVertices, std::vector<GLuint> &aIndices, ViColorGL aColor, bool aOverwrite = false);
 	//Makes an unrotated cube. This assumes it is axis aligned in world space, and thus takes only two points, a minimum and maximum. min = x left, y top, z near. max = x right, y bottom, z far
-	static ViMesh* MakeUCube(ViMaterial* aMaterial, vec3 min, vec3 max, int aFaces = cFACE_ALL);
+	static ViMesh* MakeUCube(ViMaterial* aMaterial, vec3 min, vec3 max, int aFaces, ViColorGL aColor);
 
 	static ViMesh* GetEmpty();
 

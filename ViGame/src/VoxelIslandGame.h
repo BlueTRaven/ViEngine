@@ -19,13 +19,11 @@ namespace vigame
 	protected:
 		void Init() override;
 
-		void Update() override;
-		void Draw() override;
+		void Update(double aDeltaTime) override;
+		void Draw(double aDeltaTime) override;
 
 	private:
 		VoxelWorld* world;
-
-		Chunk* mTestChunk;
 
 		ViProgramGeneric* mProgramGeneric;
 		ViProgramText* mProgramText;

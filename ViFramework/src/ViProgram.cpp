@@ -24,7 +24,7 @@ void ViProgram::SetObjectMat(mat4 aObjectMat)
 //TODO cache using a custom hashmap
 //std::map will definitely not work, too slow
 GLuint ViProgram::GetUniform(std::string name)
-{
+{//
 	if (mCachedUniformName == name && mCachedUniform != -1)
 		return mCachedUniform;
 
@@ -64,6 +64,15 @@ void ViProgram::UniformVec4(vec4 val, std::string name)
 		return;
 
 	glUniform4f(uniform, val.x, val.y, val.z, val.w);
+}
+
+void ViProgram::UniformVec3(vec3 val, std::string name)
+{
+	GLuint uniform = GetUniform(name);
+	if (uniform < 0)
+		return;
+
+	glUniform3f(uniform, val.x, val.y, val.z);
 }
 
 void ViProgram::UniformMat4(mat4 val, bool transpose, std::string name)
@@ -122,7 +131,7 @@ void ViProgram::CompileAndLink()
 
 void ViProgram::BindAttributes(bool aForceBind)
 {
-	//TODO optimize
+	//TODO optimiz
 	for (auto attribute : mVertexAttributes)
 	{
 		if (!mBoundAttributes)

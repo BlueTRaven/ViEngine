@@ -35,6 +35,7 @@ protected:
 
 	void UniformFloat(float val, std::string name);
 	void UniformVec4(vec4 val, std::string name);
+	void UniformVec3(vec3 val, std::string name);
 	void UniformMat4(mat4 val, bool transpose, std::string name);
 
 	//Compile and link the shaders to the program. If program 

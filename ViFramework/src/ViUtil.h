@@ -138,4 +138,8 @@ typedef VIENGINE_EXPORT glm::vec<2, glm::f32, glm::packed_highp> vec2;
 
 typedef VIENGINE_EXPORT glm::vec<3, glm::int32, glm::packed_highp> vec3i;
 typedef VIENGINE_EXPORT glm::vec<2, glm::int32, glm::packed_highp> vec2i;
+
+typedef VIENGINE_EXPORT glm::vec<3, glm::f64, glm::packed_highp> vec3d;
+typedef VIENGINE_EXPORT glm::vec<2, glm::f64, glm::packed_highp> vec2d;
+
 DISABLE_WARNING_POP

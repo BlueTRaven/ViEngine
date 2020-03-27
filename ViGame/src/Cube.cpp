@@ -96,16 +96,10 @@ void vigame::Cube::CreateMesh(ViMaterial* aMaterial)
 	vec3 min = { -scale, scale, scale };
 	vec3 max = { scale, -scale, -scale };
 
-	mMesh = ViMesh::MakeUCube(aMaterial, min, max, ViMesh::cFACE_ALL);
+	mMesh = ViMesh::MakeUCube(aMaterial, min, max, ViMesh::cFACE_ALL, vicolors::GREEN);
+	
 	if (mMesh != ViMesh::GetEmpty())
 		mMesh->UploadData();
-	/*for (uint8_t i = 0; i <= ViMesh::cFACE_ALL; i++)
-	{
-		ViMesh* mesh = ViMesh::MakeUCube(aMaterial, min, max, i);
-		if (mesh != ViMesh::GetEmpty())
-			mesh->UploadData();
-		mFaceMeshes.push_back(mesh);
-	}*/
 }
 
 bool vigame::Cube::GetAdjacentCubeShouldHideFace(vec3i aPosition)

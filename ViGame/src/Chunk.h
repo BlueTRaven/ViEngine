@@ -4,6 +4,8 @@
 #include "ViMesh.h"
 #include "ViUtil.h"
 
+class ViVertexBatch;
+
 namespace vigame
 {
 	class VoxelWorld;
@@ -11,13 +13,20 @@ namespace vigame
 	class Chunk
 	{
 	public:
+		//aPosition: position in chunk space. Used to index into world chunk array.
+		//aWorld: world that this chunk belongs to.
 		Chunk(vec3i aPosition, VoxelWorld* aWorld);
+		~Chunk();
 
-		const int cWIDTH = 8;
-		const int cHEIGHT = 8;
-		const int cDEPTH = 8;
+		static constexpr int cWIDTH = 16;
+		static constexpr int cHEIGHT = 16;
+		static constexpr int cDEPTH = 16;
+
+		void Draw(ViVertexBatch* aBatch);
 
 		void OptimizeMesh();
+
+		vi_property_named(bool, mDirty, Dirty);
 
 		vi_property_get_named(ViMesh*, mOptimizedMesh, OptimizedMesh);
 
