@@ -4,6 +4,7 @@
 #include <GL/glew.h>
 #include <math.h>
 
+#include "ViMaterialFont.h"
 #include "ViGame.h"
 #include "ProgramCubesInstanced.h"
 
@@ -34,9 +35,9 @@ namespace vigame
 		ViProgramText* mProgramText;
 		ProgramCubesInstanced* mProgramCubesInstanced;
 
-		ViFont* testFont;
+		ViMaterialFont* mDebugFont;
+
 		ViMaterial* genericMaterial;
-		ViMaterial* textMaterial;
 
 		ViTransform transform;
 	};

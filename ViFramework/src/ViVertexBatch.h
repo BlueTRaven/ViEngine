@@ -8,6 +8,7 @@
 #include "ViProgram.h"
 #include "ViVertexBatchSettings.h"
 #include "ViUtil.h"
+#include "ViMaterialFont.h"
 
 #define VERTEX_BATCH viEnv->GetVertexBatch()
 
@@ -21,7 +22,7 @@ public:
 	void Draw(ViTransform aTransform, ViMesh* aMesh);
 	//Draws a subsection of the mesh
 	void Draw(ViTransform aTransform, ViMesh* aMesh, int aMeshSubsection, int64_t aInfo = 0);
-	void DrawString(ViTransform aTransform, ViMaterial* aMaterial, ViFont* aFont, std::string text);
+	void DrawString(ViTransform aTransform, ViMaterialFont* aFont, std::string text);
 
 	void Flush();
 

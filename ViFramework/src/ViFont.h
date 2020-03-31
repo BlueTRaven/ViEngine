@@ -1,5 +1,6 @@
 #pragma once
 
+#include <unordered_map>
 #include <vector>
 #include <fstream>
 #include <string>
@@ -10,6 +11,9 @@
 
 #include "stb/stb_truetype.h"
 #include "stb/stb_image_write.h"
+
+class ViMesh;
+class ViMaterial;
 
 class VIENGINE_EXPORT ViFont
 {

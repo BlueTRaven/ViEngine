@@ -12,6 +12,7 @@ struct ViGlyphInfo
 
 	float offX;
 	float offY;
+
 	glm::vec3 positions[4];
 	glm::vec2 uvs[4];
 };

@@ -1,5 +1,9 @@
 #include "ViFont.h"
 
+#include "ViMesh.h"
+#include "ViGlyphInfo.h"
+#include "ViMaterial.h"
+
 ViFont* ViFont::Load(float size, std::string path)
 {
 	std::ifstream file(path, std::ios::binary | std::ios::ate);

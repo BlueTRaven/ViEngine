@@ -48,7 +48,7 @@ void ViVertexBatch::Draw(ViTransform aTransform, ViMesh* aMesh, int aMeshSubsect
 	mInstances.push_back(instance);
 }
 
-void ViVertexBatch::DrawString(ViTransform aTransform, ViMaterial* aMaterial, ViFont* aFont, std::string aText)
+void ViVertexBatch::DrawString(ViTransform aTransform, ViMaterialFont* aFont, std::string aText)
 {
 	std::vector<ViVertex> vertices;
 	std::vector<GLuint> indices;
@@ -58,7 +58,14 @@ void ViVertexBatch::DrawString(ViTransform aTransform, ViMaterial* aMaterial, Vi
 
 	for (char c : aText)
 	{
-		ViGlyphInfo glyph(aFont, c, offX, offY);
+		auto charInfo = aFont->GetCharInfo(c);
+		ViMesh* cMesh = charInfo.mesh;
+
+		Draw(aTransform, cMesh);
+		aTransform.Translate(vec3(charInfo.offX, charInfo.offY, 0));
+		//offX += aFont->GetCharInfo(c).width;
+
+		/*ViGlyphInfo glyph(aFont, c, offX, offY);
 		offX = glyph.offX;
 		offY = glyph.offY;
 
@@ -73,13 +80,13 @@ void ViVertexBatch::DrawString(ViTransform aTransform, ViMaterial* aMaterial, Vi
 		indices.push_back(lastIndex + 2);
 		indices.push_back(lastIndex + 3);
 
-		lastIndex += 4;
+		lastIndex += 4;*/
 	}
 
 	//TODO cache font character meshes
-	ViMesh* mesh = new ViMesh(aMaterial, vertices, indices);
+	/*ViMesh* mesh = new ViMesh(aMaterial, vertices, indices);
 	mesh->SetVolatile(true);
-	Draw(aTransform, mesh);
+	Draw(aTransform, mesh);(*/
 }
 
 void ViVertexBatch::Flush()
