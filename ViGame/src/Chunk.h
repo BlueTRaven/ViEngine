@@ -21,9 +21,9 @@ namespace vigame
 		Chunk(vec3i aPosition, VoxelWorld* aWorld);
 		~Chunk();
 
-		static constexpr int cWIDTH = 16;
-		static constexpr int cHEIGHT = 16;
-		static constexpr int cDEPTH = 16;
+		static constexpr int cWIDTH = 64;
+		static constexpr int cHEIGHT = 64;
+		static constexpr int cDEPTH = 64;
 
 		void Draw(ViVertexBatch* aBatch);
 

@@ -31,8 +31,8 @@ void vigame::VoxelIslandGame::Init()
 
 	mProgramGeneric->SetAmbientStrength(0.1f);
 
-	int worldSize = 64;
-	world = new VoxelWorld({ worldSize, 128, worldSize }, 0.05f, new WorldGenerator);
+	int worldSize = 256;
+	world = new VoxelWorld({ worldSize, worldSize, worldSize }, 0.05f, new WorldGenerator);
 
 	ViGame::Init();
 
@@ -113,6 +113,13 @@ void vigame::VoxelIslandGame::Draw(double aDeltaTime)
 		ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_ALPHABLEND, ViVertexBatchSettings::cDRAW_FILLED));
 	VERTEX_BATCH->DrawString(ViTransform::Positioned(vec3(0, 0, 0)), mDebugFont, "Avg. FPS: " + std::to_string(GetAvgFPS()));
 	VERTEX_BATCH->DrawString(ViTransform::Positioned(vec3(0, mDebugFont->GetFont()->GetSize() + 8, 0)), mDebugFont, "FPS: " + std::to_string(GetFPS()));
+	
+	vec3i tilesSize = world->GetSize();
+	vec3i chunksSize = world->GetChunkSize();
+	VERTEX_BATCH->DrawString(ViTransform::Positioned(vec3(0, (mDebugFont->GetFont()->GetSize() * 2) + 8, 0)), mDebugFont, "Tiles: w " + 
+		std::to_string(tilesSize.x) + " h " + std::to_string(tilesSize.y) + " d " + std::to_string(tilesSize.z));
+	VERTEX_BATCH->DrawString(ViTransform::Positioned(vec3(0, (mDebugFont->GetFont()->GetSize() * 3) + 8, 0)), mDebugFont, "Chunks: w " +
+		std::to_string(chunksSize.x) + " h " + std::to_string(chunksSize.y) + " d " + std::to_string(chunksSize.z));
 
 	ViGame::Draw(aDeltaTime);
 }
