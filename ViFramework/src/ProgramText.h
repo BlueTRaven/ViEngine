@@ -7,20 +7,20 @@
 #include "ViVertex.h"
 #include "ViProgram.h"
 #include "ViUtil.h"
+#include "ViUniformMat4.h"
+#include "ViUniformVec4.h"
 
 class VIENGINE_EXPORT ViProgramText : public ViProgram
 {
 public:
 	ViProgramText();
 
-	void SetUniforms() override;
+	void SetUniforms(ViVertexBatchInstance& aInstance) override;
 
 	void SetProjection(mat4 aProjection);
 	void SetColor(ViColorGL aColor);
 
-	vi_property_get_named(ViColorGL, mColor, Color);
-
 private:
-	mat4 mProjection;
-	ViColorGL mColor;
+	ViUniformMat4* mUniformProjection;
+	ViUniformVec4* mUniformTintColor;
 };

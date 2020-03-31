@@ -20,11 +20,6 @@ void vigame::Cube::SetId(cubeid aId)
 	mId = aId;
 }
 
-inline vigame::cubeid vigame::Cube::GetId()
-{
-	return mId;
-}
-
 uint8_t vigame::Cube::GetAdjacents(const CubeInstance& aCubeInstance, vec3i aPosition)
 {
 	VoxelWorld* world = GetWorld();

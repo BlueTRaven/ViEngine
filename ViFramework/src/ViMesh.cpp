@@ -1,5 +1,7 @@
 #include "ViMesh.h"
 
+#include "ViVertexBatchInstance.h"
+
 ViMesh::ViMesh(ViMaterial* aMaterial, std::vector<ViVertex> aVertices, std::vector<GLuint> aIndices) :
 	mVertices(aVertices),
 	mIndices(aIndices),
@@ -71,11 +73,9 @@ void ViMesh::Bind()
 
 }
 
-void ViMesh::BindSubsection(ViMeshSubsection aMeshSubsection)
+void ViMesh::BindSubsection(ViVertexBatchInstance& aInstance, ViMeshSubsection aMeshSubsection)
 {
-	glUseProgram(aMeshSubsection.material->GetProgram()->GetId());
-	aMeshSubsection.material->GetProgram()->BindAttributes();
-	aMeshSubsection.material->GetProgram()->SetUniforms();
+	aMeshSubsection.material->GetProgram()->Bind(aInstance);
 
 	if (aMeshSubsection.material->GetTexture() != nullptr)
 		glBindTexture(GL_TEXTURE_2D, aMeshSubsection.material->GetTexture()->GetId());
@@ -212,9 +212,15 @@ ViMesh* ViMesh::MakeUCube(ViMaterial* aMaterial, vec3 min, vec3 max, int aFaces,
 		numIndices += 6;
 	}
 
+	subsections.push_back(ViMeshSubsection(aMaterial, 0, numIndices));
+
 	ViMesh* mesh = new ViMesh(subsections, vertices, indices);
 
 	return mesh;
+}
+
+void ViMesh::MergeInto(std::vector<ViVertex>& aIntoVertices, std::vector<GLuint>& aIntoIndices, ViMesh* aMesh, std::vector<ViMeshSubsection> aSubsectionsToMerge)
+{
 }
 
 ViMesh* ViMesh::Empty = nullptr;

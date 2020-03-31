@@ -5,9 +5,12 @@
 #include <math.h>
 
 #include "ViGame.h"
+#include "ProgramCubesInstanced.h"
 
 #include "VoxelWorld.h"
 #include "Chunk.h"
+
+#include "Player.h"
 
 namespace vigame
 {
@@ -25,8 +28,12 @@ namespace vigame
 	private:
 		VoxelWorld* world;
 
+		Player* player;
+
 		ViProgramGeneric* mProgramGeneric;
 		ViProgramText* mProgramText;
+		ProgramCubesInstanced* mProgramCubesInstanced;
+
 		ViFont* testFont;
 		ViMaterial* genericMaterial;
 		ViMaterial* textMaterial;

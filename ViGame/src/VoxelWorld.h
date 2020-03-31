@@ -8,6 +8,7 @@
 #include "Chunk.h"
 #include "ViGameUtil.h"
 #include "WorldGenerator.h"
+#include "ProgramCubesInstanced.h"
 
 class ViVertexBatch;
 
@@ -31,6 +32,8 @@ namespace vigame
 		vec3i CubeSpaceToChunkSpace(vec3i aPosCubeSpace);
 		vec3i ChunkSpaceToCubeSpace(vec3i aPosChunkSpace);
 
+		vec3 CubeSpaceToWorldSpace(vec3i aPosCubeSpace);
+
 		void Draw(ViVertexBatch* batch);
 
 		vi_property_get_named(vec3i, mSize, Size);
@@ -38,6 +41,7 @@ namespace vigame
 		vi_property_get_named(float, mGridSize, GridSize);
 		vi_property_get_named(CubeRegistry*, mCubeRegistry, CubeRegistry);
 
+		vi_property_named(bool, mDrawDebug, DrawDebug);
 	private:
 		vec3i mSize;
 		float mGridSize;
@@ -55,5 +59,7 @@ namespace vigame
 		CubeRegistry* mCubeRegistry;
 
 		WorldGenerator* mGenerator;
+
+		ProgramCubesInstanced* mProgramCubesInstanced;
 	};
 }

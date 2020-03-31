@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_map>
+
 #include "ViMaterial.h"
 #include "ViMesh.h"
 #include "ViUtil.h"
@@ -9,6 +11,7 @@ class ViVertexBatch;
 namespace vigame
 {
 	class VoxelWorld;
+	struct CubeInstance;
 
 	class Chunk
 	{
@@ -33,10 +36,27 @@ namespace vigame
 		vi_property_get_named(vec3i, mPosition, Position);
 		vi_property_get_named(VoxelWorld*, mWorld, World);
 
+		vi_property_get_named(ViMesh*, mWireframeMesh, WireframeMesh);
+
+		vi_property_get_named(bool, mHasAnything, HasAnything);
+		void NotifyCubeChanged(vec3i aPosition, CubeInstance& aPreviousCubeInstance, CubeInstance& aCubeInstance);
+
 	private:
 		ViMesh* mOptimizedMesh;
+		ViMesh* mOtherMesh;
+		//Mesh for debug mode
+		ViMesh* mWireframeMesh;
 
 		vec3i mPosition;
 		VoxelWorld* mWorld;
+
+		void GreedyMesh();
+
+		//sstd::unordered_map<cubeid, int> mPresentIds;
+
+		//Gets a cube in cube-space chunk-relative coordinates.
+		CubeInstance GetCube(vec3i aPosition);
+
+		bool mHasAnything;
 	};
 }

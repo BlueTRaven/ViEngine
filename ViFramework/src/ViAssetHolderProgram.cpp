@@ -1,5 +1,12 @@
 #include "ViAssetHolderProgram.h"
 
+ViAssetHolderProgram::ViAssetHolderProgram() : 
+	ViAssetHolder<ViProgram*>()
+{
+	mInstance = this;
+	SetFactory(new ViAssetHolderProgramFactory());
+}
+
 ViProgram* ViAssetHolderProgram::LoadAsset(ViAssetDefinition aDefinition)
 {	
 	//This should really never get hit
@@ -11,10 +18,7 @@ ViProgram* ViAssetHolderProgram::LoadAsset(ViAssetDefinition aDefinition)
 
 	if (!customtype.mIsEmpty)
 	{
-		if (customtype.mWords[1] == "generic")
-			return new ViProgramGeneric();
-		else if (customtype.mWords[1] == "text")
-			return new ViProgramText();
+		return mFactory->Create(customtype.mWords[1]);
 	}
 	else 
 	{	//not a custom type; needs shaders and stuff manually
@@ -23,4 +27,11 @@ ViProgram* ViAssetHolderProgram::LoadAsset(ViAssetDefinition aDefinition)
 	}
 
 	return nullptr;
+}
+
+ViAssetHolderProgram* ViAssetHolderProgram::mInstance = nullptr;
+
+void ViAssetHolderProgram::SetFactory(ViAssetHolderProgramFactory* aProgramFactory)
+{
+	mInstance->mFactory = aProgramFactory;
 }

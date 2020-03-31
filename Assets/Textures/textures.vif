@@ -13,3 +13,7 @@ format RGB
 texture white_pixel
 location "white_pixel.png"
 format RGBA	#we want to be able to draw 2d primitives (rectangles and stuff) with this, so best to support alpha.
+
+texture circle_gradient
+location "circle_gradient.png"
+format RGB

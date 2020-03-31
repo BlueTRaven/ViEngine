@@ -15,7 +15,7 @@ ViTexture* ViTexture::Load(std::string path, bool aAlpha, GLint aInternalFormat)
 	GLenum texFormat = aAlpha ? GL_RGBA : GL_RGB;
 
 	ViTexture* texture = new ViTexture(data, width, height, aInternalFormat, texFormat);
-	stbi_image_free(data);
+	//stbi_image_free(data);
 
 	return texture;
 }
@@ -50,4 +50,29 @@ ViTexture::ViTexture(uint8_t* aData, GLsizei aWidth, GLsizei aHeight, GLint aInt
 	}
 
 	glBindTexture(GL_TEXTURE_2D, 0);
+
+	mData = aData;
+}
+
+vec4i ViTexture::GetPixel(vec2i aPosition)
+{
+	if (mAlpha)
+	{
+		const uint8_t *p = mData + (4 * (aPosition.y * mWidth + aPosition.x));
+		uint8_t r = p[0];
+		uint8_t g = p[1];
+		uint8_t b = p[2];
+		uint8_t a = p[3];
+
+		return vec4i(r, g, b, a);
+	}
+	else 
+	{
+		const uint8_t *p = mData + (3 * (aPosition.y * mWidth + aPosition.x));
+		uint8_t r = p[0];
+		uint8_t g = p[1];
+		uint8_t b = p[2];
+
+		return vec4i(r, g, b, 1.0);
+	}
 }

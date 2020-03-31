@@ -5,13 +5,17 @@
 #include "ViColor.h"
 #include "ViProgram.h"
 #include "ViUtil.h"
+#include "ViUniformVec3.h"
+#include "ViUniformVec4.h"
+#include "ViUniformFloat.h"
+#include "ViColorsGL.h"
 
 class VIENGINE_EXPORT ViProgramGeneric : public ViProgram
 {
 public:
 	ViProgramGeneric();
 
-	void SetUniforms() override;
+	void SetUniforms(ViVertexBatchInstance& aInstance) override;
 
 	void SetProjection(mat4 aProjection);
 	void SetCamera(mat4 aCamera);
@@ -22,26 +26,16 @@ public:
 
 	void SetDiffusePos(vec3 aPos);
 
-	void SetObjectMat(mat4 aObjMat) override;
-
-	vi_property_get_named(mat4, mProjection, Projection);
-	vi_property_get_named(mat4, mCamera, Camera);
-	vi_property_get_named(ViColorGL, mTintColor, TintColor);
-
-	vi_property_get_named(float, mAmbientStrength, AmbientStrength);
-	vi_property_get_named(ViColorGL, mAmbientColor, AmbientColor);
-
-	vi_property_get_named(vec3, mDiffusePos, DiffuseLightPos);
-
 private:
-	mat4 mProjection;
-	mat4 mCamera;
-	ViColorGL mTintColor;
+	ViUniformMat4* mUniformProjection;
+	ViUniformMat4* mUniformCamera;
+	ViUniformVec4* mUniformTintColor;
 
-	ViColorGL mDiffuseColor;
-	vec3 mDiffusePos;
+	ViUniformVec3* mUniformDiffuseColor;
+	ViUniformVec3* mUniformDiffusePos;
 
-	ViColorGL mAmbientColor;
-	float mAmbientStrength;
+	ViUniformVec3* mUniformAmbientColor;
+	ViUniformFloat* mUniformAmbientStrength;
 
+	ViUniformMat4* mUniformNormalObject;
 };

@@ -4,9 +4,8 @@
 
 #include "ViUtil.h"
 
-class VIENGINE_EXPORT ViVertexAttribute
+struct VIENGINE_EXPORT ViVertexAttribute
 {
-public:
 	ViVertexAttribute(std::string name, uint16_t elements, size_t size, void* offset) :
 		name(name),
 		elements(elements),

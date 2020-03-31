@@ -34,4 +34,4 @@ ViColor<T>::ViColor(T r, T g, T b, T a) :
 { }
 
 template struct VIENGINE_EXPORT ViColor<GLclampf>;
-typedef ViColor<GLclampf> ViColorGL;
+//typedef ViColor<GLclampf> ViColorGL;

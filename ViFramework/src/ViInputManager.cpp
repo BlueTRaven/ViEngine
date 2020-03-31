@@ -19,7 +19,7 @@ void ViInputManager::LateUpdate()
 }
 
 bool ViInputManager::KeyDown(SDL_Scancode aKeyCode)
-{
+{	//TODO This is broken? Never returns true (mCurrentKeyboardState == mPreviousKeyboardState
 	return mCurrentKeyboardState[aKeyCode] && !mPreviousKeyboardState[aKeyCode];
 }
 

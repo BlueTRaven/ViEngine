@@ -10,6 +10,10 @@ material white_pixel
 program generic
 texture white_pixel
 
+material cube_instanced
+program cube_instanced
+texture white_pixel
+
 material font_arial_32
 program text
 font arial_32

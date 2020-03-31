@@ -1,12 +1,15 @@
 #include "VoxelIslandGame.h"
 
 #include "WorldGenerator.h"
+#include "ViGameAssetHolderProgramFactory.h"
 
 vigame::VoxelIslandGame::VoxelIslandGame() : ViGame(640 * 2, 480 * 2),
 	transform(ViTransform::Positioned({ 0.0, 0.0, -1.0 }))
 {
 	transform.SetScale({ 0.5, 0.5, 0.5 });
 	viEnv->GetAssetHandler()->InitialParse("./Assets/assets.vif");
+
+	ViAssetHolderProgram::SetFactory(new ViGameAssetHolderProgramFactory());
 }
 
 void vigame::VoxelIslandGame::Init()
@@ -25,12 +28,16 @@ void vigame::VoxelIslandGame::Init()
 	mProgramText = static_cast<ViProgramText*>(GET_ASSET_PROGRAM("text"));
 	mProgramGeneric = static_cast<ViProgramGeneric*>(GET_ASSET_PROGRAM("generic"));
 
+	mProgramCubesInstanced = static_cast<ProgramCubesInstanced*>(GET_ASSET_PROGRAM("cube_instanced"));
+
 	mProgramGeneric->SetAmbientStrength(0.1f);
 
-	int worldSize = 256;
-	world = new VoxelWorld({ worldSize, 64, worldSize }, 0.05f, new WorldGenerator);
+	int worldSize = 64;
+	world = new VoxelWorld({ worldSize, 128, worldSize }, 0.05f, new WorldGenerator);
 
 	ViGame::Init();
+
+	player = new Player(world);
 }
 
 void vigame::VoxelIslandGame::Update(double aDeltaTime)
@@ -59,6 +66,12 @@ void vigame::VoxelIslandGame::Update(double aDeltaTime)
 	if (INPUT_MANAGER->KeyHeld(SDL_SCANCODE_Z))
 		transform.Translate(transform.Up() * moveMult);
 
+	if (INPUT_MANAGER->KeyHeld(SDL_SCANCODE_T))
+		world->SetDrawDebug(true);
+	else world->SetDrawDebug(false);
+
+	//player->Update(aDeltaTime);
+
 	//TODO correct camera rotation
 	//Right now it's going to go a little faster on the y axis since it's not properly normalized
 	vec2 mDelta = INPUT_MANAGER->GetDistanceFromCenter(GetWindow());
@@ -76,6 +89,8 @@ void vigame::VoxelIslandGame::Update(double aDeltaTime)
 	transform.SetRotation(rotation);
 
 	mProgramGeneric->SetCamera(transform.Matrix());
+	mProgramGeneric->SetDiffusePos(transform.GetPosition());
+	//mProgramGeneric->SetAmbientStrength(0.5);
 
 	ViGame::Update(aDeltaTime);
 	
@@ -91,11 +106,12 @@ void vigame::VoxelIslandGame::Draw(double aDeltaTime)
 	glClearColor(color.r, color.g, color.b, color.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_LESS, ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_NONPREMULTIPLIED));
-	//VERTEX_BATCH->Draw(ViTransform::Positioned(vec3(0, 0, 0)), mTestChunk->GetOptimizedMesh());
+	VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_LESS,
+		ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_NONPREMULTIPLIED, ViVertexBatchSettings::cDRAW_FILLED));
 	world->Draw(VERTEX_BATCH);
 
-	VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_NONE, ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_ALPHABLEND));
+	VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_NONE, 
+		ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_ALPHABLEND, ViVertexBatchSettings::cDRAW_FILLED));
 	VERTEX_BATCH->DrawString(ViTransform::Positioned(vec3(0, 0, 0)), textMaterial, testFont, "Avg. FPS: " + std::to_string(GetAvgFPS()));
 	VERTEX_BATCH->DrawString(ViTransform::Positioned(vec3(0, testFont->GetSize() + 8, 0)), textMaterial, testFont, "FPS: " + std::to_string(GetFPS()));
 

@@ -27,7 +27,10 @@ namespace vigame
 		vi_property_get_named(ViMesh*, mMesh, Mesh);
 
 		void SetId(cubeid mId);
-		cubeid GetId();
+		inline cubeid GetId()
+		{
+			return mId;
+		}
 
 		uint8_t GetAdjacents(const CubeInstance& aCubeInstance, vec3i aPosition);
 

@@ -13,3 +13,7 @@ location "vertex_text.glsl"
 shader fragment_text
 type fragment
 location "fragment_text.glsl"
+
+shader vertex_cubesinstanced
+type vertex
+location "vertex_cubesinstanced.glsl"

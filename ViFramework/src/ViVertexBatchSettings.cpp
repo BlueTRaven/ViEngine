@@ -1,18 +1,24 @@
 #include "ViVertexBatchSettings.h"
 
 const ViVertexBatchSettings ViVertexBatchSettings::Default =
-ViVertexBatchSettings(ViVertexBatchSettings::cCULL_NONE, ViVertexBatchSettings::cDEPTH_NONE, ViVertexBatchSettings::cCLAMP_LINEAR, ViVertexBatchSettings::cBLEND_ALPHABLEND);
+ViVertexBatchSettings(ViVertexBatchSettings::cCULL_NONE, ViVertexBatchSettings::cDEPTH_NONE, ViVertexBatchSettings::cCLAMP_LINEAR, ViVertexBatchSettings::cBLEND_ALPHABLEND, ViVertexBatchSettings::cDRAW_FILLED);
 
-ViVertexBatchSettings::ViVertexBatchSettings(CullMode aCullMode, DepthMode aDepthMode, TexMode aTextureMode, BlendMode aBlendMode) :
+ViVertexBatchSettings::ViVertexBatchSettings(CullMode aCullMode, DepthMode aDepthMode, TexMode aTextureMode, BlendMode aBlendMode, DrawMode aDrawMode) :
 	cullMode(aCullMode),
 	depthMode(aDepthMode),
 	textureMode(aTextureMode),
-	blendMode(aBlendMode)
+	blendMode(aBlendMode),
+	drawMode(aDrawMode)
 {
 }
 
 void ViVertexBatchSettings::SetSettings()
 {
+	if (drawMode == ViVertexBatchSettings::cDRAW_FILLED)
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	else if (drawMode == ViVertexBatchSettings::cDRAW_LINES)
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
 	if (cullMode != ViVertexBatchSettings::cCULL_NONE)
 	{
 		glEnable(GL_CULL_FACE);

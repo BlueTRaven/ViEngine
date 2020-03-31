@@ -2,7 +2,7 @@
 
 #include <glm/glm.hpp>
 
-#include "ViColor.h"
+#include "ViColorsGL.h"
 
 #include "ViUtil.h"
 

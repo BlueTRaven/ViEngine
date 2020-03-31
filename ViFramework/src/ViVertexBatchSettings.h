@@ -40,15 +40,22 @@ struct VIENGINE_EXPORT ViVertexBatchSettings
 		cBLEND_CUSTOM
 	};
 
+	enum DrawMode
+	{
+		cDRAW_LINES,
+		cDRAW_FILLED
+	};
+
 	CullMode cullMode;
 	DepthMode depthMode;
 	TexMode textureMode;
 	BlendMode blendMode;
+	DrawMode drawMode;
 
 	GLenum blendModesFactor;
 	GLenum blendModedFactor;
 
-	ViVertexBatchSettings(CullMode aCullMode, DepthMode aDepthMode, TexMode aTextureMode, BlendMode aBlendMode);
+	ViVertexBatchSettings(CullMode aCullMode, DepthMode aDepthMode, TexMode aTextureMode, BlendMode aBlendMode, DrawMode aDrawMode);
 
 	static const ViVertexBatchSettings Default;
 

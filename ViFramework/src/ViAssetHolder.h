@@ -44,7 +44,14 @@ private:
 };
 
 template<typename T>
-ViAssetHolder<T>::ViAssetHolder() {};
+ViAssetHolder<T>::ViAssetHolder() : 
+	mFound(false), 
+	mDirty(false), 
+	mCached(true),
+	mAssets({}),
+	mAssetsDefinitions({}),
+	mBasePath("")
+{ };
 
 template<typename T>
 ViAssetHolder<T>::ViAssetHolder(std::string aPath) 

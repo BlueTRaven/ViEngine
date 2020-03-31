@@ -35,21 +35,21 @@ do																\
 #endif
 
 #define vi_property_get(type, var)	\
-type Get_##var()					\
+inline type Get_##var()				\
 {									\
 	return var;						\
 }									\
 static_assert(true, "vi_property_get macro requires a semicolon immediately proceeding.")
 
 #define vi_property_set(type, var)	\
-void Set_##var(type setTo)			\
+inline void Set_##var(type setTo)	\
 {									\
 	var = setTo;					\
 }									\
 static_assert(true, "vi_property_set macro requires a semicolon immediately proceeding.")
 
 #define vi_property_get_named(type, var, get_set_name)	\
-type Get##get_set_name()								\
+inline type Get##get_set_name()							\
 {														\
 	return var;											\
 }														\
@@ -57,21 +57,21 @@ static_assert(true, "vi_property_get_named macro requires a semicolon immediatel
 
 
 #define vi_property_set_named(type, var, get_set_name)	\
-void Set##get_set_name(type setTo)						\
+inline void Set##get_set_name(type setTo)				\
 {														\
 	var = setTo;										\
 }														\
 static_assert(true, "vi_property_set_named macro requires a semicolon immediately proceeding.")
 
 #define vi_property_exported_get_named(type, var, get_set_name)	\
-type VIENGINE_EXPORT Get##get_set_name()						\
+inline type VIENGINE_EXPORT Get##get_set_name()					\
 {																\
 	return var;													\
 }																\
 static_assert(true, "vi_property_exported_get_named macro requires a semicolon immediately proceeding.")
 
 #define vi_property_exported_set_named(type, var, get_set_name)	\
-void VIENGINE_EXPORT Set##get_set_name(type setTo)				\
+inline void VIENGINE_EXPORT Set##get_set_name(type setTo)		\
 {																\
 	var = setTo;												\
 }																\
@@ -136,10 +136,12 @@ typedef VIENGINE_EXPORT glm::vec<4, glm::f32, glm::packed_highp> vec4;
 typedef VIENGINE_EXPORT glm::vec<3, glm::f32, glm::packed_highp> vec3;
 typedef VIENGINE_EXPORT glm::vec<2, glm::f32, glm::packed_highp> vec2;
 
+typedef VIENGINE_EXPORT glm::vec<4, glm::int32, glm::packed_highp> vec4i;
 typedef VIENGINE_EXPORT glm::vec<3, glm::int32, glm::packed_highp> vec3i;
 typedef VIENGINE_EXPORT glm::vec<2, glm::int32, glm::packed_highp> vec2i;
 
 typedef VIENGINE_EXPORT glm::vec<3, glm::f64, glm::packed_highp> vec3d;
 typedef VIENGINE_EXPORT glm::vec<2, glm::f64, glm::packed_highp> vec2d;
 
+typedef VIENGINE_EXPORT std::string string;
 DISABLE_WARNING_POP

@@ -35,12 +35,15 @@ void ViVertexBatch::Draw(ViTransform aTransform, ViMesh* aMesh)
 	}
 }
 
-void ViVertexBatch::Draw(ViTransform aTransform, ViMesh* aMesh, int aMeshSubsection)
+void ViVertexBatch::Draw(ViTransform aTransform, ViMesh* aMesh, int aMeshSubsection, int64_t aInfo)
 {
 	ViVertexBatchInstance instance = ViVertexBatchInstance();
 	instance.transform = aTransform;
 	instance.mesh = aMesh;
 	instance.meshSubsection = aMeshSubsection;
+	instance.instanced = false;
+	instance.instancedCount = 0;
+	instance.info = aInfo;
 
 	mInstances.push_back(instance);
 }
@@ -107,7 +110,7 @@ void ViVertexBatch::Flush()
 		if (!instance.mesh->HasGeneratedGLObjects())
 		{
 			if (mUsedOtherGLObjects)
-			{
+			{	//we have to rebind our vao, vbo, and ibo if we we were using a mesh's gl objects
 				mUsedOtherGLObjects = false;
 				glBindVertexArray(vao);
 				glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -122,16 +125,27 @@ void ViVertexBatch::Flush()
 				glBufferData(GL_ARRAY_BUFFER, sizeVert, instance.mesh->GetVertices().data(), GL_STATIC_DRAW);
 
 				glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeIndex, instance.mesh->GetIndices().data(), GL_STATIC_DRAW);
+
+				if (mSettings.drawMode == ViVertexBatchSettings::cDRAW_FILLED)
+					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+				else if (mSettings.drawMode == ViVertexBatchSettings::cDRAW_LINES)
+					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			}
 
-			if (materialChanged)
-				instance.mesh->BindSubsection(subsection);
+			if (meshChanged || materialChanged)
+			{
+				instance.mesh->BindSubsection(instance, subsection);
+				mSettings.SetTextureSettings();
+			}
 
 			if (transformChanged)
 				subsection.material->GetProgram()->SetObjectMat(instance.transform.Matrix());
 
-			void* offset = subsection.start == 0 ? nullptr : (void*)subsection.start;
-			glDrawElements(GL_TRIANGLES, subsection.size, GL_UNSIGNED_INT, (void*)(subsection.start * sizeof(GLuint)));
+			subsection.material->GetProgram()->SetUniforms(instance);
+
+			if (instance.instanced)
+				glDrawElementsInstanced(GL_TRIANGLES, subsection.size, GL_UNSIGNED_INT, (void*)(subsection.start * sizeof(GLuint)), instance.instancedCount);
+			else glDrawElements(GL_TRIANGLES, subsection.size, GL_UNSIGNED_INT, (void*)(subsection.start * sizeof(GLuint)));
 		}
 		else
 		{
@@ -139,25 +153,28 @@ void ViVertexBatch::Flush()
 
 			if (meshChanged)
 			{
-				//Don't need to worry about unbinding last mesh; after all, we're overwriting thsoe bindings here.
+				//Don't need to worry about unbinding last mesh; after all, we're overwriting those bindings here.
 				instance.mesh->Bind();
 			}
 
-			instance.mesh->BindSubsection(subsection);
-			mSettings.SetTextureSettings();
-			
-			/*if (materialChanged)
+			if (meshChanged || materialChanged)
 			{
-			}*/
+				instance.mesh->BindSubsection(instance, subsection);
+				mSettings.SetTextureSettings();
+			}
 
 			if (transformChanged)
 				subsection.material->GetProgram()->SetObjectMat(instance.transform.Matrix());
 
-			glDrawElements(GL_TRIANGLES, subsection.size, GL_UNSIGNED_INT, (void*)(subsection.start * sizeof(GLuint)));
+			subsection.material->GetProgram()->SetUniforms(instance);
+
+			if (instance.instanced)
+				glDrawElementsInstanced(GL_TRIANGLES, subsection.size, GL_UNSIGNED_INT, (void*)(subsection.start * sizeof(GLuint)), instance.instancedCount);
+			else glDrawElements(GL_TRIANGLES, subsection.size, GL_UNSIGNED_INT, (void*)(subsection.start * sizeof(GLuint)));
 		}
 
 		if (!deletedLast && lastInstance.mesh->GetVolatile())
-		{
+		{//TODO memory leak
 			delete lastInstance.mesh;
 			deletedLast = true;
 		}

@@ -2,40 +2,51 @@
 
 #include "ViVertexBatch.h"
 #include "VoxelWorld.h"
-
-/*const int vigame::Chunk::cWIDTH = 16;
-const int vigame::Chunk::cHEIGHT = 16;
-const int vigame::Chunk::cDEPTH = 16;*/
+#include "CubeInstance.h"
+#include "ViColorsGL.h"
 
 vigame::Chunk::Chunk(vec3i aPosition, VoxelWorld* aWorld) :
 	mPosition(aPosition),
 	mWorld(aWorld),
 	mDirty(false),
-	mOptimizedMesh(nullptr)
+	mOptimizedMesh(nullptr),
+	mOtherMesh(nullptr),
+	mHasAnything(true)
 {
+	vec3 pos = vec3(aPosition) * aWorld->GetGridSize() * vec3(cWIDTH, cHEIGHT, cDEPTH) - (aWorld->GetGridSize() / 2);
+	vec3 size = aWorld->GetGridSize() * vec3(cWIDTH, cHEIGHT, cDEPTH);
+	mWireframeMesh = ViMesh::MakeUCube(ASSET_HANDLER->LoadMaterial("white_pixel"), pos, pos + size, ViMesh::cFACE_ALL, vicolors::WHITE);
 }
 
 vigame::Chunk::~Chunk()
 {
 	if (mOptimizedMesh != nullptr)
 		delete mOptimizedMesh;	
+
+	delete mWireframeMesh;
 }
 
 void vigame::Chunk::Draw(ViVertexBatch* aBatch)
 {
 	ViMesh* optimizedMesh = GetOptimizedMesh();
-	if (optimizedMesh == nullptr || GetDirty())
+	if (mHasAnything && (optimizedMesh == nullptr || GetDirty()))
 	{
+		//If our mesh has changed at all, we want to get rid of the old one. 
 		if (optimizedMesh != nullptr)
 			delete optimizedMesh;
 
-		OptimizeMesh();
+		GreedyMesh();
 		optimizedMesh = GetOptimizedMesh();
 
 		SetDirty(false);
 	}
 
-	aBatch->Draw(ViTransform::Positioned({ 0, 0, 0 }), optimizedMesh);
+	if (!mHasAnything)
+		return;
+
+	if (optimizedMesh)
+		aBatch->Draw(ViTransform::Positioned(vec3(mPosition) * mWorld->GetGridSize() * vec3(cWIDTH, cHEIGHT, cDEPTH)), optimizedMesh);
+		//aBatch->Draw(ViTransform::Positioned(vec3(0)), optimizedMesh);
 }
 
 void vigame::Chunk::OptimizeMesh()
@@ -157,4 +168,176 @@ void vigame::Chunk::OptimizeMesh()
 
 	mOptimizedMesh = new ViMesh(subsections, vertices, indices);
 	mOptimizedMesh->UploadData();
+}
+
+void vigame::Chunk::NotifyCubeChanged(vec3i aPosition, CubeInstance& aPreviousCubeInstance, CubeInstance& aCubeInstance)
+{
+	/*if (mPresentIds.find(aPreviousCubeInstance.mId) != mPresentIds.end())
+		mPresentIds.at(aPreviousCubeInstance.mId)--;
+
+	if (mPresentIds.find(aCubeInstance.mId) != mPresentIds.end())
+		mPresentIds.at(aCubeInstance.mId)++;
+	else mPresentIds.emplace(aCubeInstance.mId, 1);*/
+}
+
+void vigame::Chunk::GreedyMesh()
+{
+	std::vector<ViMeshSubsection> subsections;
+	std::vector<ViVertex> vertices;
+	std::vector<GLuint> indices;
+
+	int size[] = { cWIDTH, cHEIGHT, cDEPTH };
+
+	int start = indices.size();
+
+	for (size_t d = 0; d < 3; ++d)
+	{
+		int w = 0;
+		int h = 0;
+		int k = 0;
+		int l = 0;
+		int u = (d + 1) % 3;	//the other 2 axis
+		int v = (d + 2) % 3;
+		int x[] = { 0, 0, 0 };
+		int q[] = { 0, 0, 0 };
+
+		std::vector<uint32_t> mask;
+		mask.resize(size[u] * size[v]);
+
+		q[d] = 1;
+
+		for (x[d] = -1; x[d] < size[d];)
+		{
+			int n = 0;
+
+			for (x[v] = 0; x[v] < size[v]; ++x[v])
+			{
+				for (x[u] = 0; x[u] < size[u]; ++x[u])
+				{
+					bool curr = 0 <= x[d] ? GetCube(vec3i(x[0], x[1], x[2])).mId != 0 : false;
+					bool other = x[d] < size[d] - 1 ? GetCube(vec3i(x[0], x[1], x[2]) + vec3i(q[0], q[1], q[2])).mId != 0 : false;
+					bool isBehind = curr && !other;
+					cubeid id = curr ? GetCube(vec3i(x[0], x[1], x[2])).mId  : GetCube(vec3i(x[0], x[1], x[2]) + vec3i(q[0], q[1], q[2])).mId;
+					//bits are like so: 
+					//uuuuuuuuuuuuuuuuuuuuccccccccuubi
+					//where:
+					//u is unused
+					//c is cubeid
+					//b is forward/backward
+					//i is used or not
+					if (curr != other)
+						mask[n++] = curr != other | ((uint32_t)isBehind << 1) | ((uint32_t)id << 4);
+					else mask[n++] = 0;
+				}
+			}
+
+			++x[d];
+
+			n = 0;
+
+			for (int j = 0; j < size[v]; ++j)
+			{
+				for (int i = 0; i < size[u];)
+				{
+					if (mask[n])
+					{
+						//Loop along the width until we find something that isn't mask
+						w = 1;
+						while (i + w < size[u] && mask[n + w])
+							++w;
+
+						bool done = false;
+
+						//Loop along the height and width until we find something that isn't mask
+						for (h = 1; j + h < size[v]; ++h)
+						{
+							for (k = 0; k < w; ++k)
+							{
+								if (!mask[n + k + h * size[u]])
+								{
+									done = true;
+									break;
+								}
+							}
+
+							if (done)
+								break;
+						}
+
+						x[u] = i;
+						x[v] = j;
+
+						vec3 xv = vec3i(x[0], x[1], x[2]);
+						vec3 du = vec3i(0);
+						vec3 dv = vec3i(0);
+						du[u] = w;
+						dv[v] = h;
+
+						vec3 startPos = vec3(mPosition);
+						xv = xv * mWorld->GetGridSize();
+						du = du * mWorld->GetGridSize();
+						dv = dv * mWorld->GetGridSize();
+
+						vec3 p0 = xv;
+						vec3 p1 = xv + du;
+						vec3 p2 = xv + du + dv;
+						vec3 p3 = xv + dv;
+
+						if (mask[n] & 0b10)
+						{
+							vec3 nrm = glm::cross(p1 - p0, p2 - p0);
+
+							ViMesh::MakeQuadRaw(
+								p3,
+								p2,
+								p1,
+								p0,
+								nrm, vertices, indices, vicolors::WHITE);
+						}
+						else
+						{
+							vec3 nrm = glm::cross(p2 - p0, p1 - p0);
+
+							ViMesh::MakeQuadRaw(
+								p0,
+								p1,
+								p2,
+								p3,
+								nrm, vertices, indices, vicolors::WHITE);
+						}
+
+						for (l = 0; l < h; ++l)
+						{
+							for (k = 0; k < w; ++k)
+							{
+								mask[n + k + l * size[u]] = 0;
+							}
+						}
+
+						i += w;
+						n += w;
+					}
+					else
+					{
+						++i;
+						++n;
+					}
+				}
+			}
+		}
+	}
+
+	if (vertices.size() == 0 || indices.size() == 0)
+	{
+		mHasAnything = false;
+		return;
+	}
+
+	mOptimizedMesh = new ViMesh(ASSET_HANDLER->LoadMaterial("white_pixel"), vertices, indices);
+	mOptimizedMesh->UploadData();
+}
+
+vigame::CubeInstance vigame::Chunk::GetCube(vec3i aPosition)
+{
+	return mWorld->GetCubeInstance(aPosition + mWorld->ChunkSpaceToCubeSpace(mPosition));
 }

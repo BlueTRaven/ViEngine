@@ -9,6 +9,8 @@
 
 #include "ViMeshSubsection.h"
 
+struct ViVertexBatchInstance;
+
 class VIENGINE_EXPORT ViMesh
 {
 public:
@@ -30,7 +32,12 @@ public:
 
 	void Merge(ViMesh* aMesh...);
 	
-	vi_property_named(std::vector<ViMeshSubsection>, mSubsections, Subsections);
+	const inline std::vector<ViMeshSubsection>& GetSubsections() const
+	{
+		return mSubsections;
+	}
+
+	//vi_property_named(std::vector<ViMeshSubsection>, mSubsections, Subsections);
 	vi_property_named(std::vector<ViVertex>, mVertices, Vertices);
 	vi_property_named(std::vector<GLuint>, mIndices, Indices);
 
@@ -46,7 +53,7 @@ public:
 	bool HasGeneratedGLObjects();
 
 	void Bind();
-	void BindSubsection(ViMeshSubsection aMeshSubsection);
+	void BindSubsection(ViVertexBatchInstance& aInstance, ViMeshSubsection aMeshSubsection);
 
 	ViMeshSubsection GetSubsection(int aIndex);
 
@@ -61,9 +68,13 @@ public:
 	//Makes an unrotated cube. This assumes it is axis aligned in world space, and thus takes only two points, a minimum and maximum. min = x left, y top, z near. max = x right, y bottom, z far
 	static ViMesh* MakeUCube(ViMaterial* aMaterial, vec3 min, vec3 max, int aFaces, ViColorGL aColor);
 
+	static void MergeInto(std::vector<ViVertex>& aIntoVertices, std::vector<GLuint>& aIntoIndices, ViMesh* aMesh, std::vector<ViMeshSubsection> aSubsectionsToMerge);
+
 	static ViMesh* GetEmpty();
 
 private:
+	std::vector<ViMeshSubsection> mSubsections;
+
 	GLsizeiptr mVerticesSize;
 	GLsizeiptr mIndicesSize;
 

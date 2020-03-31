@@ -20,7 +20,7 @@ public:
 	//Draws the whole mesh
 	void Draw(ViTransform aTransform, ViMesh* aMesh);
 	//Draws a subsection of the mesh
-	void Draw(ViTransform aTransform, ViMesh* aMesh, int aMeshSubsection);
+	void Draw(ViTransform aTransform, ViMesh* aMesh, int aMeshSubsection, int64_t aInfo = 0);
 	void DrawString(ViTransform aTransform, ViMaterial* aMaterial, ViFont* aFont, std::string text);
 
 	void Flush();

@@ -5,77 +5,75 @@
 ViProgramGeneric::ViProgramGeneric() :
 	ViProgram(viEnv->GetAssetHandler()->LoadShader("vertex_generic"),
 		viEnv->GetAssetHandler()->LoadShader("fragment_generic"),
-		std::vector<ViVertexAttribute*> {
-	new ViVertexAttribute("normal", 3, sizeof(ViVertex), (void*)offsetof(ViVertex, nrm)),
-		new ViVertexAttribute("position", 3, sizeof(ViVertex), (void*)offsetof(ViVertex, pos)),
-		new ViVertexAttribute("color", 4, sizeof(ViVertex), (void*)offsetof(ViVertex, color)),
-		new ViVertexAttribute("tex_coord", 2, sizeof(ViVertex), (void*)offsetof(ViVertex, texCoord))
+		std::vector<ViVertexAttribute> {
+	ViVertexAttribute("normal", 3, sizeof(ViVertex), (void*)offsetof(ViVertex, nrm)),
+		ViVertexAttribute("position", 3, sizeof(ViVertex), (void*)offsetof(ViVertex, pos)),
+		ViVertexAttribute("color", 4, sizeof(ViVertex), (void*)offsetof(ViVertex, color)),
+		ViVertexAttribute("tex_coord", 2, sizeof(ViVertex), (void*)offsetof(ViVertex, texCoord))
 }),
-mProjection(glm::perspectiveFov(45.0, double(viEnv->GetScreenWidth()), double(viEnv->GetScreenHeight()), 0.01, 1000.0)),
-mCamera(glm::identity<glm::mat4>()),
-mTintColor(vicolors::WHITE),
-mAmbientColor(vicolors::WHITE),
-mAmbientStrength(1.f),
-mDiffusePos({ 0.0, 1.0, -1.0 })
+mUniformProjection(new ViUniformMat4("projection", glm::perspectiveFov(45.0, double(viEnv->GetScreenWidth()), double(viEnv->GetScreenHeight()), 0.01, 1000.0))),
+mUniformCamera(new ViUniformMat4("camera", glm::identity<glm::mat4>())),
+mUniformTintColor(new ViUniformVec4("tint_color", vicolors::WHITE.ToVec4())),
+mUniformDiffuseColor(new ViUniformVec3("diffuse_color", vicolors::WHITE.ToVec4())),
+mUniformDiffusePos(new ViUniformVec3("diffuse_pos", { 0.0, 1.0, -1.0 })),
+mUniformAmbientColor(new ViUniformVec3("ambient_color", vicolors::WHITE.ToVec4())),
+mUniformAmbientStrength(new ViUniformFloat("ambient_strength", 1.f)),
+mUniformNormalObject(new ViUniformMat4("normal_object", glm::identity<mat4>()))
 {
 }
 
-void ViProgramGeneric::SetUniforms()
+void ViProgramGeneric::SetUniforms(ViVertexBatchInstance& aInstance)
 {
 	if (!GetDirty())
 		return;
 	
-	UniformMat4(mProjection, false, "projection");
-	UniformMat4(mCamera, false, "camera");
-	UniformVec4(glm::vec4(mTintColor.r, mTintColor.g, mTintColor.b, mTintColor.a), "tint_color");
+	mUniformProjection->Upload(this);
+	mUniformCamera->Upload(this);
+	mUniformTintColor->Upload(this);
 
-	//Frag shader
-	UniformVec3({ 1.0, 1.0, 1.0 }, "diffuse_color");
-	UniformVec3(mDiffusePos, "diffuse_pos");
+	mUniformDiffuseColor->Upload(this);
+	mUniformDiffusePos->Upload(this);
+	
+	mUniformAmbientColor->Upload(this);
+	mUniformAmbientStrength->Upload(this);
 
-	UniformVec3(vec3(mAmbientColor.r, mAmbientColor.g, mAmbientColor.b), "ambient_color");
-	UniformFloat(mAmbientStrength, "ambient_strength");
+	mUniformNormalObject->Upload(this);
+
+	ViProgram::SetUniforms(aInstance);
 }
 
 void ViProgramGeneric::SetProjection(glm::mat4 aProjection)
 {
 	SetDirty(true);
-	this->mProjection = aProjection;
+	mUniformProjection->Set(this, aProjection);
 }
 
 void ViProgramGeneric::SetCamera(glm::mat4 aCamera)
 {
 	SetDirty(true);
-	mCamera = aCamera;
+	mUniformCamera->Set(this, aCamera);
 }
 
 void ViProgramGeneric::SetTintColor(ViColorGL aColor)
 {
 	SetDirty(true);
-	mTintColor = aColor;
+	mUniformTintColor->Set(this, aColor.ToVec4());
 }
 
 void ViProgramGeneric::SetAmbientColor(ViColorGL aColor)
 {
 	SetDirty(true);
-	mAmbientColor = aColor;
+	mUniformAmbientColor->Set(this, aColor.ToVec4());
 }
 
 void ViProgramGeneric::SetAmbientStrength(float aStrength)
 {
 	SetDirty(true);
-	mAmbientStrength = aStrength;
+	mUniformAmbientStrength->Set(this, aStrength);
 }
 
 void ViProgramGeneric::SetDiffusePos(vec3 aPos)
 {
 	SetDirty(true);
-	mDiffusePos = aPos;
-}
-
-void ViProgramGeneric::SetObjectMat(mat4 aObjMat)
-{
-	UniformMat4(glm::transpose(glm::inverse(mCamera * aObjMat)), false, "normal_object");
-
-	ViProgram::SetObjectMat(aObjMat);
+	mUniformDiffusePos->Set(this, aPos);
 }

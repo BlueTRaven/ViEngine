@@ -1,6 +1,25 @@
 #pragma once
 
+#include "ViUtil.h"
 #include "ViColor.h"
+
+struct VIENGINE_EXPORT ViColorGL : public ViColor<GLclampf>
+{
+	ViColorGL();
+
+	ViColorGL(GLclampf r, GLclampf g, GLclampf b, GLclampf a);
+
+	//Returns a normalized vec4 (converted from range 0-255 to 0-1.)
+	vec4 ToVec4() const
+	{
+		return vec4(r, g, b, a);
+	}
+
+	vec4i ToVec4i() const
+	{
+		return vec4i(r, g, b, a);
+	}
+};
 
 namespace vicolors
 {

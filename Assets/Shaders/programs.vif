@@ -3,3 +3,6 @@ customtype generic
 
 program text
 customtype text
+
+program cube_instanced
+customtype cube_instanced
