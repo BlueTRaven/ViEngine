@@ -85,6 +85,7 @@ vigame::Chunk* vigame::VoxelWorld::MakeChunk(vec3i aChunkPosition)
 vigame::Chunk* vigame::VoxelWorld::GetChunkResponsibleForCube(vec3i aPosition)
 {
 	vec3i pos = CubeSpaceToChunkSpace(aPosition);
+
 	return GetChunk(pos);
 }
 
@@ -101,6 +102,11 @@ vec3i vigame::VoxelWorld::ChunkSpaceToCubeSpace(vec3i aPosChunkSpace)
 vec3 vigame::VoxelWorld::CubeSpaceToWorldSpace(vec3i aPosCubeSpace)
 {
 	return vec3(aPosCubeSpace) * vec3(mGridSize);
+}
+
+void vigame::VoxelWorld::Update(float aDeltaTime)
+{
+	
 }
 
 void vigame::VoxelWorld::Draw(ViVertexBatch* aBatch)

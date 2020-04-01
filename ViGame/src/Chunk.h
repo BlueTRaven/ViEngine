@@ -1,5 +1,7 @@
 #pragma once
 
+#include <chrono>
+#include <mutex>
 #include <unordered_map>
 
 #include "ViMaterial.h"
@@ -21,13 +23,11 @@ namespace vigame
 		Chunk(vec3i aPosition, VoxelWorld* aWorld);
 		~Chunk();
 
-		static constexpr int cWIDTH = 64;
-		static constexpr int cHEIGHT = 64;
-		static constexpr int cDEPTH = 64;
+		static constexpr int cWIDTH = 32;
+		static constexpr int cHEIGHT = 32;
+		static constexpr int cDEPTH = 32;
 
 		void Draw(ViVertexBatch* aBatch);
-
-		void OptimizeMesh();
 
 		vi_property_named(bool, mDirty, Dirty);
 
@@ -50,9 +50,15 @@ namespace vigame
 		vec3i mPosition;
 		VoxelWorld* mWorld;
 
-		void GreedyMesh();
+		//Checks to see if we need to mesh, and begins the meshing thread if so
+		void TryMeshing();
 
-		//sstd::unordered_map<cubeid, int> mPresentIds;
+		void GreedyMesh();
+		void OptimizeMesh();
+
+		bool meshing = false;
+		std::thread* meshingThread;
+		std::mutex* mut;
 
 		//Gets a cube in cube-space chunk-relative coordinates.
 		CubeInstance GetCube(vec3i aPosition);

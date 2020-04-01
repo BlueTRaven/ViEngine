@@ -23,11 +23,11 @@ ViTransform::ViTransform(glm::vec3 aPosition, glm::vec3 aRotation, glm::vec3 aSc
 
 glm::vec3 ViTransform::Forward()
 {
-	glm::mat4 rotm = glm::rotate(rotm, glm::radians(mRotation.x), glm::vec3(1.0, 0.0, 0.0));
-	rotm = glm::rotate(glm::identity<glm::mat4>(), glm::radians(mRotation.y), glm::vec3(0.0, 1.0, 0.0));
-	glm::vec4 forward = glm::vec4(0.0, 0.0, -1.0, 1.0);
-	glm::vec4 out = forward * rotm;
-	return glm::normalize(glm::vec3(out.x, out.y, out.z));
+	vec3 forward = vec3(0);
+	forward.x = -glm::sin(glm::radians(mRotation.y + 180));
+	forward.y = -glm::tan(glm::radians(mRotation.x));
+	forward.z = -glm::cos(glm::radians(mRotation.y));
+	return glm::normalize(forward);
 }
 
 glm::vec3 ViTransform::Left()

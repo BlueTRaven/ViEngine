@@ -28,6 +28,8 @@ namespace vigame
 
 	private:
 		VoxelWorld* world;
+		Chunk* highlightedChunk;
+		vec3i highlightedCubeInstance;
 
 		Player* player;
 
@@ -40,5 +42,7 @@ namespace vigame
 		ViMaterial* genericMaterial;
 
 		ViTransform transform;
+		
+		bool f;
 	};
 }

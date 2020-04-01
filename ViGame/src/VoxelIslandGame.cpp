@@ -4,9 +4,10 @@
 #include "ViGameAssetHolderProgramFactory.h"
 
 vigame::VoxelIslandGame::VoxelIslandGame() : ViGame(640 * 2, 480 * 2),
-	transform(ViTransform::Positioned({ 0.0, 0.0, -1.0 }))
+	transform(ViTransform::Positioned({ 0.0, 0.0, -1.0 })),
+	highlightedChunk(nullptr)
 {
-	transform.SetScale({ 0.5, 0.5, 0.5 });
+	//transform.SetScale({ 0.5, 0.5, 0.5 });
 	viEnv->GetAssetHandler()->InitialParse("./Assets/assets.vif");
 
 	ViAssetHolderProgram::SetFactory(new ViGameAssetHolderProgramFactory());
@@ -31,8 +32,9 @@ void vigame::VoxelIslandGame::Init()
 
 	mProgramGeneric->SetAmbientStrength(0.1f);
 
-	int worldSize = 256;
-	world = new VoxelWorld({ worldSize, worldSize, worldSize }, 0.05f, new WorldGenerator);
+	//grid size 0.05f
+	int worldSize = 64;
+	world = new VoxelWorld({ worldSize, 128, worldSize }, 1, new WorldGenerator);
 
 	ViGame::Init();
 
@@ -45,7 +47,7 @@ void vigame::VoxelIslandGame::Update(double aDeltaTime)
 
 	SDL_GetWindowSize(GetWindow(), &width, &height);
 
-	float moveMult = -1 * aDeltaTime;
+	float moveMult = -20 * aDeltaTime;
 	float mouseSens = -100;
 
 	if (INPUT_MANAGER->KeyHeld(SDL_SCANCODE_ESCAPE))
@@ -65,9 +67,34 @@ void vigame::VoxelIslandGame::Update(double aDeltaTime)
 	if (INPUT_MANAGER->KeyHeld(SDL_SCANCODE_Z))
 		transform.Translate(transform.Up() * moveMult);
 
-	if (INPUT_MANAGER->KeyHeld(SDL_SCANCODE_T))
+	if (INPUT_MANAGER->KeyDown(SDL_SCANCODE_T))
 		world->SetDrawDebug(true);
 	else world->SetDrawDebug(false);
+
+	world->Update(aDeltaTime);
+
+	vec3i out;
+	bool hit = !world->VoxelRaycast(transform.GetPosition(), vec3(transform.GetPosition() - (transform.Forward() * 128.f)), out, [this](vec3i aPosition) {
+		return world->GetCubeInstance(aPosition).mId != 0;
+	});
+
+	if (hit)
+	{
+		highlightedChunk = world->GetChunkResponsibleForCube(out);
+		highlightedCubeInstance = out;
+
+		if (INPUT_MANAGER->KeyHeld(SDL_SCANCODE_G))
+		{
+			if (!f)
+			{
+				f = true;
+				world->SetCubeInstance(out, 0);
+				//highlightedChunk->SetDirty(true);
+			}
+		}
+		else f = false;
+	}
+	else highlightedChunk = nullptr;
 
 	//player->Update(aDeltaTime);
 
@@ -108,6 +135,14 @@ void vigame::VoxelIslandGame::Draw(double aDeltaTime)
 	VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_LESS,
 		ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_NONPREMULTIPLIED, ViVertexBatchSettings::cDRAW_FILLED));
 	world->Draw(VERTEX_BATCH);
+
+	if (highlightedChunk != nullptr)
+	{
+		VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_NONE, ViVertexBatchSettings::cDEPTH_LESS,
+			ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_NONPREMULTIPLIED, ViVertexBatchSettings::cDRAW_LINES));
+		VERTEX_BATCH->Draw(ViTransform::Positioned(vec3(world->GetGridSize() / 2.0f)), highlightedChunk->GetWireframeMesh());
+		VERTEX_BATCH->Draw(ViTransform::Positioned(vec3(world->GetGridSize() / 2.0f) + vec3(highlightedCubeInstance)), world->GetCubeRegistry()->GetCubeType(1)->GetMesh(), 6);
+	}
 
 	VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_NONE, 
 		ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_ALPHABLEND, ViVertexBatchSettings::cDRAW_FILLED));

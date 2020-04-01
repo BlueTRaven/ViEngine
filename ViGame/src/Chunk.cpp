@@ -1,5 +1,7 @@
 #include "Chunk.h"
 
+#include <exception>
+
 #include "ViVertexBatch.h"
 #include "VoxelWorld.h"
 #include "CubeInstance.h"
@@ -11,7 +13,9 @@ vigame::Chunk::Chunk(vec3i aPosition, VoxelWorld* aWorld) :
 	mDirty(false),
 	mOptimizedMesh(nullptr),
 	mOtherMesh(nullptr),
-	mHasAnything(true)
+	mHasAnything(true),
+	meshingThread(nullptr),
+	mut(new std::mutex())
 {
 	vec3 pos = vec3(aPosition) * aWorld->GetGridSize() * vec3(cWIDTH, cHEIGHT, cDEPTH) - (aWorld->GetGridSize() / 2);
 	vec3 size = aWorld->GetGridSize() * vec3(cWIDTH, cHEIGHT, cDEPTH);
@@ -28,25 +32,25 @@ vigame::Chunk::~Chunk()
 
 void vigame::Chunk::Draw(ViVertexBatch* aBatch)
 {
-	ViMesh* optimizedMesh = GetOptimizedMesh();
-	if (mHasAnything && (optimizedMesh == nullptr || GetDirty()))
+	TryMeshing();
+
+	if (mut->try_lock())
 	{
-		//If our mesh has changed at all, we want to get rid of the old one. 
-		if (optimizedMesh != nullptr)
-			delete optimizedMesh;
+		if (!meshing && meshingThread->joinable())
+		{
+			meshingThread->join();
 
-		GreedyMesh();
-		optimizedMesh = GetOptimizedMesh();
+			//UploadData must be called on main thread
+			//Sometimes we generate a null mesh; in this case we don't want to try uploading anything.
+			if (mOptimizedMesh != nullptr)
+				mOptimizedMesh->UploadData();
+		}
 
-		SetDirty(false);
-	}
-
-	if (!mHasAnything)
-		return;
-
-	if (optimizedMesh)
-		aBatch->Draw(ViTransform::Positioned(vec3(mPosition) * mWorld->GetGridSize() * vec3(cWIDTH, cHEIGHT, cDEPTH)), optimizedMesh);
+		if (mHasAnything && mOptimizedMesh)
+			aBatch->Draw(ViTransform::Positioned(vec3(mPosition) * mWorld->GetGridSize() * vec3(cWIDTH, cHEIGHT, cDEPTH)), mOptimizedMesh);
 		//aBatch->Draw(ViTransform::Positioned(vec3(0)), optimizedMesh);
+		mut->unlock();
+	}
 }
 
 void vigame::Chunk::OptimizeMesh()
@@ -172,16 +176,42 @@ void vigame::Chunk::OptimizeMesh()
 
 void vigame::Chunk::NotifyCubeChanged(vec3i aPosition, CubeInstance& aPreviousCubeInstance, CubeInstance& aCubeInstance)
 {
-	/*if (mPresentIds.find(aPreviousCubeInstance.mId) != mPresentIds.end())
-		mPresentIds.at(aPreviousCubeInstance.mId)--;
+}
 
-	if (mPresentIds.find(aCubeInstance.mId) != mPresentIds.end())
-		mPresentIds.at(aCubeInstance.mId)++;
-	else mPresentIds.emplace(aCubeInstance.mId, 1);*/
+void vigame::Chunk::TryMeshing()
+{
+	if (!meshing && mHasAnything && (mOptimizedMesh == nullptr || GetDirty()))
+	{
+		if (mut->try_lock())
+		{
+			if (meshingThread != nullptr && meshingThread->joinable())
+			{
+				meshingThread->join();
+			}
+
+			//If our mesh has changed at all, we want to get rid of the old one. 
+			if (mOptimizedMesh != nullptr)
+				delete mOptimizedMesh;
+
+			mut->unlock();
+
+			meshing = true;
+			meshingThread = new std::thread(&Chunk::GreedyMesh, this);
+			printf("Debug: Starting chunk thread %i.\n", meshingThread->get_id());
+
+			SetDirty(false);
+		}
+	}
 }
 
 void vigame::Chunk::GreedyMesh()
 {
+	//lock our mutex so we can't use it in the main drawing thread
+	mut->lock();
+	meshing = true;
+
+	auto time = std::chrono::steady_clock::now();
+
 	std::vector<ViMeshSubsection> subsections;
 	std::vector<ViVertex> vertices;
 	std::vector<GLuint> indices;
@@ -330,11 +360,19 @@ void vigame::Chunk::GreedyMesh()
 	if (vertices.size() == 0 || indices.size() == 0)
 	{
 		mHasAnything = false;
+
+		meshing = false;
+		mut->unlock();
 		return;
 	}
 
 	mOptimizedMesh = new ViMesh(ASSET_HANDLER->LoadMaterial("white_pixel"), vertices, indices);
-	mOptimizedMesh->UploadData();
+
+	auto endTime = std::chrono::steady_clock::now();
+	printf("Debug: Took %f seconds to generate a chunk on thread %i.\n", ((float)std::chrono::duration_cast<std::chrono::milliseconds>(endTime - time).count() / 1000), std::this_thread::get_id());
+
+	meshing = false;
+	mut->unlock();
 }
 
 vigame::CubeInstance vigame::Chunk::GetCube(vec3i aPosition)
