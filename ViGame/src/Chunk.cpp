@@ -12,7 +12,7 @@ vigame::Chunk::Chunk(vec3i aPosition, VoxelWorld* aWorld) :
 	mWorld(aWorld),
 	mDirty(false),
 	mOptimizedMesh(nullptr),
-	mOtherMesh(nullptr),
+	mOldOptimizedMesh(nullptr),
 	mHasAnything(true),
 	meshingThread(nullptr),
 	mut(new std::mutex())
@@ -20,6 +20,7 @@ vigame::Chunk::Chunk(vec3i aPosition, VoxelWorld* aWorld) :
 	vec3 pos = vec3(aPosition) * aWorld->GetGridSize() * vec3(cWIDTH, cHEIGHT, cDEPTH) - (aWorld->GetGridSize() / 2);
 	vec3 size = aWorld->GetGridSize() * vec3(cWIDTH, cHEIGHT, cDEPTH);
 	mWireframeMesh = ViMesh::MakeUCube(ASSET_HANDLER->LoadMaterial("white_pixel"), pos, pos + size, ViMesh::cFACE_ALL, vicolors::WHITE);
+	mWireframeMesh->UploadData();
 }
 
 vigame::Chunk::~Chunk()
@@ -43,14 +44,26 @@ void vigame::Chunk::Draw(ViVertexBatch* aBatch)
 			//UploadData must be called on main thread
 			//Sometimes we generate a null mesh; in this case we don't want to try uploading anything.
 			if (mOptimizedMesh != nullptr)
+			{
 				mOptimizedMesh->UploadData();
+
+				if (mOldOptimizedMesh != nullptr)
+				{
+					delete mOldOptimizedMesh;
+					mOldOptimizedMesh = nullptr;
+				}
+			}
 		}
 
-		if (mHasAnything && mOptimizedMesh)
-			aBatch->Draw(ViTransform::Positioned(vec3(mPosition) * mWorld->GetGridSize() * vec3(cWIDTH, cHEIGHT, cDEPTH)), mOptimizedMesh);
-		//aBatch->Draw(ViTransform::Positioned(vec3(0)), optimizedMesh);
+		if (mHasAnything)
+		{
+			if (mOptimizedMesh)
+				aBatch->Draw(ViTransform::Positioned(vec3(mPosition) * mWorld->GetGridSize() * vec3(cWIDTH, cHEIGHT, cDEPTH)), mOptimizedMesh);
+		}
 		mut->unlock();
 	}
+	else if (mHasAnything && mOldOptimizedMesh)
+		aBatch->Draw(ViTransform::Positioned(vec3(mPosition) * mWorld->GetGridSize() * vec3(cWIDTH, cHEIGHT, cDEPTH)), mOldOptimizedMesh);
 }
 
 void vigame::Chunk::OptimizeMesh()
@@ -190,8 +203,19 @@ void vigame::Chunk::TryMeshing()
 			}
 
 			//If our mesh has changed at all, we want to get rid of the old one. 
+			//However, we need to hold onto the old mesh so we can draw it until the new one is generated.
 			if (mOptimizedMesh != nullptr)
+			{
+				if (mOldOptimizedMesh != nullptr)
+				{
+					delete mOldOptimizedMesh;
+					mOldOptimizedMesh = nullptr;
+				}
+
+				mOldOptimizedMesh = new ViMesh(*mOptimizedMesh);
 				delete mOptimizedMesh;
+				mOptimizedMesh = nullptr;
+			}
 
 			mut->unlock();
 

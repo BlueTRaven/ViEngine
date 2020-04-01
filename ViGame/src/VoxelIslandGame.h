@@ -31,11 +31,16 @@ namespace vigame
 		Chunk* highlightedChunk;
 		vec3i highlightedCubeInstance;
 
+		ViMesh* mCubeMesh;
+
 		Player* player;
 
 		ViProgramGeneric* mProgramGeneric;
-		ViProgramText* mProgramText;
+		ViProgramGeneric* mProgramGenericFullBright;
 		ProgramCubesInstanced* mProgramCubesInstanced;
+
+		ViProgramText* mProgramText;
+		
 
 		ViMaterialFont* mDebugFont;
 

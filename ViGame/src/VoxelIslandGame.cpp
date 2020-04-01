@@ -27,14 +27,19 @@ void vigame::VoxelIslandGame::Init()
 
 	mProgramText = static_cast<ViProgramText*>(GET_ASSET_PROGRAM("text"));
 	mProgramGeneric = static_cast<ViProgramGeneric*>(GET_ASSET_PROGRAM("generic"));
+	mProgramGenericFullBright = static_cast<ViProgramGeneric*>(GET_ASSET_PROGRAM("generic_fullbright"));
 
 	mProgramCubesInstanced = static_cast<ProgramCubesInstanced*>(GET_ASSET_PROGRAM("cube_instanced"));
 
 	mProgramGeneric->SetAmbientStrength(0.1f);
+	//mProgramGenericFullBright->SetAmbientStrength(0.1f);
 
 	//grid size 0.05f
 	int worldSize = 64;
 	world = new VoxelWorld({ worldSize, 128, worldSize }, 1, new WorldGenerator);
+
+	mCubeMesh = ViMesh::MakeUCube(ASSET_HANDLER->LoadMaterial("white_pixel_fullbright"), vec3(-0.5), vec3(0.5), ViMesh::cFACE_ALL, vicolors::WHITE);
+	mCubeMesh->UploadData();
 
 	ViGame::Init();
 
@@ -114,9 +119,10 @@ void vigame::VoxelIslandGame::Update(double aDeltaTime)
 
 	transform.SetRotation(rotation);
 
-	mProgramGeneric->SetCamera(transform.Matrix());
+	mat4 mat = transform.Matrix();
+	mProgramGeneric->SetCamera(mat);
 	mProgramGeneric->SetDiffusePos(transform.GetPosition());
-	//mProgramGeneric->SetAmbientStrength(0.5);
+	mProgramGenericFullBright->SetCamera(mat);
 
 	ViGame::Update(aDeltaTime);
 	
@@ -140,8 +146,14 @@ void vigame::VoxelIslandGame::Draw(double aDeltaTime)
 	{
 		VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_NONE, ViVertexBatchSettings::cDEPTH_LESS,
 			ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_NONPREMULTIPLIED, ViVertexBatchSettings::cDRAW_LINES));
-		VERTEX_BATCH->Draw(ViTransform::Positioned(vec3(world->GetGridSize() / 2.0f)), highlightedChunk->GetWireframeMesh());
-		VERTEX_BATCH->Draw(ViTransform::Positioned(vec3(world->GetGridSize() / 2.0f) + vec3(highlightedCubeInstance)), world->GetCubeRegistry()->GetCubeType(1)->GetMesh(), 6);
+		float scale = 1.f / world->GetGridSize() * (float)Chunk::cWIDTH + 0.001f;
+		ViTransform trans = ViTransform::Positioned(vec3(world->GetGridSize() / 2) + vec3(highlightedChunk->GetPosition()));
+		trans.SetScale(vec3(scale));
+		VERTEX_BATCH->Draw(trans, mCubeMesh, 6);
+		scale = 1.f / world->GetGridSize() + 0.001f;
+		trans = ViTransform::Positioned((vec3(world->GetGridSize() / 2.0f) + vec3(highlightedCubeInstance)) / scale);
+		trans.SetScale(vec3(scale));
+		VERTEX_BATCH->Draw(trans, mCubeMesh, 6);
 	}
 
 	VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_NONE, 

@@ -18,7 +18,18 @@ ViProgram* ViAssetHolderProgram::LoadAsset(ViAssetDefinition aDefinition)
 
 	if (!customtype.mIsEmpty)
 	{
-		return mFactory->Create(customtype.mWords[1]);
+		ViProgram* program = mFactory->Create(customtype.mWords[1]);
+
+		std::vector<ViVifLine> params;
+		for (ViVifLine line : aDefinition.definition)
+		{
+			if (line.mWords[0] == "param")
+				params.push_back(line);
+		}
+
+		program->InterpretParams(params);
+
+		return program;
 	}
 	else 
 	{	//not a custom type; needs shaders and stuff manually

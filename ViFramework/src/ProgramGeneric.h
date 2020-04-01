@@ -26,6 +26,8 @@ public:
 
 	void SetDiffusePos(vec3 aPos);
 
+	void InterpretParams(std::vector<ViVifLine> aParams) override;
+
 private:
 	ViUniformMat4* mUniformProjection;
 	ViUniformMat4* mUniformCamera;
@@ -33,9 +35,13 @@ private:
 
 	ViUniformVec3* mUniformDiffuseColor;
 	ViUniformVec3* mUniformDiffusePos;
+	ViUniformFloat* mUniformDiffuseStrength;
 
 	ViUniformVec3* mUniformAmbientColor;
 	ViUniformFloat* mUniformAmbientStrength;
 
 	ViUniformMat4* mUniformNormalObject;
+
+	bool mDiffuseEnabled = true;
+	bool mAmbientEnabled = true;
 };

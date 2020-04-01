@@ -43,7 +43,7 @@ namespace vigame
 
 	private:
 		ViMesh* mOptimizedMesh;
-		ViMesh* mOtherMesh;
+		ViMesh* mOldOptimizedMesh;
 		//Mesh for debug mode
 		ViMesh* mWireframeMesh;
 

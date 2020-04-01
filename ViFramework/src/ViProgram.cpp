@@ -93,6 +93,10 @@ void ViProgram::BindAttribute(ViVertexAttribute& aAttribute)
 	glVertexAttribPointer(aAttribute.Get_id(), aAttribute.Get_elements(), GL_FLOAT, GL_FALSE, (GLsizei)aAttribute.Get_size(), aAttribute.Get_offset());
 }
 
+void ViProgram::InterpretParams(std::vector<ViVifLine> aParams)
+{
+}
+
 /*
 //TODO cache using a custom hashmap
 //std::map will definitely not work, too slow

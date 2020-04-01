@@ -6,7 +6,8 @@ ViTransform::ViTransform() :
 	mScale(glm::vec3(1, 1, 1)),
 	mSetPosition(false),
 	mSetRotation(false),
-	mSetScale(false)
+	mSetScale(false),
+	mChanged(true)
 {
 }
 
@@ -14,9 +15,10 @@ ViTransform::ViTransform(glm::vec3 aPosition, glm::vec3 aRotation, glm::vec3 aSc
 	mPosition(aPosition),
 	mRotation(aRotation),
 	mScale(aScale),
-	mSetPosition(false),
-	mSetRotation(false),
-	mSetScale(false)
+	mSetPosition(true),
+	mSetRotation(true),
+	mSetScale(true),
+	mChanged(true)
 {
 
 }

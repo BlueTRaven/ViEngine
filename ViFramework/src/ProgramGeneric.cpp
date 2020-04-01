@@ -16,6 +16,7 @@ mUniformCamera(new ViUniformMat4("camera", glm::identity<glm::mat4>())),
 mUniformTintColor(new ViUniformVec4("tint_color", vicolors::WHITE.ToVec4())),
 mUniformDiffuseColor(new ViUniformVec3("diffuse_color", vicolors::WHITE.ToVec4())),
 mUniformDiffusePos(new ViUniformVec3("diffuse_pos", { 0.0, 1.0, -1.0 })),
+mUniformDiffuseStrength(new ViUniformFloat("diffuse_strength", 1.f)),
 mUniformAmbientColor(new ViUniformVec3("ambient_color", vicolors::WHITE.ToVec4())),
 mUniformAmbientStrength(new ViUniformFloat("ambient_strength", 1.f)),
 mUniformNormalObject(new ViUniformMat4("normal_object", glm::identity<mat4>()))
@@ -33,6 +34,7 @@ void ViProgramGeneric::SetUniforms(ViVertexBatchInstance& aInstance)
 
 	mUniformDiffuseColor->Upload(this);
 	mUniformDiffusePos->Upload(this);
+	mUniformDiffuseStrength->Upload(this);
 	
 	mUniformAmbientColor->Upload(this);
 	mUniformAmbientStrength->Upload(this);
@@ -76,4 +78,21 @@ void ViProgramGeneric::SetDiffusePos(vec3 aPos)
 {
 	SetDirty(true);
 	mUniformDiffusePos->Set(this, aPos);
+}
+
+void ViProgramGeneric::InterpretParams(std::vector<ViVifLine> aParams)
+{
+	for (ViVifLine line : aParams)
+	{
+		if (line.mWords[1] == "diffuse")
+		{
+			mDiffuseEnabled = std::stoi(line.mWords[2]);
+			mUniformDiffuseStrength->Set(this, mDiffuseEnabled);
+		}
+		else if (line.mWords[1] == "ambient")
+		{
+			mAmbientEnabled = std::stoi(line.mWords[2]);
+			mUniformAmbientStrength->Set(this, mAmbientEnabled);
+		}
+	}
 }

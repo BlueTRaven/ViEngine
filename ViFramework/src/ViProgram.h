@@ -6,6 +6,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include "ViVifLine.h"
 #include "ViVertexAttribute.h"
 #include "ViShader.h"
 #include "ViUtil.h"
@@ -38,6 +39,8 @@ public:
 	virtual void BindAttributes(ViVertexBatchInstance& aInstance, bool aForceBind = false);
 
 	virtual void BindAttribute(ViVertexAttribute& aAttribute);
+
+	virtual void InterpretParams(std::vector<ViVifLine> aParams);
 
 protected:
 

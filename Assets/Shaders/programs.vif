@@ -1,5 +1,12 @@
 program generic
 customtype generic
+param diffuse 1
+param ambient 1
+
+program generic_fullbright
+customtype generic
+param diffuse 1
+param ambient 1
 
 program text
 customtype text

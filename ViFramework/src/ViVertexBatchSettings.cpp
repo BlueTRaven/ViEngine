@@ -14,11 +14,13 @@ ViVertexBatchSettings::ViVertexBatchSettings(CullMode aCullMode, DepthMode aDept
 
 void ViVertexBatchSettings::SetSettings()
 {
-	glLineWidth(32);
 	if (drawMode == ViVertexBatchSettings::cDRAW_FILLED)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	else if (drawMode == ViVertexBatchSettings::cDRAW_LINES)
+	{
+		glLineWidth(lineWidth);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
 
 	if (cullMode != ViVertexBatchSettings::cCULL_NONE)
 	{
