@@ -12,6 +12,9 @@ in vec3 frag_diffuse_pos;
 uniform vec3 diffuse_color;
 uniform float diffuse_strength;
 
+uniform vec3 spec_color;
+uniform float spec_strength;
+
 uniform vec3 ambient_color;
 uniform float ambient_strength;
 
@@ -25,12 +28,11 @@ void main()
 	vec3 light_dir = normalize(frag_diffuse_pos - frag_pos);
 	float diff = max(dot(norm, light_dir), 0.0);
 	vec3 diffuse = diffuse_strength * diff * diffuse_color;
-	
-	//float spec_strength = 0.5;
+
 	//vec3 view_dir = normalize(-frag_pos);
 	//vec3 reflect_dir = reflect(-light_dir, norm);
 	//float spec = pow(max(dot(view_dir, reflect_dir), 0.0), 32);
-	//vec3 specular = spec_strength * spec * diffuse_color;
+	//vec3 specular = spec_strength * spec * spec_color;
 	
 	vec4 tex_color = texture(tex, frag_tex_coord) * frag_color;
 	vec3 result = ambient + diffuse;

@@ -1,5 +1,10 @@
 #include "ViInputManager.h"
 
+ViInputManager::ViInputManager() : 
+	mPreviousKeyboardState((uint8_t*)malloc(SDL_NUM_SCANCODES))
+{
+}
+
 void ViInputManager::Update()
 {
 	SDL_PumpEvents();
@@ -15,7 +20,10 @@ void ViInputManager::LateUpdate()
 {
 	mPreviousMouseState = mCurrentMouseState;
 	mPreviousMousePosition = mCurrentMousePosition;
-	mPreviousKeyboardState = mCurrentKeyboardState;
+	
+	//If we just assign mPreviousKeyboardState to mCurrentKeyboardState, they'll share pointers, so when we set mCurrentKeyboardState above, it also overwrites the previous.
+	//Note that it copies to mPreviousKeyboardState's pointer, so we actually have to have a pointer. Thus the constructor.
+	memcpy((void*)mPreviousKeyboardState, mCurrentKeyboardState, SDL_NUM_SCANCODES);
 }
 
 bool ViInputManager::KeyDown(SDL_Scancode aKeyCode)

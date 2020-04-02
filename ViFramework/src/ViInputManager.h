@@ -16,6 +16,8 @@ public:
 		cMOUSE_MIDDLE = SDL_BUTTON(SDL_BUTTON_MIDDLE)
 	};
 
+	ViInputManager();
+
 	void Update();
 	void LateUpdate();
 

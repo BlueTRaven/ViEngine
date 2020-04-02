@@ -11,6 +11,7 @@
 #include "VoxelWorld.h"
 #include "Chunk.h"
 
+#include "Camera.h"
 #include "Player.h"
 
 namespace vigame
@@ -34,13 +35,11 @@ namespace vigame
 		ViMesh* mCubeMesh;
 
 		Player* player;
+		Camera* mCamera;
 
-		ViProgramGeneric* mProgramGeneric;
-		ViProgramGeneric* mProgramGenericFullBright;
 		ProgramCubesInstanced* mProgramCubesInstanced;
 
 		ViProgramText* mProgramText;
-		
 
 		ViMaterialFont* mDebugFont;
 

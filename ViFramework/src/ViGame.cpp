@@ -131,6 +131,8 @@ void ViGame::PrivateInit()
 			return;
 		}
 
+		viEnv->SetWindow(mWindow);
+
 		mContext = SDL_GL_CreateContext(mWindow);
 		if (mWindow == NULL)
 		{

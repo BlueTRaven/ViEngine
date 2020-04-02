@@ -14,6 +14,8 @@ public:
 
 	static ViEnvironment* GetInstance();
 
+	void SetWindow(SDL_Window* aWindow);
+
 	vi_property_get_named(ViInputManager*, mInputManager, InputManager);
 	vi_property_get_named(ViAssetHandler*, mAssetHandler, AssetHandler);
 	vi_property_get_named(ViVertexBatch*, mVertexBatch, VertexBatch);
@@ -21,11 +23,15 @@ public:
 	vi_property_get_named(int, mScreenWidth, ScreenWidth);
 	vi_property_get_named(int, mScreenHeight, ScreenHeight);
 
+	vi_property_get_named(SDL_Window*, mWindow, Window);
+
 private:
 	static ViEnvironment* mEnvironment;
 
 	int mScreenWidth;
 	int mScreenHeight;
+
+	SDL_Window* mWindow;
 
 	ViInputManager* mInputManager;
 	ViAssetHandler* mAssetHandler;

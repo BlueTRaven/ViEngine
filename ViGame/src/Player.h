@@ -6,11 +6,12 @@
 namespace vigame
 {
 	class VoxelWorld;
+	class Camera;
 
 	class Player
 	{
 	public:
-		Player(VoxelWorld* aWorld);
+		Player(ViTransform aStartTransform, VoxelWorld* aWorld, Camera* aCamera);
 
 		void Update(double aDeltaTime);
 		void CollisionDetect();
@@ -27,6 +28,10 @@ namespace vigame
 		int height;
 		int width;
 
+		Camera* mCamera;
 		VoxelWorld* mWorld;
+
+		vec3i mHighlightedCube;
+		bool mAttackKey;
 	};
 }
