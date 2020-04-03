@@ -32,12 +32,9 @@ void vigame::VoxelIslandGame::Init()
 	mProgramCubesInstanced = static_cast<ProgramCubesInstanced*>(GET_ASSET_PROGRAM("cube_instanced"));
 
 	//grid size 0.05f
-	int worldSize = 64;
-	int worldHeight = 512;
+	int worldSize = 512;
+	int worldHeight = 128;
 	world = new VoxelWorld({ worldSize, worldHeight, worldSize }, 1, new WorldGenerator);
-
-	mCubeMesh = ViMesh::MakeUCube(ASSET_HANDLER->LoadMaterial("white_pixel_fullbright"), vec3(-0.5), vec3(0.5), ViMesh::cFACE_ALL, vicolors::WHITE);
-	mCubeMesh->UploadData();
 
 	ViGame::Init();
 

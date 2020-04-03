@@ -25,7 +25,7 @@ namespace vigame
 		~Chunk();
 
 		static constexpr int cWIDTH = 32;
-		static constexpr int cHEIGHT = 32;
+		static constexpr int cHEIGHT = 64;
 		static constexpr int cDEPTH = 32;
 
 		void Draw(ViVertexBatch* aBatch);
@@ -40,7 +40,6 @@ namespace vigame
 		vi_property_get_named(ViMesh*, mWireframeMesh, WireframeMesh);
 
 		vi_property_get_named(bool, mHasAnything, HasAnything);
-		void NotifyCubeChanged(vec3i aPosition, CubeInstance& aPreviousCubeInstance, CubeInstance& aCubeInstance);
 
 	private:
 		ViMesh* mOptimizedMesh;

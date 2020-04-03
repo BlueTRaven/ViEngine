@@ -62,13 +62,14 @@ namespace vigame
 
 		//3d array of chunks
 		std::vector<Chunk*> mChunksA;
-		//std::vector<std::vector<std::vector<Chunk*>>> mChunks;
 
 		CubeRegistry* mCubeRegistry;
 
 		WorldGenerator* mGenerator;
 
 		ProgramCubesInstanced* mProgramCubesInstanced;
+
+		ViMesh* mCubeMesh;
 	};
 
 	template <typename TCallback>

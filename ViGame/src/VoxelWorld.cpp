@@ -41,6 +41,9 @@ vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWo
 		vec3i pos = IndexTo3DIndex(i, mChunkSize);
 		mGenerator->GenerateChunk(pos);
 	}
+
+	mCubeMesh = ViMesh::MakeUCube(ASSET_HANDLER->LoadMaterial("white_pixel_fullbright"), vec3(-0.5), vec3(0.5), ViMesh::cFACE_ALL, vicolors::WHITE);
+	mCubeMesh->UploadData();
 }
 
 void vigame::VoxelWorld::SetCubeInstance(vec3i aPosition, Cube* aCube)
@@ -111,14 +114,10 @@ void vigame::VoxelWorld::Update(float aDeltaTime)
 
 void vigame::VoxelWorld::Draw(ViVertexBatch* aBatch)
 {
-	//mChunksA[0]->Draw(aBatch);
 	for (int i = 0; i < mChunksA.size(); i++)
 	{
 		mChunksA[i]->Draw(aBatch);
 	}
-
-	//Instanced test
-	//aBatch->Draw(ViTransform::Positioned({ 0, 0, 0 }), GetCubeRegistry()->GetCubeType(1)->GetMesh(), 6, 1);
 
 	if (mDrawDebug)
 	{
@@ -126,7 +125,9 @@ void vigame::VoxelWorld::Draw(ViVertexBatch* aBatch)
 			ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_NONPREMULTIPLIED, ViVertexBatchSettings::cDRAW_LINES));
 		for (int i = 0; i < mChunksA.size(); i++)
 		{
-			aBatch->Draw(ViTransform::Positioned({ 0, 0, 0 }), mChunksA[i]->GetWireframeMesh());
+			ViTransform trans(vec3(mChunksA[i]->GetPosition()) + vec3(GetGridSize() / 2.f), vec3(0),
+				vec3(Chunk::cWIDTH, Chunk::cHEIGHT, Chunk::cDEPTH) * GetGridSize());
+			aBatch->Draw(trans, mCubeMesh);
 		}
 	}
 }

@@ -32,8 +32,6 @@ namespace vigame
 		Chunk* highlightedChunk;
 		vec3i highlightedCubeInstance;
 
-		ViMesh* mCubeMesh;
-
 		Player* player;
 		Camera* mCamera;
 

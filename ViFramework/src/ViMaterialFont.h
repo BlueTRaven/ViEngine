@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <unordered_map>
 
 #include "ViFont.h"
@@ -43,5 +44,5 @@ private:
 	ViFont* mFont;
 	ViMaterial* mMaterial;
 
-	std::unordered_map<char, ViMaterialFontCharacterMesh> mCharMeshes;
+	std::map<char, ViMaterialFontCharacterMesh> mCharMeshes;
 };

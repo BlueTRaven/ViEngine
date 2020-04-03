@@ -219,6 +219,61 @@ ViMesh* ViMesh::MakeUCube(ViMaterial* aMaterial, vec3 min, vec3 max, int aFaces,
 	return mesh;
 }
 
+void ViMesh::MakeUCubeRaw(vec3 min, vec3 max, uint8_t aFaces, std::vector<ViVertex>& aVertices, std::vector<GLuint>& aIndices, ViColorGL aColor, bool aOverwrite)
+{
+	if (aFaces == cFACE_NONE)
+		return;
+	//<near/far - n/f>_<top/bottom - t/b>_<left/right - l/r>
+
+	vec3 l_t_n = { min.x, min.y, min.z };
+	vec3 r_t_n = { max.x, min.y, min.z };
+	vec3 r_b_n = { max.x, max.y, min.z };
+	vec3 l_b_n = { min.x, max.y, min.z };
+
+	vec3 l_t_f = { min.x, min.y, max.z };
+	vec3 r_t_f = { max.x, min.y, max.z };
+	vec3 r_b_f = { max.x, max.y, max.z };
+	vec3 l_b_f = { min.x, max.y, max.z };
+
+	if (aOverwrite)
+	{
+		aVertices.clear();
+		aIndices.clear();
+	}
+
+	int numIndices = 0;
+	if (aFaces & cFACE_FRONT)
+	{
+		ViMesh::MakeQuadRaw(l_t_n, r_t_n, r_b_n, l_b_n, { 0.0, 0.0, -1.0 }, aVertices, aIndices, aColor); //front face
+		numIndices += 6;
+	}
+	if (aFaces & cFACE_RIGHT)
+	{
+		ViMesh::MakeQuadRaw(r_t_n, r_t_f, r_b_f, r_b_n, { -1.0, 0.0, 0.0 }, aVertices, aIndices, aColor);	//right face
+		numIndices += 6;
+	}
+	if (aFaces & cFACE_BACK)
+	{
+		ViMesh::MakeQuadRaw(r_t_f, l_t_f, l_b_f, r_b_f, { 0.0, 0.0, 1.0 }, aVertices, aIndices, aColor);	//back face
+		numIndices += 6;
+	}
+	if (aFaces & cFACE_LEFT)
+	{
+		ViMesh::MakeQuadRaw(l_t_f, l_t_n, l_b_n, l_b_f, { -1.0, 0.0, 0.0 }, aVertices, aIndices, aColor);	//left face
+		numIndices += 6;
+	}
+	if (aFaces & cFACE_TOP)
+	{
+		ViMesh::MakeQuadRaw(l_t_f, r_t_f, r_t_n, l_t_n, { 0.0, 1.0, 0.0 }, aVertices, aIndices, aColor);	//top face
+		numIndices += 6;
+	}
+	if (aFaces & cFACE_BOTTOM)
+	{
+		ViMesh::MakeQuadRaw(r_b_f, l_b_f, l_b_n, r_b_n, { 0.0, -1.0, 0.0 }, aVertices, aIndices, aColor);	//bottom face
+		numIndices += 6;
+	}
+}
+
 void ViMesh::MergeInto(std::vector<ViVertex>& aIntoVertices, std::vector<GLuint>& aIntoIndices, ViMesh* aMesh, std::vector<ViMeshSubsection> aSubsectionsToMerge)
 {
 }

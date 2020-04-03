@@ -33,7 +33,7 @@ namespace vigame
 			return mId;
 		}
 
-		uint8_t GetAdjacents(const CubeInstance& aCubeInstance, vec3i aPosition);
+		int GetAdjacents(const CubeInstance& aCubeInstance, vec3i aPosition);
 
 		std::vector<int> GetSubsectionsToDraw(const CubeInstance& aCubeInstance, vec3i aPosition);
 		

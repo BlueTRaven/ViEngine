@@ -21,11 +21,11 @@ void vigame::Cube::SetId(cubeid aId)
 	mId = aId;
 }
 
-uint8_t vigame::Cube::GetAdjacents(const CubeInstance& aCubeInstance, vec3i aPosition)
+int vigame::Cube::GetAdjacents(const CubeInstance& aCubeInstance, vec3i aPosition)
 {
 	VoxelWorld* world = GetWorld();
 
-	uint8_t notFaces = 0;
+	int notFaces = 0;
 
 	//TODO check transparent cubes
 	if (GetAdjacentCubeShouldHideFace(aPosition + vec3i(1, 0, 0)))

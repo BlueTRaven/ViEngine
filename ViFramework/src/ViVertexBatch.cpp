@@ -63,30 +63,7 @@ void ViVertexBatch::DrawString(ViTransform aTransform, ViMaterialFont* aFont, st
 
 		Draw(aTransform, cMesh);
 		aTransform.Translate(vec3(charInfo.offX, charInfo.offY, 0));
-		//offX += aFont->GetCharInfo(c).width;
-
-		/*ViGlyphInfo glyph(aFont, c, offX, offY);
-		offX = glyph.offX;
-		offY = glyph.offY;
-
-		vertices.emplace_back(ViVertex({ 0.0, 0.0, -1.0 }, glyph.positions[0], ViColorGL(1.0, 1.0, 1.0, 1.), glyph.uvs[0]));
-		vertices.emplace_back(ViVertex({ 0.0, 0.0, -1.0 }, glyph.positions[1], ViColorGL(1.0, 1.0, 1.0, 1.), glyph.uvs[1]));
-		vertices.emplace_back(ViVertex({ 0.0, 0.0, -1.0 }, glyph.positions[2], ViColorGL(1.0, 1.0, 1.0, 1.), glyph.uvs[2]));
-		vertices.emplace_back(ViVertex({ 0.0, 0.0, -1.0 }, glyph.positions[3], ViColorGL(1.0, 1.0, 1.0, 1.), glyph.uvs[3]));
-		indices.push_back(lastIndex);
-		indices.push_back(lastIndex + 1);
-		indices.push_back(lastIndex + 2);
-		indices.push_back(lastIndex);
-		indices.push_back(lastIndex + 2);
-		indices.push_back(lastIndex + 3);
-
-		lastIndex += 4;*/
 	}
-
-	//TODO cache font character meshes
-	/*ViMesh* mesh = new ViMesh(aMaterial, vertices, indices);
-	mesh->SetVolatile(true);
-	Draw(aTransform, mesh);(*/
 }
 
 void ViVertexBatch::Flush()
@@ -97,11 +74,11 @@ void ViVertexBatch::Flush()
 
 	mSettings.SetSettings();
 
-	std::sort(mInstances.begin(), mInstances.end(), 
+	/*std::sort(mInstances.begin(), mInstances.end(), 
 		[](ViVertexBatchInstance a, ViVertexBatchInstance b) 
 	{ 
 		return a.mesh < b.mesh; 
-	});
+	});*/
 
 	for (ViVertexBatchInstance instance : mInstances)
 	{
