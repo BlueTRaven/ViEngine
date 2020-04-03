@@ -8,17 +8,21 @@ vigame::Player::Player(ViTransform aStartTransform, VoxelWorld* aWorld, Camera* 
 	mTransform(aStartTransform),
 	mWorld(aWorld),
 	mCamera(aCamera),
-	mNoclip(false)
+	mNoclip(false),
+	mVelocity(vec3(0)),
+	mAcceleration(5)
 {
 	mCubeMesh = ViMesh::MakeUCube(ASSET_HANDLER->LoadMaterial("white_pixel_fullbright"), vec3(-0.5), vec3(0.5), ViMesh::cFACE_ALL, vicolors::WHITE);
 	mCubeMesh->UploadData();
 
 	mMaterialFont = new ViMaterialFont(GET_ASSET_FONT("debug"), GET_ASSET_MATERIAL("font_debug"));
+
+	mMaxVelocity = vec3(20, 20, 20);
 }
 
 void vigame::Player::Update(double aDeltaTime)
 {
-	float moveMult = -20 * aDeltaTime;
+	float moveMult = -mAcceleration;
 	float mouseSens = -100;
 
 	if (INPUT_MANAGER->KeyDown(SDL_SCANCODE_N))
@@ -29,15 +33,30 @@ void vigame::Player::Update(double aDeltaTime)
 		trans = mCamera->GetTransform();
 
 	if (INPUT_MANAGER->KeyHeld(SDL_SCANCODE_W))
-		trans.Translate(trans.Forward() * moveMult);
+		mVelocity += trans.Forward() * moveMult;
 	if (INPUT_MANAGER->KeyHeld(SDL_SCANCODE_A))
-		trans.Translate(trans.Left() * moveMult);
+		mVelocity += trans.Left() * moveMult;
 	if (INPUT_MANAGER->KeyHeld(SDL_SCANCODE_S))
-		trans.Translate(trans.Backwards() * moveMult);
+		mVelocity += trans.Backwards() * moveMult;
 	if (INPUT_MANAGER->KeyHeld(SDL_SCANCODE_D))
-		trans.Translate(trans.Right() * moveMult);
+		mVelocity += trans.Right() * moveMult;
 
-	mTransform = trans;
+	if (!mNoclip)
+		mVelocity.y += 9.81f;
+
+	vec3 velXZ = mVelocity;
+	velXZ.y = 0;
+
+	if (glm::length(velXZ) > glm::length(mMaxVelocity))
+		velXZ = glm::normalize(velXZ) * glm::length(mMaxVelocity);
+
+	mVelocity.x = velXZ.x;
+	mVelocity.z = velXZ.z;
+
+	if (mVelocity.y < -mMaxVelocity.y)
+		mVelocity.y = -mMaxVelocity.y;
+	else if (mVelocity.y > mMaxVelocity.y)
+		mVelocity.y = mMaxVelocity.y;
 
 	mTransform.Translate(mVelocity * (float)aDeltaTime);
 
@@ -64,9 +83,15 @@ void vigame::Player::Update(double aDeltaTime)
 
 	mCamera->SetTransform(aCameraTransform);
 
-	mVelocity *= drag * (float)aDeltaTime;
 
-	//CollisionDetect();
+	mVelocity.x *= mDrag;
+	mVelocity.z *= mDrag;
+	//The only force exerted on y velocity is gravity, so don't apply drag
+	//Unless we're in noclip - because otherwise we just wouldn't stop...
+	if (mNoclip)
+		mVelocity.y *= mDrag;
+
+	CollisionDetect();
 
 	vec3i out;
 	bool hit = !mWorld->VoxelRaycast(mTransform.GetPosition(), vec3(mTransform.GetPosition() - (mCamera->GetTransform().Forward() * 128.f)), out, [this](vec3i aPosition) {
@@ -112,22 +137,28 @@ void vigame::Player::CollisionDetect()
 		{
 			for (int x = -1; x <= 1; x++)
 			{
-				vec3i pos = (vec3i(mTransform.GetPosition()) / mWorld->GetSize()) + vec3i(x, y, z);
+				vec3i pos = (-mTransform.GetPosition() / mWorld->GetGridSize()) + vec3(x, y, z);
 				CubeInstance instance = mWorld->GetCubeInstance(pos);
 
 				if (instance.mId == 0)
 					continue;
 
-				vec3 posWorldSpace = vec3(pos * mWorld->GetSize());
+				vec3 posWorldSpace = vec3(pos) * mWorld->GetGridSize() - (mWorld->GetGridSize() / 2);
 
-				if (!mWorld->GetCubeRegistry()->GetCubeType(instance.mId)->GetTransparent())
-				{
-					vec3 dist = mTransform.GetPosition() - posWorldSpace + mWorld->GetGridSize();
+				float dist = -mTransform.GetPosition().y - posWorldSpace.y;
 
-					if (dist.y < 0)
-						mTransform.Translate({ 0, dist.y, 0 });
-				}
+				//vec3 t = vec3(mTransform.GetPosition().x, -posWorldSpace.y, mTransform.GetPosition().z);
+				if (dist < mWorld->GetGridSize())
+					SetPosition(mTransform.GetPosition() - vec3(0, dist, 0));
 			}
 		}
 	}
+}
+
+void vigame::Player::SetPosition(vec3 aPosition)
+{
+	mTransform.SetPosition(aPosition);
+	ViTransform camTrans = mCamera->GetTransform();
+	camTrans.SetPosition(aPosition);
+	mCamera->SetTransform(camTrans);
 }

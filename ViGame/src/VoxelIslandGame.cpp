@@ -32,7 +32,7 @@ void vigame::VoxelIslandGame::Init()
 	mProgramCubesInstanced = static_cast<ProgramCubesInstanced*>(GET_ASSET_PROGRAM("cube_instanced"));
 
 	//grid size 0.05f
-	int worldSize = 512;
+	int worldSize = 64;
 	int worldHeight = 128;
 	world = new VoxelWorld({ worldSize, worldHeight, worldSize }, 1, new WorldGenerator);
 

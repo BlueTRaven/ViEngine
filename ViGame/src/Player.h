@@ -28,9 +28,11 @@ namespace vigame
 		vi_property_named(vec3, mVelocity, Velocity);
 		vi_property_named(ViTransform, mTransform, Transform);
 
+		void SetPosition(vec3 aPosition);
+
 	private:
 		float mMovementSpeed = 1;
-		float drag = 0.98f;
+		float mDrag = 0.98f;
 
 		int height;
 		int width;
@@ -46,5 +48,8 @@ namespace vigame
 		ViMesh* mCubeMesh;
 
 		ViMaterialFont* mMaterialFont;
+
+		vec3 mMaxVelocity;
+		float mAcceleration;
 	};
 }
