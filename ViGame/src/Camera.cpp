@@ -21,6 +21,6 @@ void vigame::Camera::LateUpdate(float aDeltaTime)
 {
 	mat4 mat = mTransform.Matrix();
 	mProgramGeneric->SetCamera(mat);
-	mProgramGeneric->SetDiffusePos(mTransform.GetPosition());
+	mProgramGeneric->SetDiffusePos(-mTransform.GetPosition());
 	mProgramGenericFullBright->SetCamera(mat);
 }

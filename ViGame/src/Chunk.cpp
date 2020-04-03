@@ -264,14 +264,16 @@ void vigame::Chunk::GreedyMesh()
 		{
 			int n = 0;
 
+			std::set<cubeid> ids;
+			//std::vector<cubeid> ids;
+
 			for (x[v] = 0; x[v] < size[v]; ++x[v])
 			{
 				for (x[u] = 0; x[u] < size[u]; ++x[u])
 				{
-					bool curr = 0 <= x[d] ? GetCube(vec3i(x[0], x[1], x[2])).mId != 0 : false;
-					bool other = x[d] < size[d] - 1 ? GetCube(vec3i(x[0], x[1], x[2]) + vec3i(q[0], q[1], q[2])).mId != 0 : false;
-					bool isBehind = curr && !other;
-					cubeid id = curr ? GetCube(vec3i(x[0], x[1], x[2])).mId  : GetCube(vec3i(x[0], x[1], x[2]) + vec3i(q[0], q[1], q[2])).mId;
+					cubeid curr = 0 <= x[d] ? GetCube(vec3i(x[0], x[1], x[2])).mId : false;
+					cubeid other = x[d] < size[d] - 1 ? GetCube(vec3i(x[0], x[1], x[2]) + vec3i(q[0], q[1], q[2])).mId : false;
+					bool isBehind = curr && other == 0;
 					//bits are like so: 
 					//uuuuuuuuuuuuuuuuuuuuccccccccuubi
 					//where:
@@ -279,102 +281,128 @@ void vigame::Chunk::GreedyMesh()
 					//c is cubeid
 					//b is forward/backward
 					//i is used or not
-					if (curr != other)
-						mask[n++] = curr != other | ((uint32_t)isBehind << 1) | ((uint32_t)id << 4);
+					if ((curr == 0 && other != 0) || (other == 0 && curr != 0))
+					{
+						mask[n++] = curr != other | ((uint32_t)isBehind << 1) | ((uint32_t)curr << 4) | ((uint32_t)other << 4 + (int)(sizeof(cubeid) * 8));
+						
+						//Check to see if this type exists already
+						if (ids.find(curr) == ids.end())
+							ids.emplace(curr);
+						if (ids.find(other) == ids.end())
+							ids.emplace(other);
+						/*//TODO: will set work better here?
+						bool found = false;
+						for (auto iter = ids.begin(); iter != ids.end(); iter++)
+						{
+							if (*iter == id)
+							{
+								found = true;
+								break;
+							}
+						}
+
+						if (!found)
+							ids.push_back(id);*/
+					}
 					else mask[n++] = 0;
 				}
 			}
 
 			++x[d];
 
-			n = 0;
-
-			for (int j = 0; j < size[v]; ++j)
+			for (auto iter = ids.begin(); iter != ids.end(); iter++)
 			{
-				for (int i = 0; i < size[u];)
+				n = 0;
+
+				for (int j = 0; j < size[v]; ++j)
 				{
-					if (mask[n])
+					for (int i = 0; i < size[u];)
 					{
-						//Loop along the width until we find something that isn't mask
-						w = 1;
-						while (i + w < size[u] && mask[n + w])
-							++w;
-
-						bool done = false;
-
-						//Loop along the height and width until we find something that isn't mask
-						for (h = 1; j + h < size[v]; ++h)
+						if (mask[n])
 						{
-							for (k = 0; k < w; ++k)
+							cubeid currId = mask[n] >> 4;
+							cubeid otherId = mask[n] >> 4 + (int)(sizeof(cubeid) * 8);
+							//Loop along the width until we find something that isn't mask
+							w = 1;
+							while (i + w < size[u] && mask[n + w])
+								++w;
+
+							bool done = false;
+
+							//Loop along the height and width until we find something that isn't mask
+							for (h = 1; j + h < size[v]; ++h)
 							{
-								if (!mask[n + k + h * size[u]])
+								for (k = 0; k < w; ++k)
 								{
-									done = true;
+									if (!mask[n + k + h * size[u]])
+									{
+										done = true;
+										break;
+									}
+								}
+
+								if (done)
 									break;
+							}
+
+							x[u] = i;
+							x[v] = j;
+
+							vec3 xv = vec3i(x[0], x[1], x[2]);
+							vec3 du = vec3i(0);
+							vec3 dv = vec3i(0);
+							du[u] = w;
+							dv[v] = h;
+
+							vec3 startPos = vec3(mPosition);
+							xv = xv * mWorld->GetGridSize();
+							du = du * mWorld->GetGridSize();
+							dv = dv * mWorld->GetGridSize();
+
+							vec3 p0 = xv;
+							vec3 p1 = xv + du;
+							vec3 p2 = xv + du + dv;
+							vec3 p3 = xv + dv;
+
+							if (mask[n] & 0b10)
+							{
+								vec3 nrm = glm::normalize(glm::cross(p2 - p0, p1 - p0));
+
+								ViMesh::MakeQuadRaw(
+									p3,
+									p2,
+									p1,
+									p0,
+									nrm, vertices, indices, mWorld->GetCubeRegistry()->GetCubeType(currId)->GetColor());
+							}
+							else
+							{
+								vec3 nrm = glm::normalize(glm::cross(p1 - p0, p2 - p0));
+
+								ViMesh::MakeQuadRaw(
+									p0,
+									p1,
+									p2,
+									p3,
+									nrm, vertices, indices, mWorld->GetCubeRegistry()->GetCubeType(currId)->GetColor());
+							}
+
+							for (l = 0; l < h; ++l)
+							{
+								for (k = 0; k < w; ++k)
+								{
+									mask[n + k + l * size[u]] = 0;
 								}
 							}
 
-							if (done)
-								break;
-						}
-
-						x[u] = i;
-						x[v] = j;
-
-						vec3 xv = vec3i(x[0], x[1], x[2]);
-						vec3 du = vec3i(0);
-						vec3 dv = vec3i(0);
-						du[u] = w;
-						dv[v] = h;
-
-						vec3 startPos = vec3(mPosition);
-						xv = xv * mWorld->GetGridSize();
-						du = du * mWorld->GetGridSize();
-						dv = dv * mWorld->GetGridSize();
-
-						vec3 p0 = xv;
-						vec3 p1 = xv + du;
-						vec3 p2 = xv + du + dv;
-						vec3 p3 = xv + dv;
-
-						if (mask[n] & 0b10)
-						{
-							vec3 nrm = glm::cross(p1 - p0, p2 - p0);
-
-							ViMesh::MakeQuadRaw(
-								p3,
-								p2,
-								p1,
-								p0,
-								nrm, vertices, indices, vicolors::WHITE);
+							i += w;
+							n += w;
 						}
 						else
 						{
-							vec3 nrm = glm::cross(p2 - p0, p1 - p0);
-
-							ViMesh::MakeQuadRaw(
-								p0,
-								p1,
-								p2,
-								p3,
-								nrm, vertices, indices, vicolors::WHITE);
+							++i;
+							++n;
 						}
-
-						for (l = 0; l < h; ++l)
-						{
-							for (k = 0; k < w; ++k)
-							{
-								mask[n + k + l * size[u]] = 0;
-							}
-						}
-
-						i += w;
-						n += w;
-					}
-					else
-					{
-						++i;
-						++n;
 					}
 				}
 			}

@@ -65,7 +65,7 @@ GLuint ViUniform<T>::GetLocation(ViProgram* aProgram)
 
 	if (!aProgram->GetLinked())
 	{
-		printf("Program has not been linked - uniform %s cannot be found.\n", mName.c_str());
+		printf("Error: Program has not been linked - uniform %s cannot be found.\n", mName.c_str());
 		mCached = false;
 		return 0;
 	}
@@ -73,7 +73,7 @@ GLuint ViUniform<T>::GetLocation(ViProgram* aProgram)
 	GLint uniform = glGetUniformLocation(aProgram->GetId(), mName.c_str());
 	if (uniform <= -1)
 	{
-		printf("Could not find uniform %s position.\n", mName.c_str());
+		printf("Error: Could not find uniform %s position.\n", mName.c_str());
 		mCached = false;
 		return 0;
 	}

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <random>
 #include <stdint.h>
 
 #include "ViUtil.h"
@@ -25,5 +26,26 @@ namespace vigame
 	inline int Vec2IndexToIndex(vec2i aIndex, vec2i aStrides)
 	{
 		return aIndex.x + aStrides.x * aIndex.y;
+	}
+
+	inline int RandomInt(std::random_device* rand, int aStart, int aEnd)
+	{
+		std::default_random_engine engine((*rand)());
+		std::uniform_int_distribution distribution(aStart, aEnd);
+		return distribution(engine);
+	}
+
+	inline float RandomFloat(std::random_device* rand, float aStart, float aEnd)
+	{
+		std::default_random_engine engine((*rand)());
+		std::uniform_real_distribution<float> distribution(aStart, aEnd);
+		return distribution(engine);
+	}
+
+	inline float RandomDouble(std::random_device* rand, double aStart, double aEnd)
+	{
+		std::default_random_engine engine((*rand)());
+		std::uniform_real_distribution<double> distribution(aStart, aEnd);
+		return distribution(engine);
 	}
 }

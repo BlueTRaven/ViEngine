@@ -21,9 +21,10 @@ namespace vigame
 	class Cube
 	{
 	public:
-		Cube(VoxelWorld* world, ViMaterial* aMaterial, bool aTransparent);
+		Cube(VoxelWorld* world, ViMaterial* aMaterial, ViColorGL aColor, bool aTransparent);
 
 		vi_property_get_named(bool, mTransparent, Transparent);
+		vi_property_get_named(ViColorGL, mColor, Color);
 		vi_property_get_named(ViMesh*, mMesh, Mesh);
 
 		void SetId(cubeid mId);
@@ -49,6 +50,7 @@ namespace vigame
 		cubeid mId;
 
 		bool mTransparent;
+		ViColorGL mColor;
 
 		VoxelWorld* mWorld;
 		void CreateMesh(ViMaterial* aMaterial);

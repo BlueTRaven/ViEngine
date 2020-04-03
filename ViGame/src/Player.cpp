@@ -2,12 +2,18 @@
 
 #include "VoxelWorld.h"
 #include "Camera.h"
+#include "ViVertexBatch.h"
 
 vigame::Player::Player(ViTransform aStartTransform, VoxelWorld* aWorld, Camera* aCamera) :
 	mTransform(aStartTransform),
 	mWorld(aWorld),
-	mCamera(aCamera)
+	mCamera(aCamera),
+	mNoclip(false)
 {
+	mCubeMesh = ViMesh::MakeUCube(ASSET_HANDLER->LoadMaterial("white_pixel_fullbright"), vec3(-0.5), vec3(0.5), ViMesh::cFACE_ALL, vicolors::WHITE);
+	mCubeMesh->UploadData();
+
+	mMaterialFont = new ViMaterialFont(GET_ASSET_FONT("debug"), GET_ASSET_MATERIAL("font_debug"));
 }
 
 void vigame::Player::Update(double aDeltaTime)
@@ -15,14 +21,23 @@ void vigame::Player::Update(double aDeltaTime)
 	float moveMult = -20 * aDeltaTime;
 	float mouseSens = -100;
 
+	if (INPUT_MANAGER->KeyDown(SDL_SCANCODE_N))
+		mNoclip = !mNoclip;
+
+	ViTransform trans = mTransform;
+	if (mNoclip)
+		trans = mCamera->GetTransform();
+
 	if (INPUT_MANAGER->KeyHeld(SDL_SCANCODE_W))
-		mTransform.Translate(mTransform.Forward() * moveMult);
+		trans.Translate(trans.Forward() * moveMult);
 	if (INPUT_MANAGER->KeyHeld(SDL_SCANCODE_A))
-		mTransform.Translate(mTransform.Left() * moveMult);
+		trans.Translate(trans.Left() * moveMult);
 	if (INPUT_MANAGER->KeyHeld(SDL_SCANCODE_S))
-		mTransform.Translate(mTransform.Backwards() * moveMult);
+		trans.Translate(trans.Backwards() * moveMult);
 	if (INPUT_MANAGER->KeyHeld(SDL_SCANCODE_D))
-		mTransform.Translate(mTransform.Right() * moveMult);
+		trans.Translate(trans.Right() * moveMult);
+
+	mTransform = trans;
 
 	mTransform.Translate(mVelocity * (float)aDeltaTime);
 
@@ -43,6 +58,9 @@ void vigame::Player::Update(double aDeltaTime)
 	rotation.y = std::fmod(rotation.y, 360.0f);
 
 	aCameraTransform.SetRotation(rotation);
+	
+	rotation.x = 0;
+	mTransform.SetRotation(rotation);
 
 	mCamera->SetTransform(aCameraTransform);
 
@@ -51,24 +69,38 @@ void vigame::Player::Update(double aDeltaTime)
 	//CollisionDetect();
 
 	vec3i out;
-	bool hit = !mWorld->VoxelRaycast(mTransform.GetPosition(), vec3(mTransform.GetPosition() - (mTransform.Forward() * 128.f)), out, [this](vec3i aPosition) {
+	bool hit = !mWorld->VoxelRaycast(mTransform.GetPosition(), vec3(mTransform.GetPosition() - (mCamera->GetTransform().Forward() * 128.f)), out, [this](vec3i aPosition) {
 		return mWorld->GetCubeInstance(aPosition).mId != 0;
 	});
 
 	if (hit)
 	{
+		mHighlighted = true;
 		mHighlightedCube = out;
 
-		if (INPUT_MANAGER->KeyHeld(SDL_SCANCODE_G))
-		{
-			if (!mAttackKey)
-			{
-				mAttackKey = true;
-				mWorld->SetCubeInstance(out, 0);
-				//highlightedChunk->SetDirty(true);
-			}
-		}
-		else mAttackKey = false;
+		if (INPUT_MANAGER->KeyDown(SDL_SCANCODE_G))
+			mWorld->SetCubeInstance(out, 0);
+	}
+	else mHighlighted = false;
+}
+
+void vigame::Player::Draw(ViVertexBatch * aBatch)
+{
+	if (mHighlighted)
+	{
+		VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_NONE, ViVertexBatchSettings::cDEPTH_LESS,
+			ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_NONPREMULTIPLIED, ViVertexBatchSettings::cDRAW_LINES));
+
+		float scale = 1.f / mWorld->GetGridSize() + 0.001f;
+		ViTransform trans = ViTransform::Positioned((vec3(mWorld->GetGridSize() / 2.0f) + vec3(mHighlightedCube)) / scale);
+		trans.SetScale(vec3(scale));
+		VERTEX_BATCH->Draw(trans, mCubeMesh, 6);
+
+		VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_NONE,
+			ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_ALPHABLEND, ViVertexBatchSettings::cDRAW_FILLED));
+		aBatch->DrawString(ViTransform::Positioned({ 0, 128, 0 }), mMaterialFont, "Highlighted Cube Pos: x " + 
+			std::to_string(mHighlightedCube.x) + ", y " + std::to_string(mHighlightedCube.y) + ", z " + std::to_string(mHighlightedCube.z) +
+			", id: " + std::to_string(mWorld->GetCubeInstance(mHighlightedCube).mId));
 	}
 }
 

@@ -37,6 +37,9 @@ private:
 	ViUniformVec3* mUniformDiffusePos;
 	ViUniformFloat* mUniformDiffuseStrength;
 
+	ViUniformVec3* mUniformSpecularColor;
+	ViUniformFloat* mUniformSpecularStrength;
+
 	ViUniformVec3* mUniformAmbientColor;
 	ViUniformFloat* mUniformAmbientStrength;
 

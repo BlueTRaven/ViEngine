@@ -17,6 +17,8 @@ mUniformTintColor(new ViUniformVec4("tint_color", vicolors::WHITE.ToVec4())),
 mUniformDiffuseColor(new ViUniformVec3("diffuse_color", vicolors::WHITE.ToVec4())),
 mUniformDiffusePos(new ViUniformVec3("diffuse_pos", { 0.0, 1.0, -1.0 })),
 mUniformDiffuseStrength(new ViUniformFloat("diffuse_strength", 1.f)),
+mUniformSpecularColor(new ViUniformVec3("spec_color", vicolors::WHITE.ToVec4())),
+mUniformSpecularStrength(new ViUniformFloat("spec_strength", 1.f)),
 mUniformAmbientColor(new ViUniformVec3("ambient_color", vicolors::WHITE.ToVec4())),
 mUniformAmbientStrength(new ViUniformFloat("ambient_strength", 1.f)),
 mUniformNormalObject(new ViUniformMat4("normal_object", glm::identity<mat4>()))
@@ -36,6 +38,9 @@ void ViProgramGeneric::SetUniforms(ViVertexBatchInstance& aInstance)
 	mUniformDiffusePos->Upload(this);
 	mUniformDiffuseStrength->Upload(this);
 	
+	mUniformSpecularColor->Upload(this);
+	mUniformSpecularStrength->Upload(this);
+
 	mUniformAmbientColor->Upload(this);
 	mUniformAmbientStrength->Upload(this);
 

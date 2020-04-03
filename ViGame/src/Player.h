@@ -1,7 +1,13 @@
 #pragma once
 
+#include <string>
+
 #include "ViTransform.h"
 #include "ViUtil.h"
+#include "ViMesh.h"
+#include "ViMaterialFont.h"
+
+class ViVertexBatch;
 
 namespace vigame
 {
@@ -14,6 +20,7 @@ namespace vigame
 		Player(ViTransform aStartTransform, VoxelWorld* aWorld, Camera* aCamera);
 
 		void Update(double aDeltaTime);
+		void Draw(ViVertexBatch* aBatch);
 		void CollisionDetect();
 
 		vi_property_get_named(VoxelWorld*, mWorld, World);
@@ -32,6 +39,12 @@ namespace vigame
 		VoxelWorld* mWorld;
 
 		vec3i mHighlightedCube;
-		bool mAttackKey;
+		bool mHighlighted;
+
+		bool mNoclip;
+
+		ViMesh* mCubeMesh;
+
+		ViMaterialFont* mMaterialFont;
 	};
 }

@@ -28,9 +28,9 @@ vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWo
 	}
 
 	//Cube with no mesh
-	mCubeRegistry->AddCubeType(new Cube(this, nullptr, false));
-	mCubeRegistry->AddCubeType(new Cube(this, GET_ASSET_MATERIAL("white_pixel"), false));
-	mCubeRegistry->AddCubeType(new Cube(this, GET_ASSET_MATERIAL("glass_01"), true));
+	mCubeRegistry->AddCubeType(new Cube(this, nullptr, vicolors::WHITE, false));
+	mCubeRegistry->AddCubeType(new Cube(this, GET_ASSET_MATERIAL("white_pixel"), vicolors::WHITE, false));
+	mCubeRegistry->AddCubeType(new Cube(this, GET_ASSET_MATERIAL("white_pixel"), vicolors::GREEN, true));
 
 	//set all ids to 0
 	memset(mCubes, 0, (aSize.x * aSize.y * aSize.z) * sizeof(CubeInstance));

@@ -29,13 +29,13 @@ void main()
 	float diff = max(dot(norm, light_dir), 0.0);
 	vec3 diffuse = diffuse_strength * diff * diffuse_color;
 
-	//vec3 view_dir = normalize(-frag_pos);
-	//vec3 reflect_dir = reflect(-light_dir, norm);
-	//float spec = pow(max(dot(view_dir, reflect_dir), 0.0), 32);
-	//vec3 specular = spec_strength * spec * spec_color;
+	vec3 view_dir = normalize(-frag_pos);
+	vec3 reflect_dir = reflect(-light_dir, norm);
+	float spec = pow(max(dot(view_dir, reflect_dir), 0.0), 32);
+	vec3 specular = spec_strength * spec * spec_color;
 	
 	vec4 tex_color = texture(tex, frag_tex_coord) * frag_color;
-	vec3 result = ambient + diffuse;
+	vec3 result = ambient + diffuse + specular;
 		
 	color =  vec4(result, 1.0) * tex_color;
 }

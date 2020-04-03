@@ -4,12 +4,13 @@
 #include "VoxelWorld.h"
 #include "CubeInstance.h"
 
-vigame::Cube::Cube(VoxelWorld* world, ViMaterial* aMaterial, bool aTransparent) :
+vigame::Cube::Cube(VoxelWorld* world, ViMaterial* aMaterial, ViColorGL aColor, bool aTransparent) :
 	mWorld(world),
 	idSet(false),
-	mTransparent(aTransparent)
+	mTransparent(aTransparent),
+	mColor(aColor)
 {
-	CreateMesh(aMaterial);
+	//CreateMesh(aMaterial);
 }
 
 void vigame::Cube::SetId(cubeid aId)

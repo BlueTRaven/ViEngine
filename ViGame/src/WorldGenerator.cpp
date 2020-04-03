@@ -6,6 +6,8 @@
 #include "VoxelWorld.h"
 #include "Chunk.h"
 
+std::random_device* vigame::WorldGenerator::rand = new std::random_device();
+
 void vigame::WorldGenerator::Init(VoxelWorld * aWorld)
 {
 	mWorld = aWorld;
@@ -48,7 +50,10 @@ void vigame::WorldGenerator::GenerateChunk(vec3i aChunkPos)
 				vec3i pos = vec3i(index.x, h + mWorld->ChunkSpaceToCubeSpace(aChunkPos).y, index.y);
 
 				if (pos.y < heightCube)
+				{
+					//int num = RandomInt(rand, 1, 2);
 					mWorld->SetCubeInstance(pos, mWorld->GetCubeRegistry()->GetCubeType(1));
+				}
 				else mWorld->SetCubeInstance(pos, mWorld->GetCubeRegistry()->GetCubeType(0));
 			}
 		}
