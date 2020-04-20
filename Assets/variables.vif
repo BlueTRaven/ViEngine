@@ -1,5 +1,5 @@
 #size of world in cubes
-world_size 128 64 64
+world_size 128 128 128
 
 #size of chunks in cubes
 #note! must be a multiple of world_size!

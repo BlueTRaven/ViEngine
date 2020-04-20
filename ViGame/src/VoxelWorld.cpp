@@ -74,7 +74,7 @@ vigame::CubeInstance vigame::VoxelWorld::MakeInstance(Cube* aCube)
 
 vigame::Chunk* vigame::VoxelWorld::GetChunk(vec3i aChunkPosition)
 {
-	if (aChunkPosition.x < 0 || aChunkPosition.y < 0 || aChunkPosition.z < 0 || aChunkPosition.x > mSize.x || aChunkPosition.y > mSize.y || aChunkPosition.z > mSize.z)
+	if (aChunkPosition.x < 0 || aChunkPosition.y < 0 || aChunkPosition.z < 0 || aChunkPosition.x >= mChunkSize.x || aChunkPosition.y >= mChunkSize.y || aChunkPosition.z >= mChunkSize.z)
 		return nullptr;
 
 	return mChunks[Vec3IndexToIndex(aChunkPosition, mChunkSize)];
