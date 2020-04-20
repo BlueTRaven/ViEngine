@@ -19,8 +19,8 @@ namespace vigame
 	public:
 		VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWorldGenerator);
 
-		void SetCubeInstance(vec3i aPosition, Cube* aCube);
-		CubeInstance& GetCubeInstance(vec3i aPosition);
+		void SetCube(vec3i aPosition, Cube* aCube);
+		CubeInstance& GetCube(vec3i aPosition);
 		CubeInstance MakeInstance(Cube* aCube);
 
 		//Gets the chunk in chunk space. (i.e. uses aChunkPosition to index directly into the mChunks array.)
@@ -62,7 +62,6 @@ namespace vigame
 		vec3i mChunkSize;
 
 		//1d array of cubes - equal to [WIDTH * HEIGHT * DEPTH]
-		CubeInstance* mCubes;
 		CubeInstance voidCube = CubeInstance(0);
 
 		//3d array of chunks

@@ -100,7 +100,7 @@ void vigame::Cube::CreateMesh(ViMaterial* aMaterial)
 
 bool vigame::Cube::GetAdjacentCubeShouldHideFace(vec3i aPosition)
 {
-	CubeInstance instance = GetWorld()->GetCubeInstance(aPosition);
+	CubeInstance instance = GetWorld()->GetCube(aPosition);
 	if (instance.mId == 0)
 		return false;
 

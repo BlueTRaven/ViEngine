@@ -7,7 +7,6 @@ vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWo
 	mSize(aSize),
 	mCubeRegistry(new CubeRegistry()),
 	mGridSize(aGridSize),
-	mCubes((CubeInstance*)malloc((aSize.x * aSize.y * aSize.z) * sizeof(CubeInstance))),
 	mGenerator(aWorldGenerator),
 	mDrawDebug(false),
 	mLoadPosition(vec3(0)),
@@ -37,9 +36,6 @@ vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWo
 	mCubeRegistry->AddCubeType(new Cube(this, GET_ASSET_MATERIAL("white_pixel"), vicolors::WHITE, false));
 	mCubeRegistry->AddCubeType(new Cube(this, GET_ASSET_MATERIAL("white_pixel"), vicolors::GREEN, true));
 
-	//set all ids to 0
-	memset(mCubes, 0, (aSize.x * aSize.y * aSize.z) * sizeof(CubeInstance));
-
 	mGenerator->Init(this);
 	for (int i = 0; i < (mChunkSize.x * mChunkSize.y * mChunkSize.z); i++)
 	{
@@ -51,23 +47,24 @@ vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWo
 	mCubeMesh->UploadData();
 }
 
-void vigame::VoxelWorld::SetCubeInstance(vec3i aPosition, Cube* aCube)
+void vigame::VoxelWorld::SetCube(vec3i aPosition, Cube* aCube)
 {
-	//mProgramCubesInstanced->SetInstance(aPosition, aCube->GetId(), mCubes[Vec3IndexToIndex(aPosition, mSize)].mId);
-	mCubes[Vec3IndexToIndex(aPosition, mSize)] = MakeInstance(aCube);
-
-	//Have to re-add mLoadPosition because GetChunk subtracts it again
 	Chunk* chunk = GetChunkResponsibleForCube(aPosition);
 
-	chunk->SetDirty(true);
+	if (chunk == nullptr)
+		return;
+
+	chunk->SetCubeRelative(MakeInstance(aCube), aPosition - chunk->GetWorldPosition() * Chunk::GetSize());
 }
 
-vigame::CubeInstance& vigame::VoxelWorld::GetCubeInstance(vec3i aPosition)
+vigame::CubeInstance& vigame::VoxelWorld::GetCube(vec3i aPosition)
 {	
-	if (aPosition.x < 0 || aPosition.y < 0 || aPosition.z < 0 || aPosition.x >= mSize.x || aPosition.y >= mSize.y || aPosition.z >= mSize.z)
+	Chunk* chunk = GetChunkResponsibleForCube(aPosition);
+
+	if (chunk == nullptr)
 		return voidCube;
 
-	return mCubes[Vec3IndexToIndex(aPosition, mSize)];
+	return chunk->GetCubeRelative(aPosition - chunk->GetWorldPosition() * Chunk::GetSize());
 }
 
 vigame::CubeInstance vigame::VoxelWorld::MakeInstance(Cube* aCube)

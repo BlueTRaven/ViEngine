@@ -9,12 +9,13 @@
 #include "ViMesh.h"
 #include "ViUtil.h"
 
+#include "CubeInstance.h"
+
 class ViVertexBatch;
 
 namespace vigame
 {
 	class VoxelWorld;
-	struct CubeInstance;
 
 	class Chunk
 	{
@@ -44,8 +45,11 @@ namespace vigame
 		vi_property_get_named(bool, mHasAnything, HasAnything);
 
 		//Gets a cube in cube-space chunk-relative coordinates.
-		CubeInstance GetCube(vec3i aPosition);
+		CubeInstance GetCubeRelative(vec3i aPosition);
+		void SetCubeRelative(CubeInstance instance, vec3i aPosition);
 	private:
+		CubeInstance* mCubes;
+
 		enum MeshingMethod
 		{
 			cSTUPID,	//TODO implement stupid meshing?
@@ -55,8 +59,6 @@ namespace vigame
 
 		ViMesh* mOptimizedMesh;
 		ViMesh* mOldOptimizedMesh;
-		//Mesh for debug mode
-		//ViMesh* mWireframeMesh;
 
 		vec3i mRelativePosition;
 		vec3i mWorldPosition;

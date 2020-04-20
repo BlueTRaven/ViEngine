@@ -10,6 +10,7 @@
 vigame::Chunk::Chunk(vec3i aRelativePosition, vec3i aWorldPosition, VoxelWorld* aWorld) :
 	mRelativePosition(aRelativePosition),
 	mWorldPosition(aWorldPosition),
+	mCubes((CubeInstance*)malloc((mSize.x * mSize.y * mSize.z) * sizeof(CubeInstance))),
 	mWorld(aWorld),
 	mDirty(false),
 	mOptimizedMesh(nullptr),
@@ -18,6 +19,9 @@ vigame::Chunk::Chunk(vec3i aRelativePosition, vec3i aWorldPosition, VoxelWorld* 
 	meshingThread(nullptr),
 	mut(new std::mutex())
 {
+	//set all ids to 0
+	memset(mCubes, 0, sizeof(mCubes));
+
 	vec3 pos = vec3(aWorldPosition) * aWorld->GetGridSize() * vec3(GetSize()) - (aWorld->GetGridSize() / 2);
 	vec3 size = aWorld->GetGridSize() * vec3(GetSize());
 }
@@ -167,7 +171,7 @@ void vigame::Chunk::NaiveMesh()
 			{
 				vec3i pos(x, y, z);
 				vec3i realPos = pos + (mWorldPosition * GetSize());
-				CubeInstance cube = mWorld->GetCubeInstance(realPos);
+				CubeInstance cube = mWorld->GetCube(realPos);
 
 				if (cube.mId == 0)
 					continue;
@@ -175,17 +179,17 @@ void vigame::Chunk::NaiveMesh()
 				Cube* c = mWorld->GetCubeRegistry()->GetCubeType(cube.mId);
 				int adjacents = 0;
 
-				if (mWorld->GetCubeInstance(realPos + vec3i(-1, 0, 0)).mId == 0)
+				if (mWorld->GetCube(realPos + vec3i(-1, 0, 0)).mId == 0)
 					adjacents = adjacents | ViMesh::cFACE_LEFT;
-				if (mWorld->GetCubeInstance(realPos + vec3i(1, 0, 0)).mId == 0)
+				if (mWorld->GetCube(realPos + vec3i(1, 0, 0)).mId == 0)
 					adjacents = adjacents | ViMesh::cFACE_RIGHT;
-				if (mWorld->GetCubeInstance(realPos + vec3i(0, -1, 0)).mId == 0)
+				if (mWorld->GetCube(realPos + vec3i(0, -1, 0)).mId == 0)
 					adjacents = adjacents | ViMesh::cFACE_TOP;
-				if (mWorld->GetCubeInstance(realPos + vec3i(0, 1, 0)).mId == 0)
+				if (mWorld->GetCube(realPos + vec3i(0, 1, 0)).mId == 0)
 					adjacents = adjacents | ViMesh::cFACE_BOTTOM;
-				if (mWorld->GetCubeInstance(realPos + vec3i(0, 0, -1)).mId == 0)
+				if (mWorld->GetCube(realPos + vec3i(0, 0, -1)).mId == 0)
 					adjacents = adjacents | ViMesh::cFACE_FRONT;
-				if (mWorld->GetCubeInstance(realPos + vec3i(0, 0, 1)).mId == 0)
+				if (mWorld->GetCube(realPos + vec3i(0, 0, 1)).mId == 0)
 					adjacents = adjacents | ViMesh::cFACE_BACK;
 
 				if (adjacents == 0)
@@ -261,8 +265,8 @@ void vigame::Chunk::GreedyMesh()
 			{
 				for (x[u] = 0; x[u] < size[u]; ++x[u])
 				{
-					cubeid curr = 0 <= x[d] ? GetCube(vec3i(x[0], x[1], x[2])).mId : false;
-					cubeid other = x[d] < size[d] - 1 ? GetCube(vec3i(x[0], x[1], x[2]) + vec3i(q[0], q[1], q[2])).mId : false;
+					cubeid curr = 0 <= x[d] ? GetCubeRelative(vec3i(x[0], x[1], x[2])).mId : false;
+					cubeid other = x[d] < size[d] - 1 ? GetCubeRelative(vec3i(x[0], x[1], x[2]) + vec3i(q[0], q[1], q[2])).mId : false;
 					bool isBehind = curr && other == 0;
 					//bits are like so: 
 					//uuuuuuuuuuuuuuuuuuuuccccccccuubi
@@ -417,7 +421,17 @@ void vigame::Chunk::GreedyMesh()
 	mut->unlock();
 }
 
-vigame::CubeInstance vigame::Chunk::GetCube(vec3i aPosition)
+vigame::CubeInstance vigame::Chunk::GetCubeRelative(vec3i aPosition)
 {
-	return mWorld->GetCubeInstance(aPosition + mWorld->ChunkSpaceToCubeSpace(mRelativePosition));
+	if (aPosition.x < 0 || aPosition.y < 0 || aPosition.z < 0 || aPosition.x >= mSize.x || aPosition.y >= mSize.y || aPosition.z >= mSize.z)
+		return CubeInstance(0);
+
+	return mCubes[Vec3IndexToIndex(aPosition, mSize)];
+}
+
+void vigame::Chunk::SetCubeRelative(CubeInstance instance, vec3i aPosition)
+{
+	mCubes[Vec3IndexToIndex(aPosition, mSize)] = instance;
+
+	SetDirty(true);
 }

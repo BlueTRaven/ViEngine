@@ -52,9 +52,9 @@ void vigame::WorldGenerator::GenerateChunk(vec3i aChunkWorldPos)
 				if (pos.y < heightCube)
 				{
 					//int num = RandomInt(rand, 1, 2);
-					mWorld->SetCubeInstance(pos, mWorld->GetCubeRegistry()->GetCubeType(1));
+					mWorld->SetCube(pos, mWorld->GetCubeRegistry()->GetCubeType(1));
 				}
-				else mWorld->SetCubeInstance(pos, mWorld->GetCubeRegistry()->GetCubeType(0));
+				else mWorld->SetCube(pos, mWorld->GetCubeRegistry()->GetCubeType(0));
 			}
 		}
 	}

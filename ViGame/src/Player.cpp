@@ -39,7 +39,7 @@ void vigame::Player::Update(double aDeltaTime)
 
 	vec3i out;
 	bool hit = !mWorld->VoxelRaycast(mTransform.GetPosition(), vec3(mTransform.GetPosition() - (mCamera->GetTransform().Forward() * 128.f)), out, [this](vec3i aPosition) {
-		return mWorld->GetCubeInstance(aPosition).mId != 0;
+		return mWorld->GetCube(aPosition).mId != 0;
 	});
 
 	if (hit)
@@ -48,7 +48,7 @@ void vigame::Player::Update(double aDeltaTime)
 		mHighlightedCube = out;
 
 		if (INPUT_MANAGER->KeyDown(SDL_SCANCODE_G))
-			mWorld->SetCubeInstance(out, 0);
+			mWorld->SetCube(out, 0);
 	}
 	else mHighlighted = false;
 }
@@ -73,7 +73,7 @@ void vigame::Player::Draw(ViVertexBatch * aBatch)
 			ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_ALPHABLEND, ViVertexBatchSettings::cDRAW_FILLED));
 		aBatch->DrawString(ViTransform::Positioned({ 0, 128, 0 }), mMaterialFont, "Highlighted Cube Pos: x " + 
 			std::to_string(mHighlightedCube.x) + ", y " + std::to_string(mHighlightedCube.y) + ", z " + std::to_string(mHighlightedCube.z) +
-			", id: " + std::to_string(mWorld->GetCubeInstance(mHighlightedCube).mId));
+			", id: " + std::to_string(mWorld->GetCube(mHighlightedCube).mId));
 	}
 }
 
@@ -86,7 +86,7 @@ void vigame::Player::CollisionDetect()
 			for (int x = -1; x <= 1; x++)
 			{
 				vec3i pos = (-mTransform.GetPosition() / mWorld->GetGridSize()) + vec3(x, y, z);
-				CubeInstance instance = mWorld->GetCubeInstance(pos);
+				CubeInstance instance = mWorld->GetCube(pos);
 
 				if (instance.mId == 0)
 					continue;
