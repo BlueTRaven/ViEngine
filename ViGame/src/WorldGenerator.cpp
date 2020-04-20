@@ -13,11 +13,9 @@ void vigame::WorldGenerator::Init(VoxelWorld * aWorld)
 	mWorld = aWorld;
 }
 
-void vigame::WorldGenerator::GenerateChunk(vec3i aChunkWorldPos)
+void vigame::WorldGenerator::GenerateChunk(Chunk* aChunk)
 {
 	siv::PerlinNoise noise = siv::PerlinNoise();
-	
-	Chunk* chunk = mWorld->GetChunk(aChunkWorldPos);
 	
 	int waterLevelHeight = mWorld->GetSize().y - 32;
 	int perlinAmp = 8;
@@ -30,31 +28,34 @@ void vigame::WorldGenerator::GenerateChunk(vec3i aChunkWorldPos)
 	{
 		for (int w = 0; w < Chunk::GetSize().x; w++)
 		{
-			vec2i index = vec2i(d, w) + vec2i(mWorld->ChunkSpaceToCubeSpace(aChunkWorldPos).x, mWorld->ChunkSpaceToCubeSpace(aChunkWorldPos).z);
-			vec2d scaledSize = vec2d(index) / vec2d(Chunk::GetSize().x, Chunk::GetSize().z);
+			vec3i cubeSpaceChunkPos = mWorld->ChunkSpaceToCubeSpace(aChunk->GetWorldPosition());
+			vec2i index = vec2i(d, w);
+			vec2i realPos = index + vec2i(cubeSpaceChunkPos.x, cubeSpaceChunkPos.z);
 
-			int x = ((float)index.x / (float)mWorld->GetSize().x) * tex->GetWidth();
-			int y = ((float)index.y / (float)mWorld->GetSize().z) * tex->GetHeight();
+			int x = ((float)realPos.x / (float)mWorld->GetSize().x) * tex->GetWidth();
+			int y = ((float)realPos.y / (float)mWorld->GetSize().z) * tex->GetHeight();
 			vec4i pixel = tex->GetPixel(vec2i(x, y));
 			
 			double pixPercent = pixel.r / 255.0;
 			int pixHeight = (int)((1 - pixPercent) * (double)pixBlendMapHeight);
 
-			double perlin = noise.noise2D(scaledSize.x, scaledSize.y);
+			//size normalized 0-1
+			vec2d nrmSize = vec2d(realPos.x, realPos.y) / vec2d(Chunk::GetSize().x, Chunk::GetSize().z);
+			double perlin = noise.noise2D(nrmSize.x, nrmSize.y);
 			int perlinHeight = (int)(perlin * (double)perlinAmp);
 
 			int heightCube = waterLevelHeight + (perlinHeight + pixHeight);
 
 			for (int h = 0; h < Chunk::GetSize().y; h++)
 			{
-				vec3i pos = vec3i(index.x, h + mWorld->ChunkSpaceToCubeSpace(aChunkWorldPos).y, index.y);
+				vec3i pos = vec3i(index.x, h, index.y);
 
-				if (pos.y < heightCube)
+				if (h + cubeSpaceChunkPos.y < heightCube)
 				{
 					//int num = RandomInt(rand, 1, 2);
-					mWorld->SetCube(pos, mWorld->GetCubeRegistry()->GetCubeType(1));
+					aChunk->SetCubeRelative(mWorld->MakeInstance(mWorld->GetCubeRegistry()->GetCubeType(1)), pos);
 				}
-				else mWorld->SetCube(pos, mWorld->GetCubeRegistry()->GetCubeType(0));
+				else aChunk->SetCubeRelative(mWorld->MakeInstance(mWorld->GetCubeRegistry()->GetCubeType(0)), pos);
 			}
 		}
 	}

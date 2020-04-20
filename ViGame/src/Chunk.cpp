@@ -169,8 +169,8 @@ void vigame::Chunk::NaiveMesh()
 			for (int x = 0; x < mSize.x; x++)
 			{
 				vec3i pos(x, y, z);
-				vec3i realPos = pos + (mWorldPosition * GetSize());
-				CubeInstance cube = mWorld->GetCube(realPos);
+				//vec3i realPos = pos + (mWorldPosition * GetSize());
+				CubeInstance cube = GetCubeRelative(pos);
 
 				if (cube.mId == 0)
 					continue;
@@ -178,17 +178,17 @@ void vigame::Chunk::NaiveMesh()
 				Cube* c = mWorld->GetCubeRegistry()->GetCubeType(cube.mId);
 				int adjacents = 0;
 
-				if (mWorld->GetCube(realPos + vec3i(-1, 0, 0)).mId == 0)
+				if (GetCubePotentially(pos + vec3i(-1, 0, 0)).mId == 0)
 					adjacents = adjacents | ViMesh::cFACE_LEFT;
-				if (mWorld->GetCube(realPos + vec3i(1, 0, 0)).mId == 0)
+				if (GetCubePotentially(pos + vec3i(1, 0, 0)).mId == 0)
 					adjacents = adjacents | ViMesh::cFACE_RIGHT;
-				if (mWorld->GetCube(realPos + vec3i(0, -1, 0)).mId == 0)
+				if (GetCubePotentially(pos + vec3i(0, -1, 0)).mId == 0)
 					adjacents = adjacents | ViMesh::cFACE_TOP;
-				if (mWorld->GetCube(realPos + vec3i(0, 1, 0)).mId == 0)
+				if (GetCubePotentially(pos + vec3i(0, 1, 0)).mId == 0)
 					adjacents = adjacents | ViMesh::cFACE_BOTTOM;
-				if (mWorld->GetCube(realPos + vec3i(0, 0, -1)).mId == 0)
+				if (GetCubePotentially(pos + vec3i(0, 0, -1)).mId == 0)
 					adjacents = adjacents | ViMesh::cFACE_FRONT;
-				if (mWorld->GetCube(realPos + vec3i(0, 0, 1)).mId == 0)
+				if (GetCubePotentially(pos + vec3i(0, 0, 1)).mId == 0)
 					adjacents = adjacents | ViMesh::cFACE_BACK;
 
 				if (adjacents == 0)
@@ -430,7 +430,18 @@ vigame::CubeInstance vigame::Chunk::GetCubeRelative(vec3i aPosition)
 
 void vigame::Chunk::SetCubeRelative(CubeInstance instance, vec3i aPosition)
 {
+	if (aPosition.x < 0 || aPosition.y < 0 || aPosition.z < 0 || aPosition.x >= mSize.x || aPosition.y >= mSize.y || aPosition.z >= mSize.z)
+		return;
+
 	mCubes[Vec3IndexToIndex(aPosition, mSize)] = instance;
 
 	SetDirty(true);
+}
+
+vigame::CubeInstance vigame::Chunk::GetCubePotentially(vec3i aPosition)
+{
+	if (aPosition.x < 0 || aPosition.y < 0 || aPosition.z < 0 || aPosition.x >= mSize.x || aPosition.y >= mSize.y || aPosition.z >= mSize.z)
+		return mWorld->GetCube(aPosition + (mWorldPosition * GetSize()));
+
+	return GetCubeRelative(aPosition);
 }

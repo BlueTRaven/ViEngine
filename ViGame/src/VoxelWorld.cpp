@@ -89,8 +89,7 @@ vigame::Chunk* vigame::VoxelWorld::MakeChunk(vec3i aChunkWorldPosition)
 		mChunks[aChunkWorldPosition] = chunk;
 	else mChunks.emplace(aChunkWorldPosition, chunk);
 
-	//TODO this should take a chunk instead of a world position
-	mGenerator->GenerateChunk(aChunkWorldPosition);
+	mGenerator->GenerateChunk(chunk);
 	return chunk;
 }
 

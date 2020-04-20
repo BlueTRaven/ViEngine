@@ -58,8 +58,8 @@ void vigame::VoxelIslandGame::Init()
 	ViGame::Init();
 
 	vec3 startPos = vec3(worldSize / 2);
-	mCamera = new Camera(ViTransform::Positioned(vec3(0)));
-	world->SetLoadPosition(startPos - vec3(world->GetChunkSize() / 2));
+	mCamera = new Camera(ViTransform::Positioned(vec3(startPos)));
+	world->SetLoadPosition(startPos);
 
 	player = new Player(ViTransform::Positioned(startPos), world, mCamera);
 }
@@ -80,7 +80,7 @@ void vigame::VoxelIslandGame::Update(double aDeltaTime)
 	player->Update(aDeltaTime);
 
 	mCamera->Update(aDeltaTime);
-	world->SetLoadPosition(mCamera->GetTransform().GetPosition() - vec3(world->GetChunkSize() / 2));
+	world->SetLoadPosition(mCamera->GetTransform().GetPosition());
 
 	ViGame::Update(aDeltaTime);
 

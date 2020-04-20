@@ -45,6 +45,10 @@ namespace vigame
 		//Gets a cube in cube-space chunk-relative coordinates.
 		CubeInstance GetCubeRelative(vec3i aPosition);
 		void SetCubeRelative(CubeInstance instance, vec3i aPosition);
+
+		//Gets a cube in relative space, that may potentially be not in this chunk
+		CubeInstance GetCubePotentially(vec3i aPosition);
+
 	private:
 		CubeInstance* mCubes;
 
