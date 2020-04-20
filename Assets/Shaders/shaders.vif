@@ -17,3 +17,11 @@ location "fragment_text.glsl"
 shader vertex_cubesinstanced
 type vertex
 location "vertex_cubesinstanced.glsl"
+
+shader vertex_lit_generic
+type vertex
+location "vertex_lit_generic.glsl"
+
+shader fragment_lit_generic
+type fragment
+location "fragment_lit_generic.glsl"

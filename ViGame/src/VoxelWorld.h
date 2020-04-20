@@ -25,7 +25,12 @@ namespace vigame
 
 		//Gets the chunk in chunk space. (i.e. uses aChunkPosition to index directly into the mChunks array.)
 		Chunk* GetChunk(vec3i aChunkPosition);
-		Chunk* MakeChunk(vec3i aChunkPosition);
+		Chunk* MakeChunk(vec3i aChunkRelativePosition, vec3i aChunkWorldPosition);
+		void RemoveChunk(vec3i aChunkPosition);
+
+		//Moves a chunk from aOldChunkPos to aNewChunkPos.
+		//returns the chunk that was moved over in aNewChunkPos.
+		Chunk* MoveChunk(vec3i aOldChunkPos, vec3i aNewChunkPos);
 
 		Chunk* GetChunkResponsibleForCube(vec3i aPosition);
 		//converts from cube space to chunk space. Equivalent to aPosInCubeSpace / mChunkSize.
@@ -44,11 +49,11 @@ namespace vigame
 
 		vi_property_named(bool, mDrawDebug, DrawDebug);
 
-		template<typename TCallback>
-		bool VoxelRaycast(glm::vec3& aStart, glm::vec3& aEnd, vec3i& aOut, TCallback aCallback);
+		//The position around which we load chunks
+		vi_property_named(vec3, mLoadPosition, LoadPosition);
 
 		template<typename TCallback>
-		bool Test(TCallback test);
+		bool VoxelRaycast(glm::vec3& aStart, glm::vec3& aEnd, vec3i& aOut, TCallback aCallback);
 
 	private:
 		vec3i mSize;
@@ -61,7 +66,7 @@ namespace vigame
 		CubeInstance voidCube = CubeInstance(0);
 
 		//3d array of chunks
-		std::vector<Chunk*> mChunksA;
+		std::vector<Chunk*> mChunks;
 
 		CubeRegistry* mCubeRegistry;
 
@@ -70,6 +75,14 @@ namespace vigame
 		ProgramCubesInstanced* mProgramCubesInstanced;
 
 		ViMesh* mCubeMesh;
+
+		vec3i WorldSpaceToChunkSpace(vec3 aPosition);
+		vec3i WorldSpaceToCubeSpace(vec3 aPosition);
+		vec3i GetChunkRelativePosition(vec3i aChunkPosition);
+
+		vec3 mOldLoadPosition;
+
+		float mTimer;
 	};
 
 	template <typename TCallback>

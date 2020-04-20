@@ -7,8 +7,9 @@
 #include "CubeInstance.h"
 #include "ViColorsGL.h"
 
-vigame::Chunk::Chunk(vec3i aPosition, VoxelWorld* aWorld) :
-	mPosition(aPosition),
+vigame::Chunk::Chunk(vec3i aRelativePosition, vec3i aWorldPosition, VoxelWorld* aWorld) :
+	mRelativePosition(aRelativePosition),
+	mWorldPosition(aWorldPosition),
 	mWorld(aWorld),
 	mDirty(false),
 	mOptimizedMesh(nullptr),
@@ -17,8 +18,8 @@ vigame::Chunk::Chunk(vec3i aPosition, VoxelWorld* aWorld) :
 	meshingThread(nullptr),
 	mut(new std::mutex())
 {
-	vec3 pos = vec3(aPosition) * aWorld->GetGridSize() * vec3(cWIDTH, cHEIGHT, cDEPTH) - (aWorld->GetGridSize() / 2);
-	vec3 size = aWorld->GetGridSize() * vec3(cWIDTH, cHEIGHT, cDEPTH);
+	vec3 pos = vec3(aWorldPosition) * aWorld->GetGridSize() * vec3(GetSize()) - (aWorld->GetGridSize() / 2);
+	vec3 size = aWorld->GetGridSize() * vec3(GetSize());
 	mWireframeMesh = ViMesh::MakeUCube(ASSET_HANDLER->LoadMaterial("white_pixel"), pos, pos + size, ViMesh::cFACE_ALL, vicolors::WHITE);
 	mWireframeMesh->UploadData();
 }
@@ -31,9 +32,39 @@ vigame::Chunk::~Chunk()
 	delete mWireframeMesh;
 }
 
+vec3i vigame::Chunk::mSize = vec3i(32, 64, 32);
+
+void vigame::Chunk::SetSize(vec3i aSize)
+{
+	mSize = aSize;
+}
+
+vec3i vigame::Chunk::GetSize()
+{
+	return mSize;
+}
+
 void vigame::Chunk::Draw(ViVertexBatch* aBatch)
 {
-	TryMeshing();
+	MeshingMethod method = MeshingMethod::cNAIVE;
+
+	ViVifParser parser("./Assets/variables.vif");
+	if (parser.GetValid())
+	{
+		ViVifLine line = parser.FindLine("world_chunk_meshing_method");
+
+		if (!line.mIsEmpty && line.mWords.size() == 2)
+		{
+			if (line.mWords[1] == "stupid")
+				method = cSTUPID;
+			else if (line.mWords[1] == "naive")
+				method = cNAIVE;
+			else if (line.mWords[1] == "greedy")
+				method = cGREEDY;
+		}
+	}
+
+	TryMeshing(method);
 
 	if (mut->try_lock())
 	{
@@ -58,15 +89,15 @@ void vigame::Chunk::Draw(ViVertexBatch* aBatch)
 		if (mHasAnything)
 		{
 			if (mOptimizedMesh)
-				aBatch->Draw(ViTransform::Positioned(vec3(mPosition) * mWorld->GetGridSize() * vec3(cWIDTH, cHEIGHT, cDEPTH)), mOptimizedMesh);
+				aBatch->Draw(ViTransform::Positioned(vec3(mWorldPosition) * mWorld->GetGridSize() * vec3(GetSize())), mOptimizedMesh);
 		}
 		mut->unlock();
 	}
 	else if (mHasAnything && mOldOptimizedMesh)
-		aBatch->Draw(ViTransform::Positioned(vec3(mPosition) * mWorld->GetGridSize() * vec3(cWIDTH, cHEIGHT, cDEPTH)), mOldOptimizedMesh);
+		aBatch->Draw(ViTransform::Positioned(vec3(mWorldPosition) * mWorld->GetGridSize() * vec3(GetSize())), mOldOptimizedMesh);
 }
 
-void vigame::Chunk::TryMeshing()
+void vigame::Chunk::TryMeshing(MeshingMethod aMethod)
 {
 	if (!meshing && mHasAnything && (mOptimizedMesh == nullptr || GetDirty()))
 	{
@@ -95,15 +126,31 @@ void vigame::Chunk::TryMeshing()
 			mut->unlock();
 
 			meshing = true;
-			meshingThread = new std::thread(&Chunk::OptimizeMesh, this);
-			printf("Debug: Starting chunk thread %i.\n", meshingThread->get_id());
+
+			switch (aMethod)
+			{
+			case cSTUPID:
+				meshing = false;	//don't mesh for now
+				printf("Debug: STUPID chunk meshing method is not implemented! Use NAIVE or GREEDY.");
+				break;	
+			case cNAIVE:
+				meshingThread = new std::thread(&Chunk::NaiveMesh, this);
+				printf("Debug: Starting NAIVE chunk thread %i.\n", meshingThread->get_id());
+				break;
+			case cGREEDY:
+				meshingThread = new std::thread(&Chunk::GreedyMesh, this);
+				printf("Debug: Starting GREEDY chunk thread %i.\n", meshingThread->get_id());
+				break;
+			default:
+				break;
+			}
 
 			SetDirty(false);
 		}
 	}
 }
 
-void vigame::Chunk::OptimizeMesh()
+void vigame::Chunk::NaiveMesh()
 {
 	mut->lock();
 	meshing = true;
@@ -113,14 +160,14 @@ void vigame::Chunk::OptimizeMesh()
 	std::vector<ViVertex> vertices;
 	std::vector<GLuint> indices;
 
-	for (int z = 0; z < cDEPTH; z++)
+	for (int z = 0; z < mSize.z; z++)
 	{
-		for (int y = 0; y < cHEIGHT; y++)
+		for (int y = 0; y < mSize.y; y++)
 		{
-			for (int x = 0; x < cWIDTH; x++)
+			for (int x = 0; x < mSize.x; x++)
 			{
 				vec3i pos(x, y, z);
-				vec3i realPos = pos + (mPosition * vec3i(cWIDTH, cHEIGHT, cDEPTH));
+				vec3i realPos = pos + (mWorldPosition * GetSize());
 				CubeInstance cube = mWorld->GetCubeInstance(realPos);
 
 				if (cube.mId == 0)
@@ -172,7 +219,6 @@ void vigame::Chunk::OptimizeMesh()
 	mut->unlock();
 }
 
-
 void vigame::Chunk::GreedyMesh()
 {
 	//lock our mutex so we can't use it in the main drawing thread
@@ -185,7 +231,7 @@ void vigame::Chunk::GreedyMesh()
 	std::vector<ViVertex> vertices;
 	std::vector<GLuint> indices;
 
-	int size[] = { cWIDTH, cHEIGHT, cDEPTH };
+	int size[] = { mSize.x, mSize.y, mSize.z };
 
 	int start = indices.size();
 
@@ -299,7 +345,7 @@ void vigame::Chunk::GreedyMesh()
 							du[u] = w;
 							dv[v] = h;
 
-							vec3 startPos = vec3(mPosition);
+							vec3 startPos = vec3(mWorldPosition);
 							xv = xv * mWorld->GetGridSize();
 							du = du * mWorld->GetGridSize();
 							dv = dv * mWorld->GetGridSize();
@@ -311,7 +357,7 @@ void vigame::Chunk::GreedyMesh()
 
 							if (mask[n] & 0b10)
 							{
-								vec3 nrm = glm::normalize(glm::cross(p2 - p0, p1 - p0));
+								vec3 nrm = glm::normalize(glm::cross(p1 - p0, p2 - p0));
 
 								ViMesh::MakeQuadRaw(
 									p3,
@@ -322,7 +368,7 @@ void vigame::Chunk::GreedyMesh()
 							}
 							else
 							{
-								vec3 nrm = glm::normalize(glm::cross(p1 - p0, p2 - p0));
+								vec3 nrm = glm::normalize(glm::cross(p2 - p0, p1 - p0));
 
 								ViMesh::MakeQuadRaw(
 									p0,
@@ -374,5 +420,5 @@ void vigame::Chunk::GreedyMesh()
 
 vigame::CubeInstance vigame::Chunk::GetCube(vec3i aPosition)
 {
-	return mWorld->GetCubeInstance(aPosition + mWorld->ChunkSpaceToCubeSpace(mPosition));
+	return mWorld->GetCubeInstance(aPosition + mWorld->ChunkSpaceToCubeSpace(mRelativePosition));
 }

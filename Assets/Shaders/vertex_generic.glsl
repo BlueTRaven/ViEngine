@@ -28,7 +28,6 @@ void main()
 	frag_tex_coord = tex_coord;
 	frag_color = color * tint_color;
 	frag_pos = vec3(object * vec4(position, 1.0));
-	frag_normal = mat3(normal_object) * normal;
-	frag_diffuse_pos = vec3(camera * vec4(diffuse_pos, 1.0));
+	frag_normal = normalize(mat3(normal_object) * normal);
+	frag_diffuse_pos = diffuse_pos;
 }
-

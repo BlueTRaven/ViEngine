@@ -3,15 +3,15 @@
 #include "ViEnvironment.h"
 
 ViProgramGeneric::ViProgramGeneric() :
-	ViProgram(viEnv->GetAssetHandler()->LoadShader("vertex_generic"),
-		viEnv->GetAssetHandler()->LoadShader("fragment_generic"),
+	ViProgram(ENVIRONMENT->GetAssetHandler()->LoadShader("vertex_generic"),
+		ENVIRONMENT->GetAssetHandler()->LoadShader("fragment_generic"),
 		std::vector<ViVertexAttribute> {
 	ViVertexAttribute("normal", 3, sizeof(ViVertex), (void*)offsetof(ViVertex, nrm)),
 		ViVertexAttribute("position", 3, sizeof(ViVertex), (void*)offsetof(ViVertex, pos)),
 		ViVertexAttribute("color", 4, sizeof(ViVertex), (void*)offsetof(ViVertex, color)),
 		ViVertexAttribute("tex_coord", 2, sizeof(ViVertex), (void*)offsetof(ViVertex, texCoord))
 }),
-mUniformProjection(new ViUniformMat4("projection", glm::perspectiveFov(45.0, double(viEnv->GetScreenWidth()), double(viEnv->GetScreenHeight()), 0.01, 1000.0))),
+mUniformProjection(new ViUniformMat4("projection", glm::perspective(glm::radians(80.0), double(ENVIRONMENT->GetScreenWidth()) / double(ENVIRONMENT->GetScreenHeight()), 0.01, 1000.0))),
 mUniformCamera(new ViUniformMat4("camera", glm::identity<glm::mat4>())),
 mUniformTintColor(new ViUniformVec4("tint_color", vicolors::WHITE.ToVec4())),
 mUniformDiffuseColor(new ViUniformVec3("diffuse_color", vicolors::WHITE.ToVec4())),

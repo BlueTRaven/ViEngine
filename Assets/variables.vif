@@ -1,0 +1,16 @@
+#size of world in cubes
+world_size 128 64 64
+
+#size of chunks in cubes
+#note! must be a multiple of world_size!
+world_chunk_size 32 32 32 
+
+#might not work properly if modified
+world_cube_scale 1
+
+#options: stupid, naive, greedy
+#(stupid is broken)
+world_chunk_meshing_method naive
+
+#number of chunks around camera to load/render.
+render_size_chunks 4 4 4

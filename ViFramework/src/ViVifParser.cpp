@@ -65,6 +65,20 @@ void ViVifParser::Parse(std::string path)
 	mValid = true;
 }
 
+ViVifLine ViVifParser::FindLine(std::string aKeyName)
+{
+	if (!GetValid())
+		return ViVifLine();
+
+	for (ViVifLine line : mLines)
+	{
+		if (!line.mIsEmpty && line.mWords[0] == aKeyName)
+			return line;
+	}
+
+	return ViVifLine();
+}
+
 std::vector<ViVifLine> ViVifParser::GetLines()
 {
 	return mLines;

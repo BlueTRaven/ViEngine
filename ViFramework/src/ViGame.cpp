@@ -69,11 +69,11 @@ float ViGame::GetFPS()
 
 void ViGame::PrivateUpdate(double aDeltaTime)
 {
-	viEnv->GetInputManager()->Update();
+	ENVIRONMENT->GetInputManager()->Update();
 
 	Update(aDeltaTime);
 
-	viEnv->GetInputManager()->LateUpdate();
+	ENVIRONMENT->GetInputManager()->LateUpdate();
 }
 
 void ViGame::Update(double aDeltaTime)
@@ -88,7 +88,7 @@ void ViGame::PrivateDraw(double aDeltaTime)
 {
 	Draw(aDeltaTime);
 
-	viEnv->GetVertexBatch()->Flush();	//manual flush call - must be done at end of frame
+	ENVIRONMENT->GetVertexBatch()->Flush();	//manual flush call - must be done at end of frame
 	SDL_GL_SwapWindow(mWindow);
 }
 
@@ -123,7 +123,7 @@ void ViGame::PrivateInit()
 
 		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-		mWindow = SDL_CreateWindow("Title", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, viEnv->GetScreenWidth(), viEnv->GetScreenHeight(), SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+		mWindow = SDL_CreateWindow("Title", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, ENVIRONMENT->GetScreenWidth(), ENVIRONMENT->GetScreenHeight(), SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
 		if (mWindow == NULL)
 		{
 			printf("Window could not be created! %s\n", SDL_GetError());
@@ -131,7 +131,7 @@ void ViGame::PrivateInit()
 			return;
 		}
 
-		viEnv->SetWindow(mWindow);
+		ENVIRONMENT->SetWindow(mWindow);
 
 		mContext = SDL_GL_CreateContext(mWindow);
 		if (mWindow == NULL)
@@ -158,7 +158,7 @@ void ViGame::PrivateInit()
 
 		mInitialized = true;
 
-		viEnv->GetVertexBatch()->Init(ViVertexBatchSettings::Default);
+		ENVIRONMENT->GetVertexBatch()->Init(ViVertexBatchSettings::Default);
 
 		Init();
 	}

@@ -4,6 +4,7 @@
 #include "ViUtil.h"
 
 #include "ProgramGeneric.h"
+#include "ProgramLitGeneric.h"
 
 class ViVertexBatch;
 
@@ -19,6 +20,8 @@ namespace vigame
 
 		void Draw(ViVertexBatch* aBatch);
 
+		void Transform(vec3 aPosition, vec3 aRotation);
+
 		vi_property_get_named(ViTransform, mTransform, Transform);
 		vi_property_set_named(ViTransform, mTransform, Transform);
 
@@ -26,6 +29,7 @@ namespace vigame
 		ViTransform mTransform;
 
 		ViProgramGeneric* mProgramGeneric;
+		ProgramLitGeneric* mProgramLitGeneric;
 		ViProgramGeneric* mProgramGenericFullBright;
 	};
 }

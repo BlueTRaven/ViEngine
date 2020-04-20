@@ -13,3 +13,6 @@ customtype text
 
 program cube_instanced
 customtype cube_instanced
+
+program lit_generic
+customtype lit_generic

@@ -13,11 +13,11 @@ void vigame::WorldGenerator::Init(VoxelWorld * aWorld)
 	mWorld = aWorld;
 }
 
-void vigame::WorldGenerator::GenerateChunk(vec3i aChunkPos)
+void vigame::WorldGenerator::GenerateChunk(vec3i aChunkWorldPos)
 {
 	siv::PerlinNoise noise = siv::PerlinNoise();
 	
-	Chunk* chunk = mWorld->GetChunk(aChunkPos);
+	Chunk* chunk = mWorld->GetChunk(aChunkWorldPos);
 	
 	int waterLevelHeight = mWorld->GetSize().y - 32;
 	int perlinAmp = 8;
@@ -26,12 +26,12 @@ void vigame::WorldGenerator::GenerateChunk(vec3i aChunkPos)
 	ViTexture* tex = ASSET_HANDLER->LoadTexture("circle_gradient");
 
 	//Limit generation on y axis to our chunk
-	for (int d = 0; d < Chunk::cDEPTH; d++)
+	for (int d = 0; d < Chunk::GetSize().z; d++)
 	{
-		for (int w = 0; w < Chunk::cWIDTH; w++)
+		for (int w = 0; w < Chunk::GetSize().x; w++)
 		{
-			vec2i index = vec2i(d, w) + vec2i(mWorld->ChunkSpaceToCubeSpace(aChunkPos).x, mWorld->ChunkSpaceToCubeSpace(aChunkPos).z);
-			vec2d scaledSize = vec2d((double)index.x / (double)Chunk::cWIDTH, (double)index.y / (double)Chunk::cDEPTH);
+			vec2i index = vec2i(d, w) + vec2i(mWorld->ChunkSpaceToCubeSpace(aChunkWorldPos).x, mWorld->ChunkSpaceToCubeSpace(aChunkWorldPos).z);
+			vec2d scaledSize = vec2d(index) / vec2d(Chunk::GetSize().x, Chunk::GetSize().z);
 
 			int x = ((float)index.x / (float)mWorld->GetSize().x) * tex->GetWidth();
 			int y = ((float)index.y / (float)mWorld->GetSize().z) * tex->GetHeight();
@@ -45,9 +45,9 @@ void vigame::WorldGenerator::GenerateChunk(vec3i aChunkPos)
 
 			int heightCube = waterLevelHeight + (perlinHeight + pixHeight);
 
-			for (int h = 0; h < Chunk::cHEIGHT; h++)
+			for (int h = 0; h < Chunk::GetSize().y; h++)
 			{
-				vec3i pos = vec3i(index.x, h + mWorld->ChunkSpaceToCubeSpace(aChunkPos).y, index.y);
+				vec3i pos = vec3i(index.x, h + mWorld->ChunkSpaceToCubeSpace(aChunkWorldPos).y, index.y);
 
 				if (pos.y < heightCube)
 				{

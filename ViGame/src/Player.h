@@ -31,6 +31,8 @@ namespace vigame
 		void SetPosition(vec3 aPosition);
 
 	private:
+		void Move(double aDeltaTime);
+
 		float mMovementSpeed = 1;
 		float mDrag = 0.98f;
 

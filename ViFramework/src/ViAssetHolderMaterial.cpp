@@ -20,8 +20,8 @@ ViMaterial* ViAssetHolderMaterial::LoadAsset(ViAssetDefinition aDefinition)
 		{
 			std::string fontName = fontLine.mWords[1];
 
-			ViProgram* program = viEnv->GetAssetHandler()->LoadProgram(programName);
-			ViFont* font = viEnv->GetAssetHandler()->LoadFont(fontName);
+			ViProgram* program = ENVIRONMENT->GetAssetHandler()->LoadProgram(programName);
+			ViFont* font = ENVIRONMENT->GetAssetHandler()->LoadFont(fontName);
 
 			return new ViMaterial(program, font->GetTexture());
 		}
@@ -35,8 +35,8 @@ ViMaterial* ViAssetHolderMaterial::LoadAsset(ViAssetDefinition aDefinition)
 	{
 		std::string textureName = textureLine.mWords[1];
 
-		ViProgram* program = viEnv->GetAssetHandler()->LoadProgram(programName);
-		ViTexture* texture = viEnv->GetAssetHandler()->LoadTexture(textureName);
+		ViProgram* program = ENVIRONMENT->GetAssetHandler()->LoadProgram(programName);
+		ViTexture* texture = ENVIRONMENT->GetAssetHandler()->LoadTexture(textureName);
 
 		return new ViMaterial(program, texture);
 	}

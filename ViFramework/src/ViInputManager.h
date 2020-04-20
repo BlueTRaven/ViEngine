@@ -4,7 +4,7 @@
 
 #include "ViUtil.h"
 
-#define INPUT_MANAGER viEnv->GetInputManager()
+#define INPUT_MANAGER ENVIRONMENT->GetInputManager()
 
 class VIENGINE_EXPORT ViInputManager
 {

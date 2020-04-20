@@ -11,7 +11,7 @@ program generic_fullbright
 texture white_pixel
 
 material white_pixel
-program generic
+program lit_generic
 texture white_pixel
 
 material cube_instanced

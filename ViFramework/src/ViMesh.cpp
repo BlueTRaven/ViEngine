@@ -249,7 +249,7 @@ void ViMesh::MakeUCubeRaw(vec3 min, vec3 max, uint8_t aFaces, std::vector<ViVert
 	}
 	if (aFaces & cFACE_RIGHT)
 	{
-		ViMesh::MakeQuadRaw(r_t_n, r_t_f, r_b_f, r_b_n, { -1.0, 0.0, 0.0 }, aVertices, aIndices, aColor);	//right face
+		ViMesh::MakeQuadRaw(r_t_n, r_t_f, r_b_f, r_b_n, { 1.0, 0.0, 0.0 }, aVertices, aIndices, aColor);	//right face
 		numIndices += 6;
 	}
 	if (aFaces & cFACE_BACK)
@@ -264,12 +264,12 @@ void ViMesh::MakeUCubeRaw(vec3 min, vec3 max, uint8_t aFaces, std::vector<ViVert
 	}
 	if (aFaces & cFACE_TOP)
 	{
-		ViMesh::MakeQuadRaw(l_t_f, r_t_f, r_t_n, l_t_n, { 0.0, 1.0, 0.0 }, aVertices, aIndices, aColor);	//top face
+		ViMesh::MakeQuadRaw(l_t_f, r_t_f, r_t_n, l_t_n, { 0.0, -1.0, 0.0 }, aVertices, aIndices, aColor);	//top face
 		numIndices += 6;
 	}
 	if (aFaces & cFACE_BOTTOM)
 	{
-		ViMesh::MakeQuadRaw(r_b_f, l_b_f, l_b_n, r_b_n, { 0.0, -1.0, 0.0 }, aVertices, aIndices, aColor);	//bottom face
+		ViMesh::MakeQuadRaw(r_b_f, l_b_f, l_b_n, r_b_n, { 0.0, 1.0, 0.0 }, aVertices, aIndices, aColor);	//bottom face
 		numIndices += 6;
 	}
 }

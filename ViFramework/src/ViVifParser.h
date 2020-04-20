@@ -17,6 +17,9 @@ public:
 
 	std::vector<ViVifLine> GetLines();
 	
+	//Finds a ViVifLine with the first word given as aKeyName.
+	ViVifLine FindLine(string aKeyName);
+
 	vi_property_named(bool, mValid, Valid);
 
 private:

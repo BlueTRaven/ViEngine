@@ -10,7 +10,7 @@
 #include "ViUtil.h"
 #include "ViMaterialFont.h"
 
-#define VERTEX_BATCH viEnv->GetVertexBatch()
+#define VERTEX_BATCH ENVIRONMENT->GetVertexBatch()
 
 class VIENGINE_EXPORT ViVertexBatch
 {

@@ -10,7 +10,7 @@ vigame::VoxelIslandGame::VoxelIslandGame() : ViGame(640 * 2, 480 * 2),
 	highlightedChunk(nullptr)
 {
 	//transform.SetScale({ 0.5, 0.5, 0.5 });
-	viEnv->GetAssetHandler()->InitialParse("./Assets/assets.vif");
+	ENVIRONMENT->GetAssetHandler()->InitialParse("./Assets/assets.vif");
 
 	ViAssetHolderProgram::SetFactory(new ViGameAssetHolderProgramFactory());
 }
@@ -32,14 +32,36 @@ void vigame::VoxelIslandGame::Init()
 	mProgramCubesInstanced = static_cast<ProgramCubesInstanced*>(GET_ASSET_PROGRAM("cube_instanced"));
 
 	//grid size 0.05f
-	int worldSize = 64;
-	int worldHeight = 128;
-	world = new VoxelWorld({ worldSize, worldHeight, worldSize }, 1, new WorldGenerator);
+	//int worldSize = 64;
+	//int worldHeight = 128;
+
+	vec3i worldSize = vec3i(32, 64, 32);
+	float gridSize = 1;
+
+	ViVifParser parser("./Assets/variables.vif");
+
+	if (parser.GetValid())
+	{
+		ViVifLine worldSizeParsed = parser.FindLine("world_size");
+		worldSize = vec3i(std::stoi(worldSizeParsed.mWords[1]), std::stoi(worldSizeParsed.mWords[2]), std::stoi(worldSizeParsed.mWords[3]));
+		
+		ViVifLine gridSizeParsed = parser.FindLine("world_cube_scale");
+		gridSize = std::stof(gridSizeParsed.mWords[1]);
+
+		ViVifLine chunkSizeParsed = parser.FindLine("world_chunk_size");
+		vec3i chunkSize = vec3i(std::stoi(chunkSizeParsed.mWords[1]), std::stoi(chunkSizeParsed.mWords[2]), std::stoi(chunkSizeParsed.mWords[3]));
+		Chunk::SetSize(chunkSize);
+	}
+	
+	world = new VoxelWorld(worldSize, gridSize, new WorldGenerator);
 
 	ViGame::Init();
 
-	mCamera = new Camera(ViTransform::None);
-	player = new Player(ViTransform::Positioned(-vec3(worldSize / 2, worldHeight, worldSize / 2)), world, mCamera);
+	vec3 startPos = vec3(worldSize / 2);
+	mCamera = new Camera(ViTransform::Positioned(vec3(0)));
+	world->SetLoadPosition(startPos - vec3(world->GetChunkSize() / 2));
+
+	player = new Player(ViTransform::Positioned(startPos), world, mCamera);
 }
 
 void vigame::VoxelIslandGame::Update(double aDeltaTime)
@@ -55,9 +77,10 @@ void vigame::VoxelIslandGame::Update(double aDeltaTime)
 		world->SetDrawDebug(!world->GetDrawDebug());
 
 	world->Update(aDeltaTime);
-
 	player->Update(aDeltaTime);
+
 	mCamera->Update(aDeltaTime);
+	world->SetLoadPosition(mCamera->GetTransform().GetPosition() - vec3(world->GetChunkSize() / 2));
 
 	ViGame::Update(aDeltaTime);
 
@@ -69,7 +92,7 @@ void vigame::VoxelIslandGame::Update(double aDeltaTime)
 
 void vigame::VoxelIslandGame::Draw(double aDeltaTime)
 {
-	glViewport(0, 0, viEnv->GetScreenWidth(), viEnv->GetScreenHeight());
+	glViewport(0, 0, ENVIRONMENT->GetScreenWidth(), ENVIRONMENT->GetScreenHeight());
 
 	ViColorGL color = GetClearColor();
 	glClearColor(color.r, color.g, color.b, color.a);

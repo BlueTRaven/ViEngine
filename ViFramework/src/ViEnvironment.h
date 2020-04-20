@@ -5,7 +5,7 @@
 #include "ViVertexBatch.h"
 #include "ViUtil.h"
 
-#define viEnv ViEnvironment::GetInstance()
+#define ENVIRONMENT ViEnvironment::GetInstance()
 
 class VIENGINE_EXPORT ViEnvironment
 {
