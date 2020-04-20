@@ -25,12 +25,8 @@ namespace vigame
 
 		//Gets the chunk in chunk space. (i.e. uses aChunkPosition to index directly into the mChunks array.)
 		Chunk* GetChunk(vec3i aChunkPosition);
-		Chunk* MakeChunk(vec3i aChunkRelativePosition, vec3i aChunkWorldPosition);
+		Chunk* MakeChunk(vec3i aChunkWorldPosition);
 		void RemoveChunk(vec3i aChunkPosition);
-
-		//Moves a chunk from aOldChunkPos to aNewChunkPos.
-		//returns the chunk that was moved over in aNewChunkPos.
-		Chunk* MoveChunk(vec3i aOldChunkPos, vec3i aNewChunkPos);
 
 		Chunk* GetChunkResponsibleForCube(vec3i aPosition);
 		//converts from cube space to chunk space. Equivalent to aPosInCubeSpace / mChunkSize.
@@ -64,8 +60,7 @@ namespace vigame
 		//1d array of cubes - equal to [WIDTH * HEIGHT * DEPTH]
 		CubeInstance voidCube = CubeInstance(0);
 
-		//3d array of chunks
-		std::vector<Chunk*> mChunks;
+		std::unordered_map<vec3i, Chunk*> mChunks;
 
 		CubeRegistry* mCubeRegistry;
 

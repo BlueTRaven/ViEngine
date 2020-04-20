@@ -1,9 +1,9 @@
 #size of world in cubes
-world_size 128 128 128
+world_size 64 64 64
 
 #size of chunks in cubes
 #note! must be a multiple of world_size!
-world_chunk_size 32 32 32 
+world_chunk_size 64 64 64 
 
 #might not work properly if modified
 world_cube_scale 1

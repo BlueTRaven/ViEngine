@@ -22,7 +22,7 @@ namespace vigame
 	public:
 		//aPosition: position in chunk space. Used to index into world chunk array.
 		//aWorld: world that this chunk belongs to.
-		Chunk(vec3i aRelativePosition, vec3i aWorldPosition, VoxelWorld* aWorld);
+		Chunk(vec3i aWorldPosition, VoxelWorld* aWorld);
 		~Chunk();
 
 		//Set the size, in cubes.
@@ -36,8 +36,6 @@ namespace vigame
 
 		vi_property_get_named(ViMesh*, mOptimizedMesh, OptimizedMesh);
 
-		vi_property_set_named(vec3i, mRelativePosition, RelativePosition);
-		vi_property_get_named(vec3i, mRelativePosition, RelativePosition);
 		vi_property_get_named(vec3i, mWorldPosition, WorldPosition);
 
 		vi_property_get_named(VoxelWorld*, mWorld, World);
@@ -60,7 +58,6 @@ namespace vigame
 		ViMesh* mOptimizedMesh;
 		ViMesh* mOldOptimizedMesh;
 
-		vec3i mRelativePosition;
 		vec3i mWorldPosition;
 
 		VoxelWorld* mWorld;

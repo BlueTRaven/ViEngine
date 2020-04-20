@@ -7,8 +7,7 @@
 #include "CubeInstance.h"
 #include "ViColorsGL.h"
 
-vigame::Chunk::Chunk(vec3i aRelativePosition, vec3i aWorldPosition, VoxelWorld* aWorld) :
-	mRelativePosition(aRelativePosition),
+vigame::Chunk::Chunk(vec3i aWorldPosition, VoxelWorld* aWorld) :
 	mWorldPosition(aWorldPosition),
 	mCubes((CubeInstance*)malloc((mSize.x * mSize.y * mSize.z) * sizeof(CubeInstance))),
 	mWorld(aWorld),
