@@ -41,8 +41,6 @@ namespace vigame
 
 		vi_property_get_named(VoxelWorld*, mWorld, World);
 
-		vi_property_get_named(ViMesh*, mWireframeMesh, WireframeMesh);
-
 		vi_property_get_named(bool, mHasAnything, HasAnything);
 
 		//Gets a cube in cube-space chunk-relative coordinates.
@@ -58,7 +56,7 @@ namespace vigame
 		ViMesh* mOptimizedMesh;
 		ViMesh* mOldOptimizedMesh;
 		//Mesh for debug mode
-		ViMesh* mWireframeMesh;
+		//ViMesh* mWireframeMesh;
 
 		vec3i mRelativePosition;
 		vec3i mWorldPosition;

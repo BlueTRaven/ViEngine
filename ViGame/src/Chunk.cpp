@@ -20,8 +20,6 @@ vigame::Chunk::Chunk(vec3i aRelativePosition, vec3i aWorldPosition, VoxelWorld* 
 {
 	vec3 pos = vec3(aWorldPosition) * aWorld->GetGridSize() * vec3(GetSize()) - (aWorld->GetGridSize() / 2);
 	vec3 size = aWorld->GetGridSize() * vec3(GetSize());
-	mWireframeMesh = ViMesh::MakeUCube(ASSET_HANDLER->LoadMaterial("white_pixel"), pos, pos + size, ViMesh::cFACE_ALL, vicolors::WHITE);
-	mWireframeMesh->UploadData();
 }
 
 vigame::Chunk::~Chunk()
@@ -29,7 +27,8 @@ vigame::Chunk::~Chunk()
 	if (mOptimizedMesh != nullptr)
 		delete mOptimizedMesh;	
 
-	delete mWireframeMesh;
+	if (mOldOptimizedMesh != nullptr)
+		delete mOldOptimizedMesh;
 }
 
 vec3i vigame::Chunk::mSize = vec3i(32, 64, 32);
