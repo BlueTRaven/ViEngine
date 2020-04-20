@@ -66,8 +66,7 @@ namespace vigame
 
 		VoxelWorld* mWorld;
 
-		//Checks to see if we need to mesh, and begins the meshing thread if so
-		void TryMeshing(MeshingMethod aMethod);
+		void MakeMesh(MeshingMethod aMethod);
 
 		void GreedyMesh();
 		void NaiveMesh();

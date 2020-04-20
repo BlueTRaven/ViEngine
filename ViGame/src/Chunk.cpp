@@ -48,25 +48,28 @@ vec3i vigame::Chunk::GetSize()
 
 void vigame::Chunk::Draw(ViVertexBatch* aBatch)
 {
-	MeshingMethod method = MeshingMethod::cNAIVE;
-
-	ViVifParser parser("./Assets/variables.vif");
-	if (parser.GetValid())
+	if (!meshing && mHasAnything && (mOptimizedMesh == nullptr || GetDirty()))
 	{
-		ViVifLine line = parser.FindLine("world_chunk_meshing_method");
+		MeshingMethod method = MeshingMethod::cNAIVE;
 
-		if (!line.mIsEmpty && line.mWords.size() == 2)
+		ViVifParser parser("./Assets/variables.vif");
+		if (parser.GetValid())
 		{
-			if (line.mWords[1] == "stupid")
-				method = cSTUPID;
-			else if (line.mWords[1] == "naive")
-				method = cNAIVE;
-			else if (line.mWords[1] == "greedy")
-				method = cGREEDY;
-		}
-	}
+			ViVifLine line = parser.FindLine("world_chunk_meshing_method");
 
-	TryMeshing(method);
+			if (!line.mIsEmpty && line.mWords.size() == 2)
+			{
+				if (line.mWords[1] == "stupid")
+					method = cSTUPID;
+				else if (line.mWords[1] == "naive")
+					method = cNAIVE;
+				else if (line.mWords[1] == "greedy")
+					method = cGREEDY;
+			}
+		}
+
+		MakeMesh(method);
+	}
 
 	if (mut->try_lock())
 	{
@@ -99,7 +102,7 @@ void vigame::Chunk::Draw(ViVertexBatch* aBatch)
 		aBatch->Draw(ViTransform::Positioned(vec3(mWorldPosition) * mWorld->GetGridSize() * vec3(GetSize())), mOldOptimizedMesh);
 }
 
-void vigame::Chunk::TryMeshing(MeshingMethod aMethod)
+void vigame::Chunk::MakeMesh(MeshingMethod aMethod)
 {
 	if (!meshing && mHasAnything && (mOptimizedMesh == nullptr || GetDirty()))
 	{
