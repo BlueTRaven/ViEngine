@@ -6,6 +6,7 @@
 #include "VoxelWorld.h"
 #include "CubeInstance.h"
 #include "ViColorsGL.h"
+#include "WorldGenerator.h"
 
 vigame::Chunk::Chunk(vec3i aWorldPosition, VoxelWorld* aWorld) :
 	mWorldPosition(aWorldPosition),
@@ -15,7 +16,8 @@ vigame::Chunk::Chunk(vec3i aWorldPosition, VoxelWorld* aWorld) :
 	mOptimizedMesh(nullptr),
 	mOldOptimizedMesh(nullptr),
 	mHasAnything(true),
-	meshingThread(nullptr),
+	mMeshingThread(nullptr),
+	mGeneratingThread(nullptr),
 	mut(new std::mutex()),
 	mChunkState(cUNINIT),
 	mGenerated(false)
@@ -25,8 +27,6 @@ vigame::Chunk::Chunk(vec3i aWorldPosition, VoxelWorld* aWorld) :
 
 	vec3 pos = vec3(aWorldPosition) * aWorld->GetGridSize() * vec3(GetSize()) - (aWorld->GetGridSize() / 2);
 	vec3 size = aWorld->GetGridSize() * vec3(GetSize());
-
-	SetChunkState(cDONE);
 }
 
 vigame::Chunk::~Chunk()
@@ -64,40 +64,49 @@ vigame::Chunk::MeshingMethod vigame::Chunk::GetMeshingMethod()
 
 void vigame::Chunk::Draw(ViVertexBatch* aBatch)
 {
-	if (mChunkState == ChunkState::cDONE && mHasAnything && (mOptimizedMesh == nullptr || GetDirty()))
+	if (mChunkState == ChunkState::cUNINIT)
 	{
+		SetChunkState(ChunkState::cGENERATING);
+	}
+
+	if ((mChunkState == ChunkState::cGENERATING_DONE || mChunkState == ChunkState::cDONE) && (mOptimizedMesh == nullptr || GetDirty()))
+	{
+		if (mChunkState == ChunkState::cGENERATING_DONE)
+			mGeneratingThread->join();
+
 		SetChunkState(ChunkState::cMESHING);
 	}
 
-	if (mut->try_lock())
+	if (mChunkState == ChunkState::cMESHING_DONE)
 	{
-		if (mChunkState == ChunkState::cDONE && meshingThread->joinable())
+		mMeshingThread->join();
+		if (mOptimizedMesh != nullptr)
 		{
-			meshingThread->join();
+			mOptimizedMesh->UploadData();
 
-			//UploadData must be called on main thread
-			//Sometimes we generate a null mesh; in this case we don't want to try uploading anything.
-			if (mOptimizedMesh != nullptr)
+			if (mOldOptimizedMesh != nullptr)
 			{
-				mOptimizedMesh->UploadData();
-
-				if (mOldOptimizedMesh != nullptr)
-				{
-					delete mOldOptimizedMesh;
-					mOldOptimizedMesh = nullptr;
-				}
+				delete mOldOptimizedMesh;
+				mOldOptimizedMesh = nullptr;
 			}
 		}
+		SetChunkState(ChunkState::cDONE);
+	}
 
+	if (mChunkState == ChunkState::cDONE)
+	{
 		if (mHasAnything)
 		{
 			if (mOptimizedMesh)
 				aBatch->Draw(ViTransform::Positioned(vec3(mWorldPosition) * mWorld->GetGridSize() * vec3(GetSize())), mOptimizedMesh);
 		}
-		mut->unlock();
 	}
 	else if (mHasAnything && mOldOptimizedMesh)
+	{
+		//If we cannot lock the mutex, try to draw the old optimized mesh, if it exists yet.
+		//(If the mutex is locked, that means we're still meshing.)
 		aBatch->Draw(ViTransform::Positioned(vec3(mWorldPosition) * mWorld->GetGridSize() * vec3(GetSize())), mOldOptimizedMesh);
+	}
 }
 
 void vigame::Chunk::SetChunkState(ChunkState aChunkState)
@@ -110,16 +119,19 @@ void vigame::Chunk::SetChunkState(ChunkState aChunkState)
 		break;
 	case vigame::Chunk::cGENERATING:
 		mChunkState = aChunkState;
-		mut->lock();	//we want thread to block
+		StartGenerate();
 		break;
 	case vigame::Chunk::cMESHING:
 		mChunkState = aChunkState;
 		MakeMesh(mMeshingMethod);
 		break;
+	case vigame::Chunk::cGENERATING_DONE:
+		mChunkState = aChunkState;
+		break;
+	case vigame::Chunk::cMESHING_DONE:
+		mChunkState = aChunkState;
+		break;
 	case vigame::Chunk::cDONE:
-		//Do nothing?
-		if (mChunkState == cGENERATING)
-			mut->unlock();
 		mChunkState = aChunkState;
 		break;
 	default:
@@ -129,13 +141,13 @@ void vigame::Chunk::SetChunkState(ChunkState aChunkState)
 
 void vigame::Chunk::MakeMesh(MeshingMethod aMethod)
 {
-	if (mChunkState == cMESHING && mHasAnything && (mOptimizedMesh == nullptr || GetDirty()))
+	if (mHasAnything)
 	{
 		if (mut->try_lock())
 		{
-			if (meshingThread != nullptr && meshingThread->joinable())
+			if (mMeshingThread != nullptr && mMeshingThread->joinable())
 			{
-				meshingThread->join();
+				mMeshingThread->join();
 			}
 
 			//If our mesh has changed at all, we want to get rid of the old one. 
@@ -162,12 +174,12 @@ void vigame::Chunk::MakeMesh(MeshingMethod aMethod)
 				printf("Debug: STUPID chunk meshing method is not implemented! Use NAIVE or GREEDY.");
 				break;	
 			case cNAIVE:
-				meshingThread = new std::thread(&Chunk::NaiveMesh, this);
-				printf("Debug: Starting NAIVE chunk thread %i.\n", meshingThread->get_id());
+				mMeshingThread = new std::thread(&Chunk::NaiveMesh, this);
+				printf("Debug: Starting NAIVE chunk thread %i.\n", mMeshingThread->get_id());
 				break;
 			case cGREEDY:
-				meshingThread = new std::thread(&Chunk::GreedyMesh, this);
-				printf("Debug: Starting GREEDY chunk thread %i.\n", meshingThread->get_id());
+				mMeshingThread = new std::thread(&Chunk::GreedyMesh, this);
+				printf("Debug: Starting GREEDY chunk thread %i.\n", mMeshingThread->get_id());
 				break;
 			default:
 				break;
@@ -228,7 +240,7 @@ void vigame::Chunk::NaiveMesh()
 	if (vertices.size() == 0)
 	{
 		mHasAnything = false;
-		SetChunkState(cDONE);
+		SetChunkState(cMESHING_DONE);
 		mut->unlock();
 
 		auto endTime = std::chrono::steady_clock::now();
@@ -242,7 +254,7 @@ void vigame::Chunk::NaiveMesh()
 	auto endTime = std::chrono::steady_clock::now();
 	printf("Debug: Took %f seconds to mesh a chunk on thread %i.\n", ((float)std::chrono::duration_cast<std::chrono::milliseconds>(endTime - time).count() / 1000), std::this_thread::get_id());
 
-	SetChunkState(cDONE);
+	SetChunkState(cMESHING_DONE);
 	mut->unlock();
 }
 
@@ -430,7 +442,7 @@ void vigame::Chunk::GreedyMesh()
 	{
 		mHasAnything = false;
 
-		SetChunkState(cDONE);
+		SetChunkState(cMESHING_DONE);
 		mut->unlock();
 		return;
 	}
@@ -440,7 +452,30 @@ void vigame::Chunk::GreedyMesh()
 	auto endTime = std::chrono::steady_clock::now();
 	printf("Debug: Took %f seconds to generate a chunk on thread %i.\n", ((float)std::chrono::duration_cast<std::chrono::milliseconds>(endTime - time).count() / 1000), std::this_thread::get_id());
 
-	SetChunkState(cDONE);
+	SetChunkState(cMESHING_DONE);
+	mut->unlock();
+}
+
+void vigame::Chunk::StartGenerate()
+{
+	if (mut->try_lock())
+	{
+		mut->unlock();
+
+		mGeneratingThread = new std::thread(&Chunk::Generate, this);
+		printf("Debug: Starting chunk generation thread %i.\n", mGeneratingThread->get_id());
+
+		SetGenerated(true);
+	}
+}
+
+void vigame::Chunk::Generate()
+{
+	mut->lock();
+
+	mWorld->GetGenerator()->GenerateChunk(this);
+
+	SetChunkState(cGENERATING_DONE);
 	mut->unlock();
 }
 

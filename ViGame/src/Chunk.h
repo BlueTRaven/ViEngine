@@ -31,7 +31,9 @@ namespace vigame
 		{
 			cUNINIT,
 			cGENERATING,
+			cGENERATING_DONE,
 			cMESHING,
+			cMESHING_DONE,
 			cDONE
 		};
 
@@ -90,7 +92,13 @@ namespace vigame
 		void NaiveMesh();
 
 		//bool meshing = false;
-		std::thread* meshingThread;
+		std::thread* mMeshingThread;
+
+		void StartGenerate();
+		void Generate();
+
+		std::thread* mGeneratingThread;
+
 		std::mutex* mut;
 
 		bool mHasAnything;

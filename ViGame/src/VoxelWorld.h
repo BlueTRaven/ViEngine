@@ -22,6 +22,7 @@ namespace vigame
 		void SetCube(vec3i aPosition, Cube* aCube);
 		CubeInstance& GetCube(vec3i aPosition);
 		CubeInstance MakeInstance(Cube* aCube);
+		CubeInstance MakeInstance(cubeid aId);
 
 		//Gets the chunk in chunk space. (i.e. uses aChunkPosition to index directly into the mChunks array.)
 		Chunk* GetChunk(vec3i aChunkPosition);
@@ -41,6 +42,8 @@ namespace vigame
 		vi_property_get_named(vec3i, mSize, Size);
 		vi_property_get_named(vec3i, mChunkSize, ChunkSize);
 		vi_property_get_named(float, mGridSize, GridSize);
+
+		vi_property_get_named(WorldGenerator*, mGenerator, Generator);
 		vi_property_get_named(CubeRegistry*, mCubeRegistry, CubeRegistry);
 
 		vi_property_named(bool, mDrawDebug, DrawDebug);

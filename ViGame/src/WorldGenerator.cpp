@@ -7,8 +7,6 @@
 #include "Chunk.h"
 #include "Rand.h"
 
-std::random_device* vigame::WorldGenerator::rand = new std::random_device();
-
 void vigame::WorldGenerator::Init(VoxelWorld * aWorld)
 {
 	mWorld = aWorld;
@@ -16,18 +14,7 @@ void vigame::WorldGenerator::Init(VoxelWorld * aWorld)
 
 void vigame::WorldGenerator::GenerateChunk(Chunk* aChunk)
 {
-	auto thread = new std::thread(&WorldGenerator::ThreadedGenerateChunk, this, aChunk);
-	printf("Debug: Starting chunk generation thread %i.\n", thread->get_id());
-}
-
-void vigame::WorldGenerator::ThreadedGenerateChunk(Chunk * aChunk)
-{
-	if (aChunk->GetGenerated())
-		return;
-
 	auto time = std::chrono::steady_clock::now();
-
-	aChunk->SetChunkState(Chunk::cGENERATING);
 
 	siv::PerlinNoise noise = siv::PerlinNoise();
 
@@ -69,17 +56,14 @@ void vigame::WorldGenerator::ThreadedGenerateChunk(Chunk * aChunk)
 
 				if (h + cubeSpaceChunkPos.y < heightCube)
 				{
-					int num = vigame::rand::RandInt(1, 2);
-					aChunk->SetCubeRelative(mWorld->MakeInstance(mWorld->GetCubeRegistry()->GetCubeType(num)), pos);
+					int num = vigame::rand::RandInt(1, 3);
+					aChunk->SetCubeRelative(mWorld->MakeInstance(num), pos);
 				}
-				else aChunk->SetCubeRelative(mWorld->MakeInstance(mWorld->GetCubeRegistry()->GetCubeType(0)), pos);
+				else aChunk->SetCubeRelative(mWorld->MakeInstance((cubeid)0), pos);
 			}
 		}
 	}
 
 	auto endTime = std::chrono::steady_clock::now();
 	printf("Debug: Took %f seconds to generate a chunk on thread %i.\n", ((float)std::chrono::duration_cast<std::chrono::milliseconds>(endTime - time).count() / 1000), std::this_thread::get_id());
-
-	aChunk->SetChunkState(Chunk::cDONE);
-	aChunk->SetGenerated(true);
 }

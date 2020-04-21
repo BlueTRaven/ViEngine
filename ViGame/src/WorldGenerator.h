@@ -20,9 +20,5 @@ namespace vigame
 	private:
 		vi_property_get_named(VoxelWorld*, mWorld, World);
 		VoxelWorld* mWorld;
-
-		static std::random_device* rand;
-
-		void ThreadedGenerateChunk(Chunk* aChunk);
 	};
 }

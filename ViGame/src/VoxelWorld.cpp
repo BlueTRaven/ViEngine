@@ -52,7 +52,7 @@ void vigame::VoxelWorld::SetCube(vec3i aPosition, Cube* aCube)
 	if (chunk == nullptr)
 		return;
 
-	chunk->SetCubeRelative(MakeInstance(aCube), aPosition - chunk->GetWorldPosition() * Chunk::GetSize());
+	chunk->SetCubeRelative(MakeInstance(aCube->GetId()), aPosition - chunk->GetWorldPosition() * Chunk::GetSize());
 }
 
 vigame::CubeInstance& vigame::VoxelWorld::GetCube(vec3i aPosition)
@@ -68,6 +68,11 @@ vigame::CubeInstance& vigame::VoxelWorld::GetCube(vec3i aPosition)
 vigame::CubeInstance vigame::VoxelWorld::MakeInstance(Cube* aCube)
 {
 	return CubeInstance(mCubeRegistry->GetCubeId(aCube));
+}
+
+vigame::CubeInstance vigame::VoxelWorld::MakeInstance(cubeid aId)
+{
+	return CubeInstance(aId);
 }
 
 vigame::Chunk* vigame::VoxelWorld::GetChunk(vec3i aChunkPosition)
