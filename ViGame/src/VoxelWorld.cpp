@@ -122,6 +122,24 @@ vec3 vigame::VoxelWorld::CubeSpaceToWorldSpace(vec3i aPosCubeSpace)
 
 void vigame::VoxelWorld::Update(float aDeltaTime)
 {
+	if (!mGenerateInfinite)
+		return;
+
+	for (int z = 0; z < mChunkSize.z; z++)
+	{
+		for (int y = 0; y < mChunkSize.y; y++)
+		{
+			for (int x = 0; x < mChunkSize.x; x++)
+			{
+				vec3i startSearchPos = WorldSpaceToChunkSpace(mLoadPosition) - (WorldSpaceToChunkSpace(mSize) / 2);
+				vec3i key = startSearchPos + vec3i(x, y, z);
+				if (mChunks.find(key) == mChunks.end())
+				{
+					MakeChunk(key);
+				}
+			}
+		}
+	}
 }
 
 void vigame::VoxelWorld::Draw(ViVertexBatch* aBatch)

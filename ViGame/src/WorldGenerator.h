@@ -22,5 +22,7 @@ namespace vigame
 		VoxelWorld* mWorld;
 
 		static std::random_device* rand;
+
+		void ThreadedGenerateChunk(Chunk* aChunk);
 	};
 }

@@ -55,7 +55,7 @@ struct VIENGINE_EXPORT ViVertexBatchSettings
 	GLenum blendModesFactor;
 	GLenum blendModedFactor;
 
-	GLuint lineWidth = 4; //line width in pixels
+	GLuint lineWidth = 1; //line width in pixels
 
 	ViVertexBatchSettings(CullMode aCullMode, DepthMode aDepthMode, TexMode aTextureMode, BlendMode aBlendMode, DrawMode aDrawMode);
 

@@ -16,13 +16,17 @@ vigame::Chunk::Chunk(vec3i aWorldPosition, VoxelWorld* aWorld) :
 	mOldOptimizedMesh(nullptr),
 	mHasAnything(true),
 	meshingThread(nullptr),
-	mut(new std::mutex())
+	mut(new std::mutex()),
+	mChunkState(cUNINIT),
+	mGenerated(false)
 {
 	//set all ids to 0
-	memset(mCubes, 0, sizeof(mCubes));
+	memset(mCubes, 0, mSize.x * mSize.y * mSize.z * sizeof(CubeInstance));
 
 	vec3 pos = vec3(aWorldPosition) * aWorld->GetGridSize() * vec3(GetSize()) - (aWorld->GetGridSize() / 2);
 	vec3 size = aWorld->GetGridSize() * vec3(GetSize());
+
+	SetChunkState(cDONE);
 }
 
 vigame::Chunk::~Chunk()
@@ -46,34 +50,28 @@ vec3i vigame::Chunk::GetSize()
 	return mSize;
 }
 
+vigame::Chunk::MeshingMethod vigame::Chunk::mMeshingMethod = vigame::Chunk::MeshingMethod::cNAIVE;
+
+void vigame::Chunk::SetMeshingMethod(MeshingMethod aMeshingMethod)
+{
+	mMeshingMethod = aMeshingMethod;
+}
+
+vigame::Chunk::MeshingMethod vigame::Chunk::GetMeshingMethod()
+{
+	return mMeshingMethod;
+}
+
 void vigame::Chunk::Draw(ViVertexBatch* aBatch)
 {
-	if (!meshing && mHasAnything && (mOptimizedMesh == nullptr || GetDirty()))
+	if (mChunkState == ChunkState::cDONE && mHasAnything && (mOptimizedMesh == nullptr || GetDirty()))
 	{
-		MeshingMethod method = MeshingMethod::cNAIVE;
-
-		ViVifParser parser("./Assets/variables.vif");
-		if (parser.GetValid())
-		{
-			ViVifLine line = parser.FindLine("world_chunk_meshing_method");
-
-			if (!line.mIsEmpty && line.mWords.size() == 2)
-			{
-				if (line.mWords[1] == "stupid")
-					method = cSTUPID;
-				else if (line.mWords[1] == "naive")
-					method = cNAIVE;
-				else if (line.mWords[1] == "greedy")
-					method = cGREEDY;
-			}
-		}
-
-		MakeMesh(method);
+		SetChunkState(ChunkState::cMESHING);
 	}
 
 	if (mut->try_lock())
 	{
-		if (!meshing && meshingThread->joinable())
+		if (mChunkState == ChunkState::cDONE && meshingThread->joinable())
 		{
 			meshingThread->join();
 
@@ -102,9 +100,36 @@ void vigame::Chunk::Draw(ViVertexBatch* aBatch)
 		aBatch->Draw(ViTransform::Positioned(vec3(mWorldPosition) * mWorld->GetGridSize() * vec3(GetSize())), mOldOptimizedMesh);
 }
 
+void vigame::Chunk::SetChunkState(ChunkState aChunkState)
+{
+	switch (aChunkState)
+	{
+	case vigame::Chunk::cUNINIT:
+		//Delete everything?
+		mChunkState = aChunkState;
+		break;
+	case vigame::Chunk::cGENERATING:
+		mChunkState = aChunkState;
+		mut->lock();	//we want thread to block
+		break;
+	case vigame::Chunk::cMESHING:
+		mChunkState = aChunkState;
+		MakeMesh(mMeshingMethod);
+		break;
+	case vigame::Chunk::cDONE:
+		//Do nothing?
+		if (mChunkState == cGENERATING)
+			mut->unlock();
+		mChunkState = aChunkState;
+		break;
+	default:
+		break;
+	}
+}
+
 void vigame::Chunk::MakeMesh(MeshingMethod aMethod)
 {
-	if (!meshing && mHasAnything && (mOptimizedMesh == nullptr || GetDirty()))
+	if (mChunkState == cMESHING && mHasAnything && (mOptimizedMesh == nullptr || GetDirty()))
 	{
 		if (mut->try_lock())
 		{
@@ -130,12 +155,10 @@ void vigame::Chunk::MakeMesh(MeshingMethod aMethod)
 
 			mut->unlock();
 
-			meshing = true;
-
 			switch (aMethod)
 			{
 			case cSTUPID:
-				meshing = false;	//don't mesh for now
+				SetChunkState(cUNINIT);
 				printf("Debug: STUPID chunk meshing method is not implemented! Use NAIVE or GREEDY.");
 				break;	
 			case cNAIVE:
@@ -158,7 +181,6 @@ void vigame::Chunk::MakeMesh(MeshingMethod aMethod)
 void vigame::Chunk::NaiveMesh()
 {
 	mut->lock();
-	meshing = true;
 
 	auto time = std::chrono::steady_clock::now();
 
@@ -206,11 +228,11 @@ void vigame::Chunk::NaiveMesh()
 	if (vertices.size() == 0)
 	{
 		mHasAnything = false;
-		meshing = false;
+		SetChunkState(cDONE);
 		mut->unlock();
 
 		auto endTime = std::chrono::steady_clock::now();
-		printf("Debug: Took %f seconds to generate a chunk on thread %i.\n", ((float)std::chrono::duration_cast<std::chrono::milliseconds>(endTime - time).count() / 1000), std::this_thread::get_id());
+		printf("Debug: Took %f seconds to mesh a chunk on thread %i.\n", ((float)std::chrono::duration_cast<std::chrono::milliseconds>(endTime - time).count() / 1000), std::this_thread::get_id());
 
 		return;
 	}
@@ -218,9 +240,9 @@ void vigame::Chunk::NaiveMesh()
 	mOptimizedMesh = new ViMesh(ASSET_HANDLER->LoadMaterial("white_pixel"), vertices, indices);
 
 	auto endTime = std::chrono::steady_clock::now();
-	printf("Debug: Took %f seconds to generate a chunk on thread %i.\n", ((float)std::chrono::duration_cast<std::chrono::milliseconds>(endTime - time).count() / 1000), std::this_thread::get_id());
+	printf("Debug: Took %f seconds to mesh a chunk on thread %i.\n", ((float)std::chrono::duration_cast<std::chrono::milliseconds>(endTime - time).count() / 1000), std::this_thread::get_id());
 
-	meshing = false;
+	SetChunkState(cDONE);
 	mut->unlock();
 }
 
@@ -228,7 +250,6 @@ void vigame::Chunk::GreedyMesh()
 {
 	//lock our mutex so we can't use it in the main drawing thread
 	mut->lock();
-	meshing = true;
 
 	auto time = std::chrono::steady_clock::now();
 
@@ -409,7 +430,7 @@ void vigame::Chunk::GreedyMesh()
 	{
 		mHasAnything = false;
 
-		meshing = false;
+		SetChunkState(cDONE);
 		mut->unlock();
 		return;
 	}
@@ -419,7 +440,7 @@ void vigame::Chunk::GreedyMesh()
 	auto endTime = std::chrono::steady_clock::now();
 	printf("Debug: Took %f seconds to generate a chunk on thread %i.\n", ((float)std::chrono::duration_cast<std::chrono::milliseconds>(endTime - time).count() / 1000), std::this_thread::get_id());
 
-	meshing = false;
+	SetChunkState(cDONE);
 	mut->unlock();
 }
 
@@ -435,6 +456,9 @@ void vigame::Chunk::SetCubeRelative(CubeInstance instance, vec3i aPosition)
 {
 	if (aPosition.x < 0 || aPosition.y < 0 || aPosition.z < 0 || aPosition.x >= mSize.x || aPosition.y >= mSize.y || aPosition.z >= mSize.z)
 		return;
+
+	if (instance.mId > 0)
+		mHasAnything = true;
 
 	mCubes[Vec3IndexToIndex(aPosition, mSize)] = instance;
 

@@ -18,7 +18,7 @@ void ViVertexBatchSettings::SetSettings()
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	else if (drawMode == ViVertexBatchSettings::cDRAW_LINES)
 	{
-		glLineWidth(lineWidth);
+		//glLineWidth(lineWidth);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
 

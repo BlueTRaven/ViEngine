@@ -20,6 +20,21 @@ namespace vigame
 	class Chunk
 	{
 	public:
+		enum MeshingMethod
+		{
+			cSTUPID,	//TODO implement stupid meshing?
+			cNAIVE,
+			cGREEDY
+		};
+
+		enum ChunkState 
+		{
+			cUNINIT,
+			cGENERATING,
+			cMESHING,
+			cDONE
+		};
+
 		//aPosition: position in chunk space. Used to index into world chunk array.
 		//aWorld: world that this chunk belongs to.
 		Chunk(vec3i aWorldPosition, VoxelWorld* aWorld);
@@ -30,8 +45,16 @@ namespace vigame
 		//Get the size, in cubes.
 		static vec3i GetSize();
 
+		static void SetMeshingMethod(MeshingMethod aMeshingMethod);
+		static MeshingMethod GetMeshingMethod();
+
 		void Draw(ViVertexBatch* aBatch);
 
+		void SetChunkState(ChunkState aChunkState);
+
+		vi_property_get_named(ChunkState, mChunkState, ChunkState);
+
+		vi_property_named(bool, mGenerated, Generated);
 		vi_property_named(bool, mDirty, Dirty);
 
 		vi_property_get_named(ViMesh*, mOptimizedMesh, OptimizedMesh);
@@ -50,28 +73,23 @@ namespace vigame
 		CubeInstance GetCubePotentially(vec3i aPosition);
 
 	private:
+		ChunkState mChunkState;
+
 		CubeInstance* mCubes;
-
-		enum MeshingMethod
-		{
-			cSTUPID,	//TODO implement stupid meshing?
-			cNAIVE,
-			cGREEDY
-		};
-
-		ViMesh* mOptimizedMesh;
-		ViMesh* mOldOptimizedMesh;
 
 		vec3i mWorldPosition;
 
 		VoxelWorld* mWorld;
+
+		ViMesh* mOptimizedMesh;
+		ViMesh* mOldOptimizedMesh;
 
 		void MakeMesh(MeshingMethod aMethod);
 
 		void GreedyMesh();
 		void NaiveMesh();
 
-		bool meshing = false;
+		//bool meshing = false;
 		std::thread* meshingThread;
 		std::mutex* mut;
 
@@ -79,5 +97,6 @@ namespace vigame
 
 		static vec3i mSize;
 		
+		static MeshingMethod mMeshingMethod;
 	};
 }

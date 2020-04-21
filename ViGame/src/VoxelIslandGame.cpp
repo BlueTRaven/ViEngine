@@ -51,6 +51,20 @@ void vigame::VoxelIslandGame::Init()
 		ViVifLine chunkSizeParsed = parser.FindLine("world_chunk_size");
 		vec3i chunkSize = vec3i(std::stoi(chunkSizeParsed.mWords[1]), std::stoi(chunkSizeParsed.mWords[2]), std::stoi(chunkSizeParsed.mWords[3]));
 		Chunk::SetSize(chunkSize);
+
+		ViVifLine meshingMethodParsed = parser.FindLine("world_chunk_meshing_method");
+		if (!meshingMethodParsed.mIsEmpty && meshingMethodParsed.mWords.size() == 2)
+		{
+			Chunk::MeshingMethod method = Chunk::MeshingMethod::cNAIVE;
+			if (meshingMethodParsed.mWords[1] == "stupid")
+				method = Chunk::MeshingMethod::cSTUPID;
+			else if (meshingMethodParsed.mWords[1] == "naive")
+				method = Chunk::MeshingMethod::cNAIVE;
+			else if (meshingMethodParsed.mWords[1] == "greedy")
+				method = Chunk::MeshingMethod::cGREEDY;
+
+			Chunk::SetMeshingMethod(method);
+		}
 	}
 	
 	world = new VoxelWorld(worldSize, gridSize, new WorldGenerator);

@@ -77,6 +77,8 @@ namespace vigame
 		vec3 mOldLoadPosition;
 
 		float mTimer;
+
+		bool mGenerateInfinite = true;
 	};
 
 	template <typename TCallback>
