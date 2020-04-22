@@ -26,15 +26,9 @@ ViTransform::ViTransform(glm::vec3 aPosition, glm::vec3 aRotation, glm::vec3 aSc
 glm::vec3 ViTransform::Forward()
 {
 	vec3 forward = vec3(0);
-	float pitch = -glm::radians(mRotation.y + 90.f);
-	float yaw = glm::radians(mRotation.x);
-
-	forward.x = glm::cos(yaw) * glm::cos(pitch);
-	forward.y = glm::sin(yaw) * glm::cos(pitch);
-	forward.z = glm::sin(pitch);
-	/*forward.x = -glm::sin(glm::radians(mRotation.y + 180));
-	forward.y = -glm::tan(glm::radians(mRotation.x));
-	forward.z = -glm::cos(glm::radians(mRotation.y));*/
+	forward.x = -glm::sin(glm::radians(180 - mRotation.y));
+	forward.y = glm::tan(glm::radians(mRotation.x));
+	forward.z = -glm::cos(glm::radians(mRotation.y));
 	return glm::normalize(forward);
 }
 
