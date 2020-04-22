@@ -24,11 +24,23 @@ ViMesh* vigame::ChunkLoader::StartThreaded(bool aGenerate)
 	return mOldMesh;
 }
 
+ViMesh * vigame::ChunkLoader::Start(bool aGenerate)
+{
+	ViMesh* mOldMesh = mMesh;
+
+	Run(aGenerate);
+
+	return mOldMesh;
+}
+
 ViMesh* vigame::ChunkLoader::Finish()
 {
-	mThread->join();
-	delete mThread;
-	mThread = nullptr;
+	if (mThread != nullptr && mThread->joinable())
+	{
+		mThread->join();
+		delete mThread;
+		mThread = nullptr;
+	}
 
 	if (mMesh != nullptr)
 		mMesh->UploadData();

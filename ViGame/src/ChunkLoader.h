@@ -21,6 +21,8 @@ namespace vigame
 		//Returns the old mesh if available, otherwise nullptr.
 		ViMesh* StartThreaded(bool aGenerate);
 
+		ViMesh* Start(bool aGenerate);
+
 		//Call on main thread
 		//Uploads mesh data and returns the mesh
 		ViMesh* Finish();
