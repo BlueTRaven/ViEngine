@@ -30,6 +30,8 @@ public:
 	ViMesh(ViMaterial* aMaterial, std::vector<ViVertex> aVertices, std::vector<GLuint> aIndices);
 	ViMesh(std::vector<ViMeshSubsection> aSubsections, std::vector<ViVertex> aVertices, std::vector<GLuint> aIndices);
 
+	~ViMesh();
+
 	void Merge(ViMesh* aMesh...);
 	
 	const inline std::vector<ViMeshSubsection>& GetSubsections() const

@@ -36,6 +36,7 @@ void vigame::VoxelIslandGame::Init()
 	//int worldHeight = 128;
 
 	vec3i worldSize = vec3i(32, 64, 32);
+	vec3i viewSize = vec3i(2, 2, 2);
 	float gridSize = 1;
 
 	ViVifParser parser("./Assets/variables.vif");
@@ -65,9 +66,12 @@ void vigame::VoxelIslandGame::Init()
 
 			Chunk::SetMeshingMethod(method);
 		}
+
+		ViVifLine viewSizeParsed = parser.FindLine("render_size_chunks");
+		viewSize = vec3i(std::stoi(viewSizeParsed.mWords[1]), std::stoi(viewSizeParsed.mWords[2]), std::stoi(viewSizeParsed.mWords[3]));
 	}
 	
-	world = new VoxelWorld(worldSize, gridSize, new WorldGenerator);
+	world = new VoxelWorld(worldSize, viewSize, gridSize, new WorldGenerator);
 
 	ViGame::Init();
 

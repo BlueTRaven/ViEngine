@@ -32,6 +32,16 @@ ViMesh::ViMesh(std::vector<ViMeshSubsection> aSubsections, std::vector<ViVertex>
 {
 }
 
+ViMesh::~ViMesh()
+{
+	if (mHasGLObjects)
+	{
+		glDeleteVertexArrays(1, &mVAO);
+		glDeleteBuffers(1, &mVBO);
+		glDeleteBuffers(1, &mIBO);
+	}
+}
+
 void ViMesh::Merge(ViMesh* aMesh...)
 {
 	std::vector<ViMesh*> aMeshes = { aMesh };

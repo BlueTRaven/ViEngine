@@ -74,6 +74,8 @@ namespace vigame
 		//Gets a cube in relative space, that may potentially be not in this chunk
 		CubeInstance GetCubePotentially(vec3i aPosition);
 
+		bool CanDelete();
+
 	private:
 		ChunkState mChunkState;
 

@@ -36,6 +36,15 @@ vigame::Chunk::~Chunk()
 
 	if (mOldOptimizedMesh != nullptr)
 		delete mOldOptimizedMesh;
+
+	if (mMeshingThread != nullptr)
+		delete mMeshingThread;
+
+	if (mGeneratingThread != nullptr)
+		delete mGeneratingThread;
+
+	free(mCubes);
+	delete mut;
 }
 
 vec3i vigame::Chunk::mSize = vec3i(32, 64, 32);
@@ -506,4 +515,9 @@ vigame::CubeInstance vigame::Chunk::GetCubePotentially(vec3i aPosition)
 		return mWorld->GetCube(aPosition + (mWorldPosition * GetSize()));
 
 	return GetCubeRelative(aPosition);
+}
+
+bool vigame::Chunk::CanDelete()
+{
+	return mChunkState == cDONE || mChunkState == cUNINIT;
 }

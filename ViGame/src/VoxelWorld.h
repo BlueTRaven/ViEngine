@@ -17,7 +17,9 @@ namespace vigame
 	class VoxelWorld
 	{
 	public:
-		VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWorldGenerator);
+		using ChunkMap = std::unordered_map<vec3i, Chunk*>;
+
+		VoxelWorld(vec3i aSize, vec3i aViewSize, float aGridSize, WorldGenerator* aWorldGenerator);
 
 		void SetCube(vec3i aPosition, Cube* aCube);
 		CubeInstance& GetCube(vec3i aPosition);
@@ -28,6 +30,7 @@ namespace vigame
 		Chunk* GetChunk(vec3i aChunkPosition);
 		Chunk* MakeChunk(vec3i aChunkWorldPosition);
 		void RemoveChunk(vec3i aChunkPosition);
+		ChunkMap::iterator RemoveChunkIterSafe(ChunkMap::iterator iter);
 
 		Chunk* GetChunkResponsibleForCube(vec3i aPosition);
 		//converts from cube space to chunk space. Equivalent to aPosInCubeSpace / mChunkSize.
@@ -60,10 +63,13 @@ namespace vigame
 
 		vec3i mChunkSize;
 
+		vec3i mViewSize;
+
 		//1d array of cubes - equal to [WIDTH * HEIGHT * DEPTH]
 		CubeInstance voidCube = CubeInstance(0);
 
-		std::unordered_map<vec3i, Chunk*> mChunks;
+		ChunkMap mChunks;
+		std::vector<Chunk*> mOldChunks;
 
 		CubeRegistry* mCubeRegistry;
 

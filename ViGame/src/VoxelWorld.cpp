@@ -3,8 +3,9 @@
 #include "ViEnvironment.h"
 #include "ViVertexBatch.h"
 
-vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWorldGenerator) :
+vigame::VoxelWorld::VoxelWorld(vec3i aSize, vec3i aViewSize, float aGridSize, WorldGenerator* aWorldGenerator) :
 	mSize(aSize),
+	mViewSize(aViewSize),
 	mCubeRegistry(new CubeRegistry()),
 	mGridSize(aGridSize),
 	mGenerator(aWorldGenerator),
@@ -30,13 +31,13 @@ vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWo
 
 	mGenerator->Init(this);
 	
-	for (int z = 0; z < mChunkSize.z; z++)
+	for (int z = -mViewSize.z; z <= mViewSize.z; z++)
 	{
-		for (int y = 0; y < mChunkSize.y; y++)
+		for (int y = -mViewSize.y; y <= mViewSize.y; y++)
 		{
-			for (int x = 0; x < mChunkSize.x; x++)
+			for (int x = -mViewSize.x; x <= mViewSize.x; x++)
 			{
-				MakeChunk(vec3i(x, y, z));
+				MakeChunk(WorldSpaceToChunkSpace(mLoadPosition) + vec3i(x, y, z));
 			}
 		}
 	}
@@ -94,13 +95,19 @@ vigame::Chunk* vigame::VoxelWorld::MakeChunk(vec3i aChunkWorldPosition)
 		mChunks[aChunkWorldPosition] = chunk;
 	else mChunks.emplace(aChunkWorldPosition, chunk);
 
-	mGenerator->GenerateChunk(chunk);
 	return chunk;
 }
 
 void vigame::VoxelWorld::RemoveChunk(vec3i aChunkPosition)
 {
 	delete GetChunk(aChunkPosition);
+	mChunks.erase(aChunkPosition);
+}
+
+vigame::VoxelWorld::ChunkMap::iterator vigame::VoxelWorld::RemoveChunkIterSafe(ChunkMap::iterator iter)
+{
+	delete iter->second;
+	return mChunks.erase(iter);
 }
 
 vigame::Chunk* vigame::VoxelWorld::GetChunkResponsibleForCube(vec3i aPosition)
@@ -130,14 +137,13 @@ void vigame::VoxelWorld::Update(float aDeltaTime)
 	if (!mGenerateInfinite)
 		return;
 
-	for (int z = 0; z < mChunkSize.z; z++)
+	for (int z = -mViewSize.z; z <= mViewSize.z; z++)
 	{
-		for (int y = 0; y < mChunkSize.y; y++)
+		for (int y = -mViewSize.y; y <= mViewSize.y; y++)
 		{
-			for (int x = 0; x < mChunkSize.x; x++)
+			for (int x = -mViewSize.x; x <= mViewSize.x; x++)
 			{
-				vec3i startSearchPos = WorldSpaceToChunkSpace(mLoadPosition) - (WorldSpaceToChunkSpace(mSize) / 2);
-				vec3i key = startSearchPos + vec3i(x, y, z);
+				vec3i key = WorldSpaceToChunkSpace(mLoadPosition) + vec3i(x, y, z);
 				if (mChunks.find(key) == mChunks.end())
 				{
 					MakeChunk(key);
@@ -145,15 +151,31 @@ void vigame::VoxelWorld::Update(float aDeltaTime)
 			}
 		}
 	}
+
+	/*for (auto iter = mOldChunks.begin(); iter != mOldChunks.end(); iter++) 
+	{
+		if ((*iter)->CanDelete())
+		{
+			iter = mOldChunks.erase(iter);
+			RemoveChunk((*iter)->GetWorldPosition());
+		}
+	}*/
 }
 
 void vigame::VoxelWorld::Draw(ViVertexBatch* aBatch)
 {
-	for (const auto& chunk : mChunks)
+	for (auto iter = mChunks.begin(); iter != mChunks.end(); iter++)
 	{
-		if (chunk.second == nullptr)
-			mChunks.erase(chunk.first);
-		else chunk.second->Draw(aBatch);
+		vec3i chunkSpace = WorldSpaceToChunkSpace(mLoadPosition);
+		vec3i distv = (chunkSpace - iter->first);
+
+		if (distv.x > mViewSize.x || distv.x < -mViewSize.x || distv.y > mViewSize.y || distv.y < -mViewSize.y || distv.z > mViewSize.z || distv.z < -mViewSize.z)
+		{
+			if (iter->second->CanDelete())
+				iter = RemoveChunkIterSafe(iter);
+			continue;
+		}
+		else iter->second->Draw(aBatch);
 	}
 
 	if (mDrawDebug)
