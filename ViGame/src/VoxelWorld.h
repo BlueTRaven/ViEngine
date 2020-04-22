@@ -9,6 +9,7 @@
 #include "ViGameUtil.h"
 #include "WorldGenerator.h"
 #include "ProgramCubesInstanced.h"
+#include "ChunkManager.h"
 
 class ViVertexBatch;
 
@@ -74,6 +75,7 @@ namespace vigame
 		CubeRegistry* mCubeRegistry;
 
 		WorldGenerator* mGenerator;
+		ChunkManager* mChunkManager;
 
 		ProgramCubesInstanced* mProgramCubesInstanced;
 

@@ -82,14 +82,21 @@ vigame::Chunk::MeshingMethod vigame::Chunk::GetMeshingMethod()
 	return mMeshingMethod;
 }
 
+void vigame::Chunk::Load(bool aMultiThread, bool aGenerate)
+{
+	if (aMultiThread)
+		mOldOptimizedMesh = mChunkLoader->StartThreaded(aGenerate);
+	else mOldOptimizedMesh = mChunkLoader->Start(aGenerate);
+
+	mChunkState = ChunkState::cLOADING;
+}
+
 void vigame::Chunk::Draw(ViVertexBatch* aBatch)
 {
-	if (mChunkState == ChunkState::cUNINIT)
+	/*if (mChunkState == ChunkState::cUNINIT)
 	{
-		mOldOptimizedMesh = mChunkLoader->StartThreaded(true);
-
-		mChunkState = ChunkState::cLOADING;
-	}
+		Load(true, true);
+	}*/
 
 	if (mChunkLoader->IsFinished() && mChunkState == ChunkState::cLOADING)
 	{

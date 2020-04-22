@@ -48,6 +48,8 @@ namespace vigame
 		static void SetMeshingMethod(MeshingMethod aMeshingMethod);
 		static MeshingMethod GetMeshingMethod();
 
+		void Load(bool aMultiThread, bool aGenerate);
+
 		void Draw(ViVertexBatch* aBatch);
 
 		vi_property_get_named(ChunkState, mChunkState, ChunkState);
