@@ -25,7 +25,24 @@ vigame::Chunk::Chunk(vec3i aWorldPosition, VoxelWorld* aWorld) :
 	vec3 pos = vec3(aWorldPosition) * aWorld->GetGridSize() * vec3(GetSize()) - (aWorld->GetGridSize() / 2);
 	vec3 size = aWorld->GetGridSize() * vec3(GetSize());
 
-	mChunkLoader = new ChunkLoader(this, std::bind(&Chunk::NaiveMesh, this), mWorld->GetGenerator());
+	std::function<ViMesh*(void)> meshingFunction = nullptr;
+
+	switch (mMeshingMethod)
+	{
+	case cSTUPID:
+		meshingFunction = nullptr;
+		break;
+	case cNAIVE:
+		meshingFunction = std::bind(&Chunk::NaiveMesh, this);
+		break;
+	case cGREEDY:
+		meshingFunction = std::bind(&Chunk::GreedyMesh, this);
+		break;
+	default:
+		break;
+	}
+
+	mChunkLoader = new ChunkLoader(this, meshingFunction, mWorld->GetGenerator());
 }
 
 vigame::Chunk::~Chunk()
@@ -69,7 +86,7 @@ void vigame::Chunk::Draw(ViVertexBatch* aBatch)
 {
 	if (mChunkState == ChunkState::cUNINIT)
 	{
-		mOldOptimizedMesh = mChunkLoader->Start(true);
+		mOldOptimizedMesh = mChunkLoader->StartThreaded(true);
 
 		mChunkState = ChunkState::cLOADING;
 	}

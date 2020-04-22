@@ -18,7 +18,8 @@ namespace vigame
 
 		//Call on main thread
 		//Param aGenerate: whether the chunk should be generated (or regenerated.) if true, all cubes are memset to zero, then generated.
-		ViMesh* Start(bool aGenerate);
+		//Returns the old mesh if available, otherwise nullptr.
+		ViMesh* StartThreaded(bool aGenerate);
 
 		//Call on main thread
 		//Uploads mesh data and returns the mesh

@@ -14,7 +14,7 @@ vigame::ChunkLoader::ChunkLoader(Chunk* aChunk, std::function<ViMesh*(void)> aMe
 {
 }
 
-ViMesh* vigame::ChunkLoader::Start(bool aGenerate)
+ViMesh* vigame::ChunkLoader::StartThreaded(bool aGenerate)
 {
 	//Assignment in case starting the thread somehow finishes before returning does
 	ViMesh* mOldMesh = mMesh;
