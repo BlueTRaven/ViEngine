@@ -151,22 +151,13 @@ void vigame::VoxelWorld::Update(float aDeltaTime)
 			}
 		}
 	}
-
-	/*for (auto iter = mOldChunks.begin(); iter != mOldChunks.end(); iter++) 
-	{
-		if ((*iter)->CanDelete())
-		{
-			iter = mOldChunks.erase(iter);
-			RemoveChunk((*iter)->GetWorldPosition());
-		}
-	}*/
 }
 
 void vigame::VoxelWorld::Draw(ViVertexBatch* aBatch)
 {
 	for (auto iter = mChunks.begin(); iter != mChunks.end(); iter++)
 	{
-		vec3i chunkSpace = WorldSpaceToChunkSpace(mLoadPosition);
+		/*vec3i chunkSpace = WorldSpaceToChunkSpace(mLoadPosition);
 		vec3i distv = (chunkSpace - iter->first);
 
 		if (distv.x > mViewSize.x || distv.x < -mViewSize.x || distv.y > mViewSize.y || distv.y < -mViewSize.y || distv.z > mViewSize.z || distv.z < -mViewSize.z)
@@ -175,7 +166,7 @@ void vigame::VoxelWorld::Draw(ViVertexBatch* aBatch)
 				iter = RemoveChunkIterSafe(iter);
 			continue;
 		}
-		else iter->second->Draw(aBatch);
+		else*/ iter->second->Draw(aBatch);
 	}
 
 	if (mDrawDebug)

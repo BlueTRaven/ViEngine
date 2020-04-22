@@ -10,6 +10,7 @@
 #include "ViUtil.h"
 
 #include "CubeInstance.h"
+#include "ChunkLoader.h"
 
 class ViVertexBatch;
 
@@ -30,10 +31,7 @@ namespace vigame
 		enum ChunkState 
 		{
 			cUNINIT,
-			cGENERATING,
-			cGENERATING_DONE,
-			cMESHING,
-			cMESHING_DONE,
+			cLOADING,
 			cDONE
 		};
 
@@ -51,8 +49,6 @@ namespace vigame
 		static MeshingMethod GetMeshingMethod();
 
 		void Draw(ViVertexBatch* aBatch);
-
-		void SetChunkState(ChunkState aChunkState);
 
 		vi_property_get_named(ChunkState, mChunkState, ChunkState);
 
@@ -90,20 +86,12 @@ namespace vigame
 
 		void MakeMesh(MeshingMethod aMethod);
 
-		void GreedyMesh();
-		void NaiveMesh();
-
-		//bool meshing = false;
-		std::thread* mMeshingThread;
-
-		void StartGenerate();
-		void Generate();
-
-		std::thread* mGeneratingThread;
-
-		std::mutex* mut;
+		ViMesh* GreedyMesh();
+		ViMesh* NaiveMesh();
 
 		bool mHasAnything;
+
+		ChunkLoader* mChunkLoader;
 
 		static vec3i mSize;
 		
