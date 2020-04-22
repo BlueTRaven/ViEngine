@@ -65,18 +65,19 @@ void vigame::ChunkManager::Run()
 		{
 			mAddChunksMutex->lock();
 			Chunk* chunk = mChunksToLoad.back();
-			mChunksToLoad.pop_back();
-			mAddChunksMutex->unlock();
 
-			//load chunk
 			if (CanGenerateChunk(chunk))
 			{
+				mChunksToLoad.pop_back();
+				mAddChunksMutex->unlock();
+
 				chunk->Load(false, true);
 
 				mAddFinishedChunksMutex->lock();
 				mFinishedChunks.push_back(chunk);
 				mAddFinishedChunksMutex->unlock();
 			}
+			else mAddChunksMutex->unlock();
 
 			if (mState == cPAUSED)
 				break;

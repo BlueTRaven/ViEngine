@@ -28,10 +28,10 @@ namespace vigame
 		//Pauses the chunk manager. It will no longer load new chunks. Call Start to re-start it. Thread-safe.
 		void Pause();
 
-		//Thread-safe.
+		//Thread-safe. Enqueues a chunk to be loaded.
 		void AddChunkToLoad(Chunk* aChunk);
 
-		//Thread-safe.
+		//Thread-safe. Gets a list of all chunks that have finished loading.
 		std::vector<Chunk*> GetFinishedChunks();
 
 		vi_property_get_named(ChunkManagerState, mState, State);

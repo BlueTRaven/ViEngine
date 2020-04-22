@@ -49,6 +49,7 @@ namespace vigame
 		static MeshingMethod GetMeshingMethod();
 
 		void Load(bool aMultiThread, bool aGenerate);
+		void LoadFinished();
 
 		void Draw(ViVertexBatch* aBatch);
 

@@ -91,13 +91,8 @@ void vigame::Chunk::Load(bool aMultiThread, bool aGenerate)
 	mChunkState = ChunkState::cLOADING;
 }
 
-void vigame::Chunk::Draw(ViVertexBatch* aBatch)
+void vigame::Chunk::LoadFinished()
 {
-	/*if (mChunkState == ChunkState::cUNINIT)
-	{
-		Load(true, true);
-	}*/
-
 	if (mChunkLoader->IsFinished() && mChunkState == ChunkState::cLOADING)
 	{
 		mChunkState = ChunkState::cDONE;
@@ -110,7 +105,10 @@ void vigame::Chunk::Draw(ViVertexBatch* aBatch)
 			mOldOptimizedMesh = nullptr;
 		}
 	}
+}
 
+void vigame::Chunk::Draw(ViVertexBatch* aBatch)
+{
 	if (mChunkState == ChunkState::cDONE)
 	{
 		if (mHasAnything)

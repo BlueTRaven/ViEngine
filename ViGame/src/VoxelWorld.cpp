@@ -164,6 +164,7 @@ void vigame::VoxelWorld::Update(float aDeltaTime)
 	{
 		//replace dummy chunk
 		mChunks[chunk->GetWorldPosition()] = chunk;
+		chunk->LoadFinished();
 	}
 
 	loadedChunks.clear();
