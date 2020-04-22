@@ -49,6 +49,7 @@ void vigame::WorldGenerator::GenerateChunk(Chunk* aChunk)
 
 			//world cube space height of the height map
 			int heightCube = waterLevelHeight + (perlinHeight + pixHeight);
+			int rockCube = heightCube - 4 + (1 - perlin) * 2;
 
 			for (int h = 0; h < Chunk::GetSize().y; h++)
 			{
@@ -56,8 +57,10 @@ void vigame::WorldGenerator::GenerateChunk(Chunk* aChunk)
 
 				if (h + cubeSpaceChunkPos.y < heightCube)
 				{
-					int num = vigame::rand::RandInt(1, 3);
-					aChunk->SetCubeRelative(mWorld->MakeInstance(num), pos);
+					if (h + cubeSpaceChunkPos.y < rockCube)
+						aChunk->SetCubeRelative(mWorld->MakeInstance(1), pos);
+					else
+						aChunk->SetCubeRelative(mWorld->MakeInstance(2), pos);
 				}
 				else aChunk->SetCubeRelative(mWorld->MakeInstance((cubeid)0), pos);
 			}

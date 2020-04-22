@@ -13,7 +13,8 @@ vigame::VoxelWorld::VoxelWorld(vec3i aSize, vec3i aViewSize, float aGridSize, Wo
 	mDrawDebug(false),
 	mLoadPosition(vec3(0)),
 	mOldLoadPosition(vec3(0)),
-	mTimer(0)
+	mTimer(0),
+	mChunksAccessMutex(new std::mutex)
 {
 	mProgramCubesInstanced = static_cast<ProgramCubesInstanced*>(GET_ASSET_PROGRAM("cube_instanced"));
 
@@ -85,10 +86,14 @@ vigame::Chunk* vigame::VoxelWorld::GetChunk(vec3i aChunkPosition)
 	if (aChunkPosition.x < 0 || aChunkPosition.y < 0 || aChunkPosition.z < 0 || aChunkPosition.x >= mChunkSize.x || aChunkPosition.y >= mChunkSize.y || aChunkPosition.z >= mChunkSize.z)
 		return nullptr;
 
+	mChunksAccessMutex->lock();
 	if (mChunks.find(aChunkPosition) == mChunks.end())
 		return nullptr;
 
-	return mChunks[aChunkPosition];
+	Chunk* chunk = mChunks[aChunkPosition];
+	mChunksAccessMutex->unlock();
+
+	return chunk;
 }
 
 vigame::Chunk* vigame::VoxelWorld::MakeChunk(vec3i aChunkWorldPosition)
@@ -97,8 +102,10 @@ vigame::Chunk* vigame::VoxelWorld::MakeChunk(vec3i aChunkWorldPosition)
 
 	mChunkManager->AddChunkToLoad(chunk);
 
+	mChunksAccessMutex->lock();
 	//add a dummy value so we don't try to load again
 	mChunks.emplace(aChunkWorldPosition, nullptr);
+	mChunksAccessMutex->unlock();
 
 	return chunk;
 }

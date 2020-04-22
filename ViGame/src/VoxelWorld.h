@@ -1,5 +1,7 @@
 #pragma once
 
+#include <mutex>
+
 #include "ViUtil.h"
 
 #include "Cube.h"
@@ -70,6 +72,8 @@ namespace vigame
 		CubeInstance voidCube = CubeInstance(0);
 
 		ChunkMap mChunks;
+		std::mutex* mChunksAccessMutex;
+
 		std::vector<Chunk*> mOldChunks;
 
 		CubeRegistry* mCubeRegistry;
