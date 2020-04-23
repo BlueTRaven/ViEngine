@@ -75,12 +75,16 @@ void vigame::ChunkManager::Run()
 {
 	while (true)
 	{
-		if (mState == cPAUSED)
+		mAddChunksMutex->lock();
+		if (mState == cPAUSED || mChunksToLoad.size() == 0)
 		{
+			mAddChunksMutex->unlock();
+
 			mWorking = false;
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 			continue;
 		}
+		mAddChunksMutex->unlock();
 
 		mWorking = true;
 
