@@ -52,7 +52,13 @@ void vigame::Camera::LateUpdate(float aDeltaTime)
 	mat4 mat = t.Matrix();
 	mProgramGeneric->SetCamera(mat);
 	mProgramLitGeneric->SetCamera(mat);
-	mProgramLitGeneric->SetLightPosition(mTransform.GetPosition());
+	
+	auto diffuseLight = ProgramLitGeneric::DiffuseLight();
+	diffuseLight.position = mTransform.GetPosition();
+	diffuseLight.color = vicolors::WHITE.ToVec4();
+	diffuseLight.strength = 1;
+
+	mProgramLitGeneric->SetDiffuseLight(diffuseLight);
 	//mProgramGeneric->SetDiffusePos(-mTransform.GetPosition());
 	mProgramGenericFullBright->SetCamera(mat);
 }
