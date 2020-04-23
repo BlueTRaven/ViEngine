@@ -37,9 +37,15 @@ void main()
 	vec3 pos_to_light = diffuse_light.position - frag_pos;
 	float brightness = dot(frag_normal, pos_to_light) / (length(pos_to_light) * length(frag_normal));
 	brightness = clamp(brightness, 0, 1);
+	vec4 diffuse_light_color = vec4(brightness * diffuse_light.color * diffuse_light.strength, 1);
+	
+	float distance = length(diffuse_light.position - frag_pos);
+	float fog_factor = (distance - radial_fog.start) / (radial_fog.end - radial_fog.start);
+	fog_factor = clamp(fog_factor, 0, 1);
+	//vec4 radial_fog_color = vec4(radial_fog.color * fog_factor, 1);
 	
 	vec4 tex_color = texture(tex, frag_tex_coord) * frag_color;
-	vec3 diffuse_light_color = brightness * diffuse_light.color * diffuse_light.strength;
 	
-	color = vec4(tex_color.rgb * diffuse_light_color, tex_color.a);
+	vec4 out_color = tex_color * diffuse_light_color;
+	color = mix(out_color, vec4(radial_fog.color, 1), fog_factor);
 }

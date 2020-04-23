@@ -13,6 +13,13 @@ namespace vigame
 	class Camera
 	{
 	public:
+		enum CameraControlMode
+		{
+			cCAMERA_CONTROLLED,
+			cTARGET_CONTROLLED,	//Set a target and it is eased to	
+			cCUSTOM_CONTROLLED,	//Controlled by some other function, not defined here. Represents no additional functionality in this class.
+		};
+
 		Camera(ViTransform aStartTransform);
 
 		void Update(float aDeltaTime);
@@ -20,10 +27,13 @@ namespace vigame
 
 		void Draw(ViVertexBatch* aBatch);
 
-		void Transform(vec3 aPosition, vec3 aRotation);
-
 		vi_property_get_named(ViTransform, mTransform, Transform);
 		vi_property_set_named(ViTransform, mTransform, Transform);
+
+		vi_property_named(CameraControlMode, mControlMode, ControlMode);
+		vi_property_named(vec3, mTargetPosition, TargetPosition);
+		vi_property_named(vec3, mTargetRotation, TargetRotation);
+		vi_property_named(float, mTargetEase, TargetEase);
 
 	private:
 		ViTransform mTransform;

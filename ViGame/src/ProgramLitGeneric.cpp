@@ -13,7 +13,10 @@ mUniformProjection(new ViUniformMat4("projection", glm::perspective(glm::radians
 mUniformCamera(new ViUniformMat4("camera", glm::identity<glm::mat4>())),
 mUniformLightPos(new ViUniformVec3("diffuse_light.position", vec3(0))),
 mUniformLightColor(new ViUniformVec3("diffuse_light.color", vec3(1, 1, 1))),
-mUniformLightStrength(new ViUniformFloat("diffuse_light.strength", 1))
+mUniformLightStrength(new ViUniformFloat("diffuse_light.strength", 1)),
+mUniformRadialFogColor(new ViUniformVec3("radial_fog.color", vec3(1))),
+mUniformRadialFogStart(new ViUniformFloat("radial_fog.start", 64)),
+mUniformRadialFogEnd(new ViUniformFloat("radial_fog.end", 128))
 {
 }
 
@@ -25,6 +28,10 @@ void vigame::ProgramLitGeneric::SetUniforms(ViVertexBatchInstance & aInstance)
 	mUniformLightPos->Upload(this);
 	mUniformLightColor->Upload(this);
 	mUniformLightStrength->Upload(this);
+
+	mUniformRadialFogColor->Upload(this);
+	mUniformRadialFogStart->Upload(this);
+	mUniformRadialFogEnd->Upload(this);
 
 	ViProgram::SetUniforms(aInstance);
 }
