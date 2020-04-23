@@ -33,6 +33,15 @@ void vigame::ChunkManager::Pause()
 	mState = cPAUSED;
 }
 
+void vigame::ChunkManager::WaitForStopWorking()
+{
+	while (mWorking)
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		continue;
+	}
+}
+
 void vigame::ChunkManager::AddChunkToLoad(Chunk * aChunk)
 {
 	mAddChunksMutex->lock();
@@ -53,11 +62,11 @@ std::vector<vigame::Chunk*> vigame::ChunkManager::GetFinishedChunks()
 void vigame::ChunkManager::SortChunksByDistance(vec3i aChunkPoint)
 {
 	mAddChunksMutex->lock();
-	std::sort(mChunksToLoad.begin(), mChunksToLoad.end(), [=](Chunk* a, Chunk* b) 
+	std::sort(mChunksToLoad.begin(), mChunksToLoad.end(), [aChunkPoint](Chunk* a, Chunk* b) 
 	{
-		vec3i distA = a->GetWorldPosition() - aChunkPoint;
-		vec3i distB = b->GetWorldPosition() - aChunkPoint;
-		return distA.length() > distB.length();
+		float distA = glm::length(vec3(aChunkPoint) - vec3(a->GetWorldPosition()));
+		float distB = glm::length(vec3(aChunkPoint) - vec3(b->GetWorldPosition()));
+		return distA > distB;
 	});
 	mAddChunksMutex->unlock();
 }
@@ -67,7 +76,13 @@ void vigame::ChunkManager::Run()
 	while (true)
 	{
 		if (mState == cPAUSED)
+		{
+			mWorking = false;
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+			continue;
+		}
+
+		mWorking = true;
 
 		mAddChunksMutex->lock();
 		std::vector<Chunk*> copyChunksToLoad = mChunksToLoad;

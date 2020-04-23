@@ -28,6 +28,10 @@ namespace vigame
 		//Pauses the chunk manager. It will no longer load new chunks. Call Start to re-start it. Thread-safe.
 		void Pause();
 
+		//Call to wait on the currently executing thread until mWorking is false.
+		//Does nothing if the current state is not cPAUSED.
+		void WaitForStopWorking();
+
 		//Thread-safe. Enqueues a chunk to be loaded.
 		void AddChunkToLoad(Chunk* aChunk);
 
@@ -50,6 +54,8 @@ namespace vigame
 		std::thread* mThread;
 		std::mutex* mAddChunksMutex;
 		std::mutex* mAddFinishedChunksMutex;
+
+		bool mWorking = false;
 
 		ChunkManagerState mState;
 	};
