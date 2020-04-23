@@ -83,7 +83,8 @@ void vigame::ChunkManager::Run()
 				mChunksToLoad.pop_back();
 				mAddChunksMutex->unlock();
 
-				chunk->Load(false, true);
+				//bool generate = !(chunk->GetDirty() && chunk->GetGenerated());
+				chunk->Load(false);
 
 				mAddFinishedChunksMutex->lock();
 				mFinishedChunks.push_back(chunk);

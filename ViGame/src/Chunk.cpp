@@ -82,11 +82,15 @@ vigame::Chunk::MeshingMethod vigame::Chunk::GetMeshingMethod()
 	return mMeshingMethod;
 }
 
-void vigame::Chunk::Load(bool aMultiThread, bool aGenerate)
+void vigame::Chunk::Load(bool aMultiThread)
 {
+	bool generate = (mLoadFlags & cGENERATE) == cGENERATE;
 	if (aMultiThread)
-		mOldOptimizedMesh = mChunkLoader->StartThreaded(aGenerate);
-	else mOldOptimizedMesh = mChunkLoader->Start(aGenerate);
+		mOldOptimizedMesh = mChunkLoader->StartThreaded(generate);
+	else 
+	{
+		mChunkLoader->Start(generate);
+	}
 
 	mChunkState = ChunkState::cLOADING;
 }
@@ -104,6 +108,8 @@ void vigame::Chunk::LoadFinished()
 			delete mOldOptimizedMesh;
 			mOldOptimizedMesh = nullptr;
 		}
+
+		mLoadFlags = cNONE;
 	}
 }
 
@@ -122,6 +128,22 @@ void vigame::Chunk::Draw(ViVertexBatch* aBatch)
 		//If we cannot lock the mutex, try to draw the old optimized mesh, if it exists yet.
 		//(If the mutex is locked, that means we're still meshing.)
 		aBatch->Draw(ViTransform::Positioned(vec3(mWorldPosition) * mWorld->GetGridSize() * vec3(GetSize())), mOldOptimizedMesh);
+	}
+}
+
+void vigame::Chunk::SetDirty()
+{
+	//We don't want to be marked as dirty if we're not done generating
+	//Otherwise we'll just infinitely add things to load...
+	if (mChunkState == cDONE)
+	{
+		mOldOptimizedMesh = mOptimizedMesh;
+		mOptimizedMesh = nullptr;
+
+		mWorld->GetChunkManager()->AddChunkToLoad(this);
+		mDirty = true;
+		mLoadFlags = (LoadFlags)(mLoadFlags | cMESH);
+		mChunkState = cLOADING;
 	}
 }
 
@@ -448,7 +470,7 @@ void vigame::Chunk::SetCubeRelative(CubeInstance instance, vec3i aPosition)
 
 	mCubes[Vec3IndexToIndex(aPosition, mSize)] = instance;
 
-	SetDirty(true);
+	SetDirty();
 }
 
 vigame::CubeInstance vigame::Chunk::GetCubePotentially(vec3i aPosition)

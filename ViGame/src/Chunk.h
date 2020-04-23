@@ -35,6 +35,13 @@ namespace vigame
 			cDONE
 		};
 
+		enum LoadFlags
+		{
+			cNONE =		0,
+			cGENERATE = 1 << 0,
+			cMESH =		1 << 1
+		};
+
 		//aPosition: position in chunk space. Used to index into world chunk array.
 		//aWorld: world that this chunk belongs to.
 		Chunk(vec3i aWorldPosition, VoxelWorld* aWorld);
@@ -48,7 +55,7 @@ namespace vigame
 		static void SetMeshingMethod(MeshingMethod aMeshingMethod);
 		static MeshingMethod GetMeshingMethod();
 
-		void Load(bool aMultiThread, bool aGenerate);
+		void Load(bool aMultiThread);
 		void LoadFinished();
 
 		void Draw(ViVertexBatch* aBatch);
@@ -56,7 +63,11 @@ namespace vigame
 		vi_property_get_named(ChunkState, mChunkState, ChunkState);
 
 		vi_property_named(bool, mGenerated, Generated);
-		vi_property_named(bool, mDirty, Dirty);
+		
+		vi_property_get_named(LoadFlags, mLoadFlags, LoadFlags);
+
+		void SetDirty();
+		vi_property_get_named(bool, mDirty, Dirty);
 
 		vi_property_get_named(ViMesh*, mOptimizedMesh, OptimizedMesh);
 
@@ -92,7 +103,9 @@ namespace vigame
 		ViMesh* GreedyMesh();
 		ViMesh* NaiveMesh();
 
+		LoadFlags mLoadFlags;
 		bool mHasAnything;
+		bool mDirty = false;
 
 		ChunkLoader* mChunkLoader;
 

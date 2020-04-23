@@ -52,6 +52,7 @@ namespace vigame
 		vi_property_get_named(float, mGridSize, GridSize);
 
 		vi_property_get_named(WorldGenerator*, mGenerator, Generator);
+		vi_property_get_named(ChunkManager*, mChunkManager, ChunkManager);
 		vi_property_get_named(CubeRegistry*, mCubeRegistry, CubeRegistry);
 
 		vi_property_named(vec3i, mViewDistanceChunks, ViewDistanceChunks);
@@ -102,12 +103,12 @@ namespace vigame
 	template <typename TCallback>
 	bool vigame::VoxelWorld::VoxelRaycast(vec3& aStart, vec3& aEnd, vec3i& aOut, TCallback aCallback)
 	{
-		const float x1 = -aStart.x;
-		const float y1 = -aStart.y;
-		const float z1 = -aStart.z;
-		const float x2 = -aEnd.x;
-		const float y2 = -aEnd.y;
-		const float z2 = -aEnd.z;
+		const float x1 = aStart.x;
+		const float y1 = aStart.y;
+		const float z1 = aStart.z;
+		const float x2 = aEnd.x;
+		const float y2 = aEnd.y;
+		const float z2 = aEnd.z;
 
 		int i = (int)floorf(x1);
 		int j = (int)floorf(y1);

@@ -25,7 +25,14 @@ vigame::Player::Player(ViTransform aStartTransform, VoxelWorld* aWorld, Camera* 
 void vigame::Player::Update(double aDeltaTime)
 {
 	if (INPUT_MANAGER->KeyDown(SDL_SCANCODE_N))
+	{
 		mNoclip = !mNoclip;
+		if (mNoclip)
+			mCamera->SetControlMode(Camera::cCAMERA_CONTROLLED);
+		else mCamera->SetControlMode(Camera::cCUSTOM_CONTROLLED);
+	}
+
+	Move(aDeltaTime);
 
 	mVelocity.x *= mDrag;
 	mVelocity.z *= mDrag;
@@ -37,8 +44,11 @@ void vigame::Player::Update(double aDeltaTime)
 	if (!mNoclip)
 		CollisionDetect();
 
+	vec3 start = mTransform.GetPosition();
+	vec3 end = mTransform.GetPosition() + mTransform.Forward() * 128.f;
+
 	vec3i out;
-	bool hit = !mWorld->VoxelRaycast(mTransform.GetPosition(), vec3(mTransform.GetPosition() - (mCamera->GetTransform().Forward() * 128.f)), out, [this](vec3i aPosition) {
+	bool hit = !mWorld->VoxelRaycast(start, end, out, [this](vec3i aPosition) {
 		return mWorld->GetCube(aPosition).mId != 0;
 	});
 
@@ -48,7 +58,7 @@ void vigame::Player::Update(double aDeltaTime)
 		mHighlightedCube = out;
 
 		if (INPUT_MANAGER->KeyDown(SDL_SCANCODE_G))
-			mWorld->SetCube(out, 0);
+			mWorld->SetCube(out, mWorld->GetCubeRegistry()->GetCubeType(0));
 	}
 	else mHighlighted = false;
 }
@@ -113,8 +123,15 @@ void vigame::Player::SetPosition(vec3 aPosition)
 
 void vigame::Player::Move(double aDeltaTime)
 {
-	float moveMult = -mAcceleration;
-	float mouseSens = -100;
+	if (mCamera->GetControlMode() == Camera::cCAMERA_CONTROLLED)
+	{
+		mTransform.SetPosition(mCamera->GetTransform().GetPosition());
+		mTransform.SetRotation(mCamera->GetTransform().GetRotation());
+		return;
+	}
+
+	float moveMult = mAcceleration;
+	float mouseSens = 100;
 
 	ViTransform trans = mTransform;
 	if (mNoclip)
@@ -130,7 +147,7 @@ void vigame::Player::Move(double aDeltaTime)
 		mVelocity += trans.Right() * moveMult;
 
 	if (!mNoclip)
-		mVelocity.y += 9.81f;
+		mVelocity.y += -9.81f;
 
 	vec3 velXZ = mVelocity;
 	velXZ.y = 0;
@@ -169,6 +186,5 @@ void vigame::Player::Move(double aDeltaTime)
 	rotation.x = 0;
 	mTransform.SetRotation(rotation);
 
-	mCamera->Transform(aCameraTransform.GetPosition(), aCameraTransform.GetRotation());
-	//mCamera->SetTransform(aCameraTransform);
+	mCamera->SetTransform(aCameraTransform);
 }
