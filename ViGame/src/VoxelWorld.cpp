@@ -51,7 +51,7 @@ void vigame::VoxelWorld::Init()
 		}
 	}
 
-	mChunkManager->SortChunksByDistance(WorldSpaceToChunkSpace(mLoadPosition));
+	//mChunkManager->SortChunksByDistance(WorldSpaceToChunkSpace(mLoadPosition));
 	mChunkManager->Start();
 
 	mCubeMesh->UploadData();
@@ -94,7 +94,11 @@ vigame::Chunk* vigame::VoxelWorld::GetChunk(vec3i aChunkPosition)
 
 	mChunksAccessMutex->lock();
 	if (mChunks.find(aChunkPosition) == mChunks.end())
+	{
+		//DON'T FORGET TO UNLOCK WHEN RETURNING EARLY...
+		mChunksAccessMutex->unlock();
 		return nullptr;
+	}
 
 	Chunk* chunk = mChunks[aChunkPosition];
 	mChunksAccessMutex->unlock();
@@ -155,7 +159,7 @@ void vigame::VoxelWorld::Update(float aDeltaTime)
 	if (!mGenerateInfinite)
 		return;
 
-	mChunkManager->Pause();
+	//mChunkManager->Pause();
 	for (int z = -mViewDistanceChunks.z; z <= mViewDistanceChunks.z; z++)
 	{
 		for (int y = -mViewDistanceChunks.y; y <= mViewDistanceChunks.y; y++)
@@ -171,8 +175,8 @@ void vigame::VoxelWorld::Update(float aDeltaTime)
 			}
 		}
 	}
-	mChunkManager->SortChunksByDistance(WorldSpaceToChunkSpace(mLoadPosition));
-	mChunkManager->Start();
+	/*mChunkManager->SortChunksByDistance(WorldSpaceToChunkSpace(mLoadPosition));
+	mChunkManager->Start();*/
 
 	std::vector<Chunk*> loadedChunks = mChunkManager->GetFinishedChunks();
 
