@@ -3,9 +3,8 @@
 #include "ViEnvironment.h"
 #include "ViVertexBatch.h"
 
-vigame::VoxelWorld::VoxelWorld(vec3i aSize, vec3i aViewSize, float aGridSize, WorldGenerator* aWorldGenerator) :
+vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWorldGenerator) :
 	mSize(aSize),
-	mViewSize(aViewSize),
 	mCubeRegistry(new CubeRegistry()),
 	mGridSize(aGridSize),
 	mGenerator(aWorldGenerator),
@@ -29,16 +28,21 @@ vigame::VoxelWorld::VoxelWorld(vec3i aSize, vec3i aViewSize, float aGridSize, Wo
 	//Cube with no mesh
 	mCubeRegistry->AddCubeType(new Cube(this, nullptr, vicolors::WHITE, false));
 	mCubeRegistry->AddCubeType(new Cube(this, GET_ASSET_MATERIAL("white_pixel"), vicolors::WHITE, false));
-	mCubeRegistry->AddCubeType(new Cube(this, GET_ASSET_MATERIAL("white_pixel"), vicolors::GREEN, true));
+	mCubeRegistry->AddCubeType(new Cube(this, GET_ASSET_MATERIAL("white_pixel"), ViColorGL(0.25, 1, 0.25, 1), false));
+	mCubeRegistry->AddCubeType(new Cube(this, GET_ASSET_MATERIAL("white_pixel"), vicolors::BLUE, true));
 
-	mChunkManager->Start();
+	mCubeMesh = ViMesh::MakeUCube(ASSET_HANDLER->LoadMaterial("white_pixel_fullbright"), vec3(-0.5), vec3(0.5), ViMesh::cFACE_ALL, vicolors::WHITE);
+}
+
+void vigame::VoxelWorld::Init()
+{
 	mGenerator->Init(this);
-	
-	for (int z = -mViewSize.z; z <= mViewSize.z; z++)
+
+	for (int z = -mViewDistanceChunks.z; z <= mViewDistanceChunks.z; z++)
 	{
-		for (int y = -mViewSize.y; y <= mViewSize.y; y++)
+		for (int y = -mViewDistanceChunks.y; y <= mViewDistanceChunks.y; y++)
 		{
-			for (int x = -mViewSize.x; x <= mViewSize.x; x++)
+			for (int x = -mViewDistanceChunks.x; x <= mViewDistanceChunks.x; x++)
 			{
 				vec3i key = WorldSpaceToChunkSpace(mLoadPosition) + vec3i(x, y, z);
 
@@ -47,7 +51,9 @@ vigame::VoxelWorld::VoxelWorld(vec3i aSize, vec3i aViewSize, float aGridSize, Wo
 		}
 	}
 
-	mCubeMesh = ViMesh::MakeUCube(ASSET_HANDLER->LoadMaterial("white_pixel_fullbright"), vec3(-0.5), vec3(0.5), ViMesh::cFACE_ALL, vicolors::WHITE);
+	mChunkManager->SortChunksByDistance(WorldSpaceToChunkSpace(mLoadPosition));
+	mChunkManager->Start();
+
 	mCubeMesh->UploadData();
 }
 
@@ -149,11 +155,12 @@ void vigame::VoxelWorld::Update(float aDeltaTime)
 	if (!mGenerateInfinite)
 		return;
 
-	for (int z = -mViewSize.z; z <= mViewSize.z; z++)
+	mChunkManager->Pause();
+	for (int z = -mViewDistanceChunks.z; z <= mViewDistanceChunks.z; z++)
 	{
-		for (int y = -mViewSize.y; y <= mViewSize.y; y++)
+		for (int y = -mViewDistanceChunks.y; y <= mViewDistanceChunks.y; y++)
 		{
-			for (int x = -mViewSize.x; x <= mViewSize.x; x++)
+			for (int x = -mViewDistanceChunks.x; x <= mViewDistanceChunks.x; x++)
 			{
 				vec3i key = WorldSpaceToChunkSpace(mLoadPosition) + vec3i(x, y, z);
 
@@ -164,6 +171,8 @@ void vigame::VoxelWorld::Update(float aDeltaTime)
 			}
 		}
 	}
+	mChunkManager->SortChunksByDistance(WorldSpaceToChunkSpace(mLoadPosition));
+	mChunkManager->Start();
 
 	std::vector<Chunk*> loadedChunks = mChunkManager->GetFinishedChunks();
 

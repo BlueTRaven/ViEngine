@@ -22,7 +22,9 @@ namespace vigame
 	public:
 		using ChunkMap = std::unordered_map<vec3i, Chunk*>;
 
-		VoxelWorld(vec3i aSize, vec3i aViewSize, float aGridSize, WorldGenerator* aWorldGenerator);
+		VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWorldGenerator);
+
+		void Init();
 
 		void SetCube(vec3i aPosition, Cube* aCube);
 		CubeInstance& GetCube(vec3i aPosition);
@@ -52,6 +54,7 @@ namespace vigame
 		vi_property_get_named(WorldGenerator*, mGenerator, Generator);
 		vi_property_get_named(CubeRegistry*, mCubeRegistry, CubeRegistry);
 
+		vi_property_named(vec3i, mViewDistanceChunks, ViewDistanceChunks);
 		vi_property_named(bool, mDrawDebug, DrawDebug);
 
 		//The position around which we load chunks
@@ -66,7 +69,7 @@ namespace vigame
 
 		vec3i mChunkSize;
 
-		vec3i mViewSize;
+		//vec3i mViewSize;
 
 		//1d array of cubes - equal to [WIDTH * HEIGHT * DEPTH]
 		CubeInstance voidCube = CubeInstance(0);

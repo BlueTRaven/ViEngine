@@ -29,13 +29,9 @@ namespace vigame
 
 	private:
 		VoxelWorld* world;
-		Chunk* highlightedChunk;
-		vec3i highlightedCubeInstance;
 
 		Player* player;
 		Camera* mCamera;
-
-		ProgramCubesInstanced* mProgramCubesInstanced;
 
 		ViProgramText* mProgramText;
 

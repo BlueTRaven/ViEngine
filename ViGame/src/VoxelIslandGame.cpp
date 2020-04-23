@@ -6,10 +6,8 @@
 #include "ViGameAssetHolderProgramFactory.h"
 
 vigame::VoxelIslandGame::VoxelIslandGame() : ViGame(640 * 2, 480 * 2),
-	transform(ViTransform::Positioned({ 0.0, 0.0, -1.0 })),
-	highlightedChunk(nullptr)
+	transform(ViTransform::Positioned({ 0.0, 0.0, -1.0 }))
 {
-	//transform.SetScale({ 0.5, 0.5, 0.5 });
 	ENVIRONMENT->GetAssetHandler()->InitialParse("./Assets/assets.vif");
 
 	ViAssetHolderProgram::SetFactory(new ViGameAssetHolderProgramFactory());
@@ -29,57 +27,54 @@ void vigame::VoxelIslandGame::Init()
 
 	mProgramText = static_cast<ViProgramText*>(GET_ASSET_PROGRAM("text"));
 
-	mProgramCubesInstanced = static_cast<ProgramCubesInstanced*>(GET_ASSET_PROGRAM("cube_instanced"));
-
 	//grid size 0.05f
 	//int worldSize = 64;
 	//int worldHeight = 128;
 
 	vec3i worldSize = vec3i(32, 64, 32);
-	vec3i viewSize = vec3i(2, 2, 2);
+	vec3i viewDistanceChunks = vec3i(3, 3, 3);
 	float gridSize = 1;
 
 	ViVifParser parser("./Assets/variables.vif");
 
 	if (parser.GetValid())
 	{
-		ViVifLine worldSizeParsed = parser.FindLine("world_size");
-		worldSize = vec3i(std::stoi(worldSizeParsed.mWords[1]), std::stoi(worldSizeParsed.mWords[2]), std::stoi(worldSizeParsed.mWords[3]));
+		parser.FindVec3i("world_size", worldSize);
 		
-		ViVifLine gridSizeParsed = parser.FindLine("world_cube_scale");
-		gridSize = std::stof(gridSizeParsed.mWords[1]);
+		parser.FindFloat("world_cube_scale", gridSize);
 
-		ViVifLine chunkSizeParsed = parser.FindLine("world_chunk_size");
-		vec3i chunkSize = vec3i(std::stoi(chunkSizeParsed.mWords[1]), std::stoi(chunkSizeParsed.mWords[2]), std::stoi(chunkSizeParsed.mWords[3]));
+		vec3i chunkSize = vec3i(32);
+		parser.FindVec3i("world_chunk_size", chunkSize);
 		Chunk::SetSize(chunkSize);
 
-		ViVifLine meshingMethodParsed = parser.FindLine("world_chunk_meshing_method");
-		if (!meshingMethodParsed.mIsEmpty && meshingMethodParsed.mWords.size() == 2)
-		{
-			Chunk::MeshingMethod method = Chunk::MeshingMethod::cNAIVE;
-			if (meshingMethodParsed.mWords[1] == "stupid")
-				method = Chunk::MeshingMethod::cSTUPID;
-			else if (meshingMethodParsed.mWords[1] == "naive")
-				method = Chunk::MeshingMethod::cNAIVE;
-			else if (meshingMethodParsed.mWords[1] == "greedy")
-				method = Chunk::MeshingMethod::cGREEDY;
+		string meshingMethodName = "naive";
+		parser.FindString("world_chunk_meshing_method", meshingMethodName);
 
-			Chunk::SetMeshingMethod(method);
-		}
+		Chunk::MeshingMethod method = Chunk::MeshingMethod::cNAIVE;
+		if (meshingMethodName == "stupid")
+			method = Chunk::MeshingMethod::cSTUPID;
+		else if (meshingMethodName == "naive")
+			method = Chunk::MeshingMethod::cNAIVE;
+		else if (meshingMethodName == "greedy")
+			method = Chunk::MeshingMethod::cGREEDY;
 
-		ViVifLine viewSizeParsed = parser.FindLine("render_size_chunks");
-		viewSize = vec3i(std::stoi(viewSizeParsed.mWords[1]), std::stoi(viewSizeParsed.mWords[2]), std::stoi(viewSizeParsed.mWords[3]));
+		Chunk::SetMeshingMethod(method);
+
+		parser.FindVec3i("view_distance_chunks", viewDistanceChunks);
 	}
-	
-	world = new VoxelWorld(worldSize, viewSize, gridSize, new WorldGenerator);
-
-	ViGame::Init();
 
 	vec3 startPos = vec3(worldSize / 2);
-	mCamera = new Camera(ViTransform::Positioned(vec3(startPos)));
+
+	world = new VoxelWorld(worldSize, gridSize, new WorldGenerator);
+	world->SetViewDistanceChunks(viewDistanceChunks);
 	world->SetLoadPosition(startPos);
+	world->Init();
+
+	mCamera = new Camera(ViTransform::Positioned(vec3(startPos)));
 
 	player = new Player(ViTransform::Positioned(startPos), world, mCamera);
+
+	ViGame::Init();
 }
 
 void vigame::VoxelIslandGame::Update(double aDeltaTime)

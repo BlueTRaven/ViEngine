@@ -34,6 +34,9 @@ namespace vigame
 		//Thread-safe. Gets a list of all chunks that have finished loading.
 		std::vector<Chunk*> GetFinishedChunks();
 
+		//Thread-safe
+		void SortChunksByDistance(vec3i aChunkPoint);
+
 		vi_property_get_named(ChunkManagerState, mState, State);
 
 	private:

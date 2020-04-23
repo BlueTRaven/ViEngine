@@ -18,9 +18,9 @@ void vigame::WorldGenerator::GenerateChunk(Chunk* aChunk)
 
 	siv::PerlinNoise noise = siv::PerlinNoise();
 
-	int waterLevelHeight = mWorld->GetSize().y - 32;
+	int waterLevelHeight = mWorld->GetSize().y - 128;
 	int perlinAmp = 8;
-	int pixBlendMapHeight = -48;
+	int pixBlendMapHeight = 48;
 
 	ViTexture* tex = ASSET_HANDLER->LoadTexture("circle_gradient");
 
@@ -40,7 +40,7 @@ void vigame::WorldGenerator::GenerateChunk(Chunk* aChunk)
 			vec4i pixel = tex->GetPixel(vec2i(x, y));
 
 			double pixPercent = pixel.r / 255.0;
-			int pixHeight = (int)((1 - pixPercent) * (double)pixBlendMapHeight);
+			int pixHeight = (int)(pixPercent * (double)pixBlendMapHeight);
 
 			//size normalized 0-1
 			vec2d nrmSize = vec2d(realPos.x, realPos.y) / vec2d(Chunk::GetSize().x, Chunk::GetSize().z);
@@ -53,16 +53,22 @@ void vigame::WorldGenerator::GenerateChunk(Chunk* aChunk)
 
 			for (int h = 0; h < Chunk::GetSize().y; h++)
 			{
-				vec3i pos = vec3i(index.x, h, index.y);
+				vec3i index3D = vec3i(index.x, h, index.y);
+				vec3i posCubeSpace = cubeSpaceChunkPos + index3D;
 
-				if (h + cubeSpaceChunkPos.y < heightCube)
+				if (posCubeSpace.y < heightCube)
 				{
-					if (h + cubeSpaceChunkPos.y < rockCube)
-						aChunk->SetCubeRelative(mWorld->MakeInstance(1), pos);
+					if (posCubeSpace.y < rockCube)
+						aChunk->SetCubeRelative(mWorld->MakeInstance(1), index3D);
 					else
-						aChunk->SetCubeRelative(mWorld->MakeInstance(2), pos);
+						aChunk->SetCubeRelative(mWorld->MakeInstance(2), index3D);
 				}
-				else aChunk->SetCubeRelative(mWorld->MakeInstance((cubeid)0), pos);
+				else 
+				{
+					if (posCubeSpace.y < waterLevelHeight)
+						aChunk->SetCubeRelative(mWorld->MakeInstance((cubeid)3), index3D);
+					else aChunk->SetCubeRelative(mWorld->MakeInstance((cubeid)0), index3D);
+				}
 			}
 		}
 	}

@@ -79,6 +79,86 @@ ViVifLine ViVifParser::FindLine(std::string aKeyName)
 	return ViVifLine();
 }
 
+void ViVifParser::FindVec3i(std::string aKeyName, vec3i& aDefault)
+{
+	if (!GetValid())
+		return;
+
+	ViVifLine line = FindLine(aKeyName);
+
+	if (line.mIsEmpty)
+		return;
+
+	if (line.mWords.size() != 4)	//four words: name, x, y, z.
+		return;
+
+	aDefault = vec3i(std::stoi(line.mWords[1]), std::stoi(line.mWords[2]), std::stoi(line.mWords[3]));
+}
+
+void ViVifParser::FindVec3(std::string aKeyName, vec3& aDefault)
+{
+	if (!GetValid())
+		return;
+
+	ViVifLine line = FindLine(aKeyName);
+
+	if (line.mIsEmpty)
+		return;
+
+	if (line.mWords.size() != 4)	//four words: name, x, y, z.
+		return;
+
+	aDefault = vec3(std::stof(line.mWords[1]), std::stof(line.mWords[2]), std::stof(line.mWords[3]));
+}
+
+void ViVifParser::FindString(std::string aKeyName, string& aValue)
+{
+	if (!GetValid())
+		return;
+
+	ViVifLine line = FindLine(aKeyName);
+
+	if (line.mIsEmpty)
+		return;
+
+	if (line.mWords.size() != 2)	//two words: name, value.
+		return;
+
+	aValue = line.mWords[1];
+}
+
+void ViVifParser::FindFloat(std::string aKeyName, float& aValue)
+{
+	if (!GetValid())
+		return;
+
+	ViVifLine line = FindLine(aKeyName);
+
+	if (line.mIsEmpty)
+		return;
+
+	if (line.mWords.size() != 2)	//two words: name, value.
+		return;
+
+	aValue = std::stof(line.mWords[1]);
+}
+
+void ViVifParser::FindInt(std::string aKeyName, int& aValue)
+{
+	if (!GetValid())
+		return;
+
+	ViVifLine line = FindLine(aKeyName);
+
+	if (line.mIsEmpty)
+		return;
+
+	if (line.mWords.size() != 2)	//two words: name, value.
+		return;
+
+	aValue = std::stoi(line.mWords[1]);
+}
+
 std::vector<ViVifLine> ViVifParser::GetLines()
 {
 	return mLines;

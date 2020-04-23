@@ -50,6 +50,18 @@ std::vector<vigame::Chunk*> vigame::ChunkManager::GetFinishedChunks()
 	return copyFinishedChunks;
 }
 
+void vigame::ChunkManager::SortChunksByDistance(vec3i aChunkPoint)
+{
+	mAddChunksMutex->lock();
+	std::sort(mChunksToLoad.begin(), mChunksToLoad.end(), [=](Chunk* a, Chunk* b) 
+	{
+		vec3i distA = a->GetWorldPosition() - aChunkPoint;
+		vec3i distB = b->GetWorldPosition() - aChunkPoint;
+		return distA.length() > distB.length();
+	});
+	mAddChunksMutex->unlock();
+}
+
 void vigame::ChunkManager::Run()
 {
 	while (true)
