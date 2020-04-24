@@ -39,7 +39,8 @@ namespace vigame
 		{
 			cNONE =		0,
 			cGENERATE = 1 << 0,
-			cMESH =		1 << 1
+			cMESH =		1 << 1,
+			cALL =		~0
 		};
 
 		//aPosition: position in chunk space. Used to index into world chunk array.
@@ -108,6 +109,8 @@ namespace vigame
 		bool mDirty = false;
 
 		ChunkLoader* mChunkLoader;
+
+		ViMesh* mTestMesh;
 
 		static vec3i mSize;
 		

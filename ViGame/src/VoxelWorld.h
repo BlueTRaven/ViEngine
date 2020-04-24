@@ -3,6 +3,7 @@
 #include <mutex>
 
 #include "ViUtil.h"
+#include "ViMaterialFont.h"
 
 #include "Cube.h"
 #include "CubeInstance.h"
@@ -44,6 +45,9 @@ namespace vigame
 
 		vec3 CubeSpaceToWorldSpace(vec3i aPosCubeSpace);
 
+		vec3i WorldSpaceToChunkSpace(vec3 aPosition);
+		vec3i WorldSpaceToCubeSpace(vec3 aPosition);
+
 		void Update(float aDeltaTime);
 		void Draw(ViVertexBatch* batch);
 
@@ -70,9 +74,8 @@ namespace vigame
 
 		vec3i mChunkSize;
 
-		//vec3i mViewSize;
+		ViMaterialFont* mTestFontMat;
 
-		//1d array of cubes - equal to [WIDTH * HEIGHT * DEPTH]
 		CubeInstance voidCube = CubeInstance(0);
 
 		ChunkMap mChunks;
@@ -89,8 +92,6 @@ namespace vigame
 
 		ViMesh* mCubeMesh;
 
-		vec3i WorldSpaceToChunkSpace(vec3 aPosition);
-		vec3i WorldSpaceToCubeSpace(vec3 aPosition);
 		vec3i GetChunkRelativePosition(vec3i aChunkPosition);
 
 		vec3 mOldLoadPosition;
@@ -98,6 +99,26 @@ namespace vigame
 		float mTimer;
 
 		bool mGenerateInfinite = true;
+
+		//Infinite generation needs special rounding
+		inline vec3i RoundToVec3i(vec3 aPosition)
+		{
+			if (aPosition.x < 0)
+				aPosition.x = floorf(aPosition.x);
+			if (aPosition.y < 0)
+				aPosition.y = floorf(aPosition.y);
+			if (aPosition.z < 0)
+				aPosition.z = floorf(aPosition.z);
+
+			return aPosition;
+		}
+
+		inline int RoundToInt(float aValue)
+		{
+			if (aValue < 0)
+				return floorf(aValue);
+			else return floorf(aValue);
+		}
 	};
 
 	template <typename TCallback>
@@ -110,13 +131,13 @@ namespace vigame
 		const float y2 = aEnd.y;
 		const float z2 = aEnd.z;
 
-		int i = (int)floorf(x1);
-		int j = (int)floorf(y1);
-		int k = (int)floorf(z1);
+		int i = (int)RoundToInt(x1);
+		int j = (int)RoundToInt(y1);
+		int k = (int)RoundToInt(z1);
 
-		const int iend = (int)floorf(x2);
-		const int jend = (int)floorf(y2);
-		const int kend = (int)floorf(z2);
+		const int iend = (int)RoundToInt(x2);
+		const int jend = (int)RoundToInt(y2);
+		const int kend = (int)RoundToInt(z2);
 
 		const int di = ((x1 < x2) ? 1 : ((x1 > x2) ? -1 : 0));
 		const int dj = ((y1 < y2) ? 1 : ((y1 > y2) ? -1 : 0));
@@ -126,14 +147,14 @@ namespace vigame
 		const float deltaty = 1.0f / std::abs(y2 - y1);
 		const float deltatz = 1.0f / std::abs(z2 - z1);
 
-		const float minx = floorf(x1), maxx = minx + 1.0f;
+		const float minx = RoundToInt(x1), maxx = minx + 1.0f;
 		float tx = ((x1 > x2) ? (x1 - minx) : (maxx - x1)) * deltatx;
-		const float miny = floorf(y1), maxy = miny + 1.0f;
+		const float miny = RoundToInt(y1), maxy = miny + 1.0f;
 		float ty = ((y1 > y2) ? (y1 - miny) : (maxy - y1)) * deltaty;
-		const float minz = floorf(z1), maxz = minz + 1.0f;
+		const float minz = RoundToInt(z1), maxz = minz + 1.0f;
 		float tz = ((z1 > z2) ? (z1 - minz) : (maxz - z1)) * deltatz;
 
-		aOut = vec3i(i, j, k);
+		aOut = RoundToVec3i(vec3(x1, y1, z1));
 
 		for (;;)
 		{

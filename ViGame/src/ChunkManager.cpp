@@ -33,6 +33,31 @@ void vigame::ChunkManager::Pause()
 	mState = cPAUSED;
 }
 
+void vigame::ChunkManager::LoadAll()
+{
+	while (GetChunksToLoadCount())
+	{
+		mAddChunksMutex->lock();
+		Chunk* chunk = mChunksToLoad.back();
+		mAddChunksMutex->unlock();
+
+		if (CanGenerateChunk(chunk))
+		{
+			mAddChunksMutex->lock();
+			mChunksToLoad.pop_back();
+			mAddChunksMutex->unlock();
+			chunk->Load(false);
+
+			mAddFinishedChunksMutex->lock();
+			mFinishedChunks.push_back(chunk);
+			mAddFinishedChunksMutex->unlock();
+		}
+
+		if (mState == cPAUSED)
+			break;
+	}
+}
+
 void vigame::ChunkManager::WaitForStopWorking()
 {
 	while (mWorking)
@@ -88,32 +113,7 @@ void vigame::ChunkManager::Run()
 
 		mWorking = true;
 
-		mAddChunksMutex->lock();
-		std::vector<Chunk*> copyChunksToLoad = mChunksToLoad;
-		mAddChunksMutex->unlock();
-
-		while (mChunksToLoad.size() > 0)
-		{
-			mAddChunksMutex->lock();
-			Chunk* chunk = mChunksToLoad.back();
-
-			if (CanGenerateChunk(chunk))
-			{
-				mChunksToLoad.pop_back();
-				mAddChunksMutex->unlock();
-
-				//bool generate = !(chunk->GetDirty() && chunk->GetGenerated());
-				chunk->Load(false);
-
-				mAddFinishedChunksMutex->lock();
-				mFinishedChunks.push_back(chunk);
-				mAddFinishedChunksMutex->unlock();
-			}
-			else mAddChunksMutex->unlock();
-
-			if (mState == cPAUSED)
-				break;
-		}
+		LoadAll();
 	}
 }
 

@@ -33,8 +33,14 @@ namespace vigame
 	private:
 		void Move(double aDeltaTime);
 
+		vec3 mEyeOffset = vec3(0, 1, 0);
 		float mMovementSpeed = 1;
-		float mDrag = 0.98f;
+		float mDrag = 0.925f;
+		float mJumpVelocity = 50;
+		float mGravity = -9.81f / 8.f;
+
+		bool mOnGround = false;
+		bool mCanJump = false;
 
 		int height;
 		int width;

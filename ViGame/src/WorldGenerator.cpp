@@ -65,7 +65,7 @@ void vigame::WorldGenerator::GenerateChunk(Chunk* aChunk)
 				}
 				else 
 				{
-					if (posCubeSpace.y < waterLevelHeight)
+					if (posCubeSpace.y < 0)
 						aChunk->SetCubeRelative(mWorld->MakeInstance((cubeid)3), index3D);
 					else aChunk->SetCubeRelative(mWorld->MakeInstance((cubeid)0), index3D);
 				}

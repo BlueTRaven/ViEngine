@@ -17,6 +17,7 @@ vigame::Chunk::Chunk(vec3i aWorldPosition, VoxelWorld* aWorld) :
 	mOldOptimizedMesh(nullptr),
 	mHasAnything(true),
 	mChunkState(cUNINIT),
+	mLoadFlags(cALL),
 	mGenerated(false)
 {
 	//set all ids to 0
@@ -26,6 +27,9 @@ vigame::Chunk::Chunk(vec3i aWorldPosition, VoxelWorld* aWorld) :
 	vec3 size = aWorld->GetGridSize() * vec3(GetSize());
 
 	std::function<ViMesh*(void)> meshingFunction = nullptr;
+
+	mTestMesh = ViMesh::MakeUCube(ASSET_HANDLER->LoadMaterial("white_pixel"), vec3(0), vec3(1), ViMesh::cFACE_ALL, vicolors::WHITE);
+	mTestMesh->UploadData();
 
 	switch (mMeshingMethod)
 	{
@@ -115,6 +119,26 @@ void vigame::Chunk::LoadFinished()
 
 void vigame::Chunk::Draw(ViVertexBatch* aBatch)
 {
+	/*if (mWorld->WorldSpaceToChunkSpace(mWorld->GetLoadPosition()) == mWorldPosition)
+	{
+		for (int z = 0; z < mSize.z; z++)
+		{
+			for (int y = 0; y < mSize.y; y++)
+			{
+				for (int x = 0; x < mSize.x; x++)
+				{
+					vec3i pos = mWorldPosition * GetSize() + vec3i(x, y, z);
+					if (GetCubeRelative(vec3i(x, y, z)).mId == 0)
+						continue;
+
+					aBatch->Draw(ViTransform::Positioned(vec3(pos) * mWorld->GetGridSize()), mTestMesh, 6);
+				}
+			}
+		}
+
+		return;
+	}*/
+
 	if (mChunkState == ChunkState::cDONE)
 	{
 		if (mHasAnything)
@@ -149,53 +173,7 @@ void vigame::Chunk::SetDirty()
 
 void vigame::Chunk::MakeMesh(MeshingMethod aMethod)
 {
-	/*if (mHasAnything)
-	{
-		if (mut->try_lock())
-		{
-			if (mMeshingThread != nullptr && mMeshingThread->joinable())
-			{
-				mMeshingThread->join();
-			}
-
-			//If our mesh has changed at all, we want to get rid of the old one. 
-			//However, we need to hold onto the old mesh so we can draw it until the new one is generated.
-			if (mOptimizedMesh != nullptr)
-			{
-				if (mOldOptimizedMesh != nullptr)
-				{
-					delete mOldOptimizedMesh;
-					mOldOptimizedMesh = nullptr;
-				}
-
-				mOldOptimizedMesh = new ViMesh(*mOptimizedMesh);
-				delete mOptimizedMesh;
-				mOptimizedMesh = nullptr;
-			}
-
-			mut->unlock();
-
-			switch (aMethod)
-			{
-			case cSTUPID:
-				SetChunkState(cUNINIT);
-				printf("Debug: STUPID chunk meshing method is not implemented! Use NAIVE or GREEDY.");
-				break;	
-			case cNAIVE:
-				mMeshingThread = new std::thread(&Chunk::NaiveMesh, this);
-				printf("Debug: Starting NAIVE chunk thread %i.\n", mMeshingThread->get_id());
-				break;
-			case cGREEDY:
-				mMeshingThread = new std::thread(&Chunk::GreedyMesh, this);
-				printf("Debug: Starting GREEDY chunk thread %i.\n", mMeshingThread->get_id());
-				break;
-			default:
-				break;
-			}
-
-			SetDirty(false);
-		}
-	}*/
+	
 }
 
 ViMesh* vigame::Chunk::NaiveMesh()
@@ -475,8 +453,14 @@ void vigame::Chunk::SetCubeRelative(CubeInstance instance, vec3i aPosition)
 
 vigame::CubeInstance vigame::Chunk::GetCubePotentially(vec3i aPosition)
 {
+
 	if (aPosition.x < 0 || aPosition.y < 0 || aPosition.z < 0 || aPosition.x >= mSize.x || aPosition.y >= mSize.y || aPosition.z >= mSize.z)
+	{
+		//it is UNDEFINED BEHAVIOR to get a cube that's outside the chunk's bounds while it is being loaded.
+		if (mChunkState != cDONE)
+			return CubeInstance(0);
 		return mWorld->GetCube(aPosition + (mWorldPosition * GetSize()));
+	}
 
 	return GetCubeRelative(aPosition);
 }

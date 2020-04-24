@@ -193,7 +193,7 @@ ViMesh* ViMesh::MakeUCube(ViMaterial* aMaterial, vec3 min, vec3 max, int aFaces,
 	}
 	if (aFaces & cFACE_RIGHT)
 	{
-		ViMesh::MakeQuadRaw(r_t_n, r_t_f, r_b_f, r_b_n, { -1.0, 0.0, 0.0 }, vertices, indices, aColor);	//right face
+		ViMesh::MakeQuadRaw(r_t_n, r_t_f, r_b_f, r_b_n, { 1.0, 0.0, 0.0 }, vertices, indices, aColor);	//right face
 		subsections.push_back(ViMeshSubsection(aMaterial, numIndices, 6));
 		numIndices += 6;
 	}
@@ -211,13 +211,13 @@ ViMesh* ViMesh::MakeUCube(ViMaterial* aMaterial, vec3 min, vec3 max, int aFaces,
 	}
 	if (aFaces & cFACE_TOP)
 	{
-		ViMesh::MakeQuadRaw(l_t_f, r_t_f, r_t_n, l_t_n, { 0.0, 1.0, 0.0 }, vertices, indices, aColor);	//top face
+		ViMesh::MakeQuadRaw(l_t_f, r_t_f, r_t_n, l_t_n, { 0.0, -1.0, 0.0 }, vertices, indices, aColor);	//top face
 		subsections.push_back(ViMeshSubsection(aMaterial, numIndices, 6));
 		numIndices += 6;
 	}
 	if (aFaces & cFACE_BOTTOM)
 	{
-		ViMesh::MakeQuadRaw(r_b_f, l_b_f, l_b_n, r_b_n, { 0.0, -1.0, 0.0 }, vertices, indices, aColor);	//bottom face
+		ViMesh::MakeQuadRaw(r_b_f, l_b_f, l_b_n, r_b_n, { 0.0, 1.0, 0.0 }, vertices, indices, aColor);	//bottom face
 		subsections.push_back(ViMeshSubsection(aMaterial, numIndices, 6));
 		numIndices += 6;
 	}

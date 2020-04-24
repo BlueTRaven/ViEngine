@@ -13,4 +13,4 @@ world_cube_scale 1
 world_chunk_meshing_method naive
 
 #number of chunks around camera to load/render.
-view_distance_chunks 3 3 3
+view_distance_chunks 4 4 4

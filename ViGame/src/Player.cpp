@@ -17,7 +17,7 @@ vigame::Player::Player(ViTransform aStartTransform, VoxelWorld* aWorld, Camera* 
 
 	mMaterialFont = new ViMaterialFont(GET_ASSET_FONT("debug"), GET_ASSET_MATERIAL("font_debug"));
 
-	mMaxVelocity = vec3(20, 20, 20);
+	mMaxVelocity = vec3(8, 30, 8);
 
 	mNoclip = true;
 }
@@ -44,8 +44,8 @@ void vigame::Player::Update(double aDeltaTime)
 	if (!mNoclip)
 		CollisionDetect();
 
-	vec3 start = mTransform.GetPosition();
-	vec3 end = mTransform.GetPosition() + mTransform.Forward() * 128.f;
+	vec3 start = mCamera->GetTransform().GetPosition();
+	vec3 end = mCamera->GetTransform().GetPosition() + mCamera->GetTransform().Forward() * 128.f;
 
 	vec3i out;
 	bool hit = !mWorld->VoxelRaycast(start, end, out, [this](vec3i aPosition) {
@@ -65,17 +65,10 @@ void vigame::Player::Update(double aDeltaTime)
 
 void vigame::Player::Draw(ViVertexBatch * aBatch)
 {
-	VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_NONE, ViVertexBatchSettings::cDEPTH_LESS,
-		ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_NONPREMULTIPLIED, ViVertexBatchSettings::cDRAW_LINES));
-	
-	vec3 forward = mTransform.Forward() * 1.f;
-	ViTransform trans = ViTransform::Positioned(mTransform.GetPosition() + forward);
-	VERTEX_BATCH->Draw(trans, mCubeMesh, 6);
-
 	if (mHighlighted)
 	{
 		float scale = 1.f / mWorld->GetGridSize() + 0.001f;
-		trans = ViTransform::Positioned((vec3(mWorld->GetGridSize() / 2.0f) + vec3(mHighlightedCube)) / scale);
+		ViTransform trans = ViTransform::Positioned((vec3(mWorld->GetGridSize() / 2.0f) + vec3(mHighlightedCube)) / scale);
 		trans.SetScale(vec3(scale));
 		VERTEX_BATCH->Draw(trans, mCubeMesh, 6);
 
@@ -89,25 +82,33 @@ void vigame::Player::Draw(ViVertexBatch * aBatch)
 
 void vigame::Player::CollisionDetect()
 {
+	mOnGround = false;
 	for (int z = -1; z <= 1; z++)
 	{
 		for (int y = -1; y <= 1; y++)
 		{
 			for (int x = -1; x <= 1; x++)
 			{
-				vec3i pos = (-mTransform.GetPosition() / mWorld->GetGridSize()) + vec3(x, y, z);
-				CubeInstance instance = mWorld->GetCube(pos);
+				vec3i posCubeSpace = ((mTransform.GetPosition()) / mWorld->GetGridSize()) + vec3(x, y, z);
+				CubeInstance instance = mWorld->GetCube(posCubeSpace);
 
 				if (instance.mId == 0)
 					continue;
 
-				vec3 posWorldSpace = vec3(pos) * mWorld->GetGridSize() - (mWorld->GetGridSize() / 2);
+				vec3 posWorldSpace = mWorld->CubeSpaceToWorldSpace(posCubeSpace);
 
-				float dist = -mTransform.GetPosition().y - posWorldSpace.y;
+				//distance from cube's center(?) to our center
+				float distY = mTransform.GetPosition().y - posWorldSpace.y;
 
-				//vec3 t = vec3(mTransform.GetPosition().x, -posWorldSpace.y, mTransform.GetPosition().z);
-				if (dist < mWorld->GetGridSize())
-					SetPosition(mTransform.GetPosition() - vec3(0, dist, 0));
+				if (distY < mWorld->GetGridSize() && mVelocity.y < 0)
+				{
+					vec3 ourPos = mTransform.GetPosition();
+					SetPosition(vec3(ourPos.x, posWorldSpace.y + mWorld->GetGridSize(), ourPos.z));
+
+					mVelocity.y = 0;
+					mOnGround = true;
+					mCanJump = true;
+				}
 			}
 		}
 	}
@@ -117,7 +118,7 @@ void vigame::Player::SetPosition(vec3 aPosition)
 {
 	mTransform.SetPosition(aPosition);
 	ViTransform camTrans = mCamera->GetTransform();
-	camTrans.SetPosition(aPosition);
+	camTrans.SetPosition(aPosition + mEyeOffset);
 	mCamera->SetTransform(camTrans);
 }
 
@@ -147,13 +148,21 @@ void vigame::Player::Move(double aDeltaTime)
 		mVelocity += trans.Right() * moveMult;
 
 	if (!mNoclip)
-		mVelocity.y += -9.81f;
+	{
+		mVelocity.y += mGravity;
+
+		if (INPUT_MANAGER->KeyDown(SDL_SCANCODE_SPACE) && mCanJump)
+		{
+			mCanJump = false;
+			mVelocity.y += mJumpVelocity;
+		}
+	}
 
 	vec3 velXZ = mVelocity;
 	velXZ.y = 0;
 
-	if (glm::length(velXZ) > glm::length(mMaxVelocity))
-		velXZ = glm::normalize(velXZ) * glm::length(mMaxVelocity);
+	if (glm::length(velXZ) > glm::length(vec3(mMaxVelocity.x, 0, mMaxVelocity.z)))
+		velXZ = glm::normalize(velXZ) * glm::length(vec3(mMaxVelocity.x, 0, mMaxVelocity.z));
 
 	mVelocity.x = velXZ.x;
 	mVelocity.z = velXZ.z;
@@ -163,7 +172,7 @@ void vigame::Player::Move(double aDeltaTime)
 	else if (mVelocity.y > mMaxVelocity.y)
 		mVelocity.y = mMaxVelocity.y;
 
-	mTransform.Translate(mVelocity * (float)aDeltaTime);
+	mTransform.Translate(vec3d(mVelocity) * aDeltaTime);
 
 	ViTransform aCameraTransform = mTransform;
 

@@ -124,8 +124,7 @@ void vigame::VoxelIslandGame::Draw(double aDeltaTime)
 	vec3 pos = mCamera->GetTransform().GetPosition();
 	vec3 rot = mCamera->GetTransform().GetRotation();
 	std::stringstream str;
-	str << std::fixed << std::setprecision(2) << "Camera Position: x " << pos.x << ", y " << pos.y << ", z " << pos.z <<
-		" Rotation: x " << rot.x << ", y " << rot.y << ", z " << rot.z;
+	str << "Loading Chunks Queue: " << world->GetChunkManager()->GetChunksToLoadCount() << std::endl;
 
 	VERTEX_BATCH->DrawString(ViTransform::Positioned(vec3(0, mDebugFont->GetFont()->GetSize() * 2 + 8, 0)), mDebugFont, str.str());
 

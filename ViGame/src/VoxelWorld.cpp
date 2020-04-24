@@ -32,6 +32,8 @@ vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWo
 	mCubeRegistry->AddCubeType(new Cube(this, GET_ASSET_MATERIAL("white_pixel"), vicolors::BLUE, true));
 
 	mCubeMesh = ViMesh::MakeUCube(ASSET_HANDLER->LoadMaterial("white_pixel_fullbright"), vec3(-0.5), vec3(0.5), ViMesh::cFACE_ALL, vicolors::WHITE);
+
+	mTestFontMat = new ViMaterialFont(GET_ASSET_FONT("debug"), GET_ASSET_MATERIAL("font_debug"));
 }
 
 void vigame::VoxelWorld::Init()
@@ -64,7 +66,8 @@ void vigame::VoxelWorld::SetCube(vec3i aPosition, Cube* aCube)
 	if (chunk == nullptr)
 		return;
 
-	chunk->SetCubeRelative(MakeInstance(aCube->GetId()), aPosition - chunk->GetWorldPosition() * Chunk::GetSize());
+	vec3i relPosition = RoundToVec3i(aPosition - chunk->GetWorldPosition() * Chunk::GetSize());
+	chunk->SetCubeRelative(MakeInstance(aCube->GetId()), relPosition);
 }
 
 vigame::CubeInstance& vigame::VoxelWorld::GetCube(vec3i aPosition)
@@ -74,7 +77,8 @@ vigame::CubeInstance& vigame::VoxelWorld::GetCube(vec3i aPosition)
 	if (chunk == nullptr)
 		return voidCube;
 
-	return chunk->GetCubeRelative(aPosition - chunk->GetWorldPosition() * Chunk::GetSize());
+	vec3i relPosition = RoundToVec3i(aPosition - chunk->GetWorldPosition() * Chunk::GetSize());
+	return chunk->GetCubeRelative(relPosition);
 }
 
 vigame::CubeInstance vigame::VoxelWorld::MakeInstance(Cube* aCube)
@@ -89,9 +93,6 @@ vigame::CubeInstance vigame::VoxelWorld::MakeInstance(cubeid aId)
 
 vigame::Chunk* vigame::VoxelWorld::GetChunk(vec3i aChunkPosition)
 {
-	if (aChunkPosition.x < 0 || aChunkPosition.y < 0 || aChunkPosition.z < 0 || aChunkPosition.x >= mChunkSize.x || aChunkPosition.y >= mChunkSize.y || aChunkPosition.z >= mChunkSize.z)
-		return nullptr;
-
 	mChunksAccessMutex->lock();
 	if (mChunks.find(aChunkPosition) == mChunks.end())
 	{
@@ -132,28 +133,6 @@ vigame::VoxelWorld::ChunkMap::iterator vigame::VoxelWorld::RemoveChunkIterSafe(C
 	return mChunks.erase(iter);
 }
 
-vigame::Chunk* vigame::VoxelWorld::GetChunkResponsibleForCube(vec3i aPosition)
-{
-	vec3i pos = CubeSpaceToChunkSpace(aPosition);
-
-	return GetChunk(pos);
-}
-
-vec3i vigame::VoxelWorld::CubeSpaceToChunkSpace(vec3i aPosCubeSpace)
-{
-	return aPosCubeSpace / Chunk::GetSize();
-}
-
-vec3i vigame::VoxelWorld::ChunkSpaceToCubeSpace(vec3i aPosChunkSpace)
-{
-	return aPosChunkSpace * Chunk::GetSize();
-}
-
-vec3 vigame::VoxelWorld::CubeSpaceToWorldSpace(vec3i aPosCubeSpace)
-{
-	return vec3(aPosCubeSpace) * vec3(mGridSize);
-}
-
 void vigame::VoxelWorld::Update(float aDeltaTime)
 {
 	if (!mGenerateInfinite)
@@ -174,6 +153,7 @@ void vigame::VoxelWorld::Update(float aDeltaTime)
 			}
 		}
 	}
+
 	mChunkManager->SortChunksByDistance(WorldSpaceToChunkSpace(mLoadPosition));
 
 	std::vector<Chunk*> loadedChunks = mChunkManager->GetFinishedChunks();
@@ -190,13 +170,62 @@ void vigame::VoxelWorld::Update(float aDeltaTime)
 
 void vigame::VoxelWorld::Draw(ViVertexBatch* aBatch)
 {
-	for (auto iter = mChunks.begin(); iter != mChunks.end(); iter++)
+	for (int z = -mViewDistanceChunks.z; z <= mViewDistanceChunks.z; z++)
+	{
+		for (int y = -mViewDistanceChunks.y; y <= mViewDistanceChunks.y; y++)
+		{
+			for (int x = -mViewDistanceChunks.x; x <= mViewDistanceChunks.x; x++)
+			{
+				vec3i pos = WorldSpaceToChunkSpace(mLoadPosition) + vec3i(x, y, z);
+				Chunk* chunk = GetChunk(pos);
+
+				if (chunk != nullptr)
+				{
+					chunk->Draw(aBatch);
+
+					/*if (pos == WorldSpaceToChunkSpace(mLoadPosition))
+					{
+						VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_NONE, ViVertexBatchSettings::cDEPTH_LESS,
+							ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_NONPREMULTIPLIED, ViVertexBatchSettings::cDRAW_LINES));
+
+						ViTransform trans(vec3(chunk->GetWorldPosition()) + vec3(GetGridSize() / 2.f), vec3(0),
+							vec3(Chunk::GetSize()) * GetGridSize());
+						aBatch->Draw(trans, mCubeMesh);
+
+						VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_NONE, ViVertexBatchSettings::cDEPTH_LESS,
+							ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_NONPREMULTIPLIED, ViVertexBatchSettings::cDRAW_FILLED));
+					}*/
+				}
+			}
+		}
+	}
+
+	vec3i chunkPos = WorldSpaceToChunkSpace(mLoadPosition);
+	VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_NONE,
+		ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_ALPHABLEND, ViVertexBatchSettings::cDRAW_FILLED));
+	aBatch->DrawString(ViTransform::Positioned({ 0, 128 + 24, 0 }), mTestFontMat, 
+		"Load Pos: x " + std::to_string(mLoadPosition.x) + " y " + std::to_string(mLoadPosition.y) + " z " + std::to_string(mLoadPosition.z) +
+		", Chunk Pos: x " + std::to_string(chunkPos.x) + " y " + std::to_string(chunkPos.y) + " z " + std::to_string(chunkPos.z) + "\n");
+	/*for (auto iter = mChunks.begin(); iter != mChunks.end(); iter++)
 	{
 		if (iter->second == nullptr)
 			continue;
 
 		iter->second->Draw(aBatch);
-	}
+
+		if (WorldSpaceToChunkSpace(mLoadPosition) == iter->second->GetWorldPosition())
+		{
+			VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_NONE, ViVertexBatchSettings::cDEPTH_LESS,
+				ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_NONPREMULTIPLIED, ViVertexBatchSettings::cDRAW_LINES));
+
+			ViTransform trans(vec3(iter->second->GetWorldPosition()) + vec3(GetGridSize() / 2.f), vec3(0),
+				vec3(Chunk::GetSize()) * GetGridSize());
+			aBatch->Draw(trans, mCubeMesh);
+
+			VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_NONE, ViVertexBatchSettings::cDEPTH_LESS,
+				ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_NONPREMULTIPLIED, ViVertexBatchSettings::cDRAW_FILLED));
+		}
+	}*/
 
 	if (mDrawDebug)
 	{
@@ -214,14 +243,36 @@ void vigame::VoxelWorld::Draw(ViVertexBatch* aBatch)
 	}
 }
 
+vigame::Chunk* vigame::VoxelWorld::GetChunkResponsibleForCube(vec3i aPosition)
+{
+	vec3i pos = CubeSpaceToChunkSpace(aPosition);
+
+	return GetChunk(pos);
+}
+
+vec3i vigame::VoxelWorld::CubeSpaceToChunkSpace(vec3i aPosCubeSpace)
+{
+	return RoundToVec3i(vec3(aPosCubeSpace) / vec3(Chunk::GetSize()));
+}
+
+vec3i vigame::VoxelWorld::ChunkSpaceToCubeSpace(vec3i aPosChunkSpace)
+{
+	return aPosChunkSpace * Chunk::GetSize();
+}
+
+vec3 vigame::VoxelWorld::CubeSpaceToWorldSpace(vec3i aPosCubeSpace)
+{
+	return vec3(aPosCubeSpace) * vec3(mGridSize);
+}
+
 vec3i vigame::VoxelWorld::WorldSpaceToChunkSpace(vec3 aPosition)
 {
-	return vec3i(aPosition) / Chunk::GetSize();
+	return RoundToVec3i(aPosition / vec3(Chunk::GetSize()));
 }
 
 vec3i vigame::VoxelWorld::WorldSpaceToCubeSpace(vec3 aPosition)
 {
-	return vec3i(aPosition / GetGridSize());
+	return RoundToVec3i(aPosition / GetGridSize());
 }
 
 vec3i vigame::VoxelWorld::GetChunkRelativePosition(vec3i aChunkPosition)

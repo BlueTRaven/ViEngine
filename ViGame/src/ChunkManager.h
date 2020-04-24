@@ -28,6 +28,8 @@ namespace vigame
 		//Pauses the chunk manager. It will no longer load new chunks. Call Start to re-start it. Thread-safe.
 		void Pause();
 
+		void LoadAll();
+
 		//Call to wait on the currently executing thread until mWorking is false.
 		//Does nothing if the current state is not cPAUSED.
 		void WaitForStopWorking();
@@ -37,6 +39,15 @@ namespace vigame
 
 		//Thread-safe. Gets a list of all chunks that have finished loading.
 		std::vector<Chunk*> GetFinishedChunks();
+
+		inline int GetChunksToLoadCount() 
+		{
+			mAddChunksMutex->lock();
+			int count = mChunksToLoad.size();
+			mAddChunksMutex->unlock();
+
+			return count;
+		}
 
 		//Thread-safe
 		void SortChunksByDistance(vec3i aChunkPoint);
