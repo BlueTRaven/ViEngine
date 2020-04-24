@@ -35,7 +35,7 @@ namespace vigame
 
 		vec3 mEyeOffset = vec3(0, 1, 0);
 		float mMovementSpeed = 1;
-		float mDrag = 0.925f;
+		float mDrag = 0.85;
 		float mJumpVelocity = 50;
 		float mGravity = -9.81f / 8.f;
 

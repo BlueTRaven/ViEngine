@@ -17,7 +17,7 @@ vigame::Player::Player(ViTransform aStartTransform, VoxelWorld* aWorld, Camera* 
 
 	mMaterialFont = new ViMaterialFont(GET_ASSET_FONT("debug"), GET_ASSET_MATERIAL("font_debug"));
 
-	mMaxVelocity = vec3(8, 30, 8);
+	mMaxVelocity = vec3(4, 30, 4);
 
 	mNoclip = true;
 }
@@ -97,17 +97,22 @@ void vigame::Player::CollisionDetect()
 
 				vec3 posWorldSpace = mWorld->CubeSpaceToWorldSpace(posCubeSpace);
 
+				vec3 ourPos = mTransform.GetPosition();
+
 				//distance from cube's center(?) to our center
-				float distY = mTransform.GetPosition().y - posWorldSpace.y;
+				float distY = ourPos.y - posWorldSpace.y;
 
-				if (distY < mWorld->GetGridSize() && mVelocity.y < 0)
+				if (ourPos.x >= posWorldSpace.x && ourPos.x < posWorldSpace.x + mWorld->GetGridSize() &&
+					ourPos.z >= posWorldSpace.z && ourPos.z < posWorldSpace.z + mWorld->GetGridSize())
 				{
-					vec3 ourPos = mTransform.GetPosition();
-					SetPosition(vec3(ourPos.x, posWorldSpace.y + mWorld->GetGridSize(), ourPos.z));
+					if (distY < mWorld->GetGridSize() && mVelocity.y < 0)
+					{
+						SetPosition(vec3(ourPos.x, posWorldSpace.y + mWorld->GetGridSize(), ourPos.z));
 
-					mVelocity.y = 0;
-					mOnGround = true;
-					mCanJump = true;
+						mVelocity.y = 0;
+						mOnGround = true;
+						mCanJump = true;
+					}
 				}
 			}
 		}
