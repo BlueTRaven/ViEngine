@@ -30,9 +30,26 @@ void ViGame::Start()
 
 	while (mRunning)
 	{
+		if ((SDL_GetWindowFlags(GetWindow()) & SDL_WINDOW_INPUT_FOCUS) == SDL_WINDOW_INPUT_FOCUS)
+		{
+			if (mTimer->GetState() == ViTimer::cTIMER_PAUSE)
+				mTimer->Start();	//restart
+
+			ENVIRONMENT->SetFocused(true);
+		}
+		else 
+		{
+			if (mTimer->GetState() == ViTimer::cTIMER_START)
+				mTimer->Pause();
+
+			ENVIRONMENT->SetFocused(false);
+		}
+
 		double time = mTimer->GetMs();
 		mTimer->Update();
 		double deltaTime = (mTimer->GetMs() - time) / 1000.0f;
+		//if unpausing deltaTime can be negative... don't want that.
+		deltaTime = glm::max<double>(0, deltaTime);
 
 		mFpsTimer->Update();
 

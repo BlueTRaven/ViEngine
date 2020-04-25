@@ -41,6 +41,6 @@ namespace vigame
 
 		ViTransform transform;
 		
-		bool f;
+		bool mPaused = false;
 	};
 }

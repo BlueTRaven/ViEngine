@@ -89,11 +89,17 @@ void vigame::VoxelIslandGame::Update(double aDeltaTime)
 	if (INPUT_MANAGER->KeyDown(SDL_SCANCODE_T))
 		world->SetDrawDebug(!world->GetDrawDebug());
 
-	world->Update(aDeltaTime);
-	player->Update(aDeltaTime);
+	if (INPUT_MANAGER->KeyDown(SDL_SCANCODE_P))
+		mPaused = !mPaused;
 
-	mCamera->Update(aDeltaTime);
-	world->SetLoadPosition(mCamera->GetTransform().GetPosition());
+	if (ENVIRONMENT->GetFocused() && (!mPaused || (mPaused && INPUT_MANAGER->KeyDown(SDL_SCANCODE_O))))
+	{
+		world->Update(aDeltaTime);
+		player->Update(aDeltaTime);
+
+		mCamera->Update(aDeltaTime);
+		world->SetLoadPosition(mCamera->GetTransform().GetPosition());
+	}
 
 	ViGame::Update(aDeltaTime);
 
@@ -113,7 +119,7 @@ void vigame::VoxelIslandGame::Draw(double aDeltaTime)
 
 	VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_LESS,
 		ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_NONPREMULTIPLIED, ViVertexBatchSettings::cDRAW_FILLED));
-	world->Draw(VERTEX_BATCH);
+	world->Draw(aDeltaTime, VERTEX_BATCH);
 	player->Draw(VERTEX_BATCH);
 
 	VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_NONE, 

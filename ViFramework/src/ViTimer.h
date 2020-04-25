@@ -6,7 +6,19 @@
 class ViTimer
 {
 public:
+	enum TimerState
+	{
+		cTIMER_NONE,
+		cTIMER_START,
+		cTIMER_PAUSE,
+		cTIMER_STOP
+	};
+
 	void Start();
+	//Temporarily pauses the timer. Call Start() to restart it.
+	void Pause();
+	//Stops the timer. The timer cannot be restarted, except by re-instantiation.
+	void Stop();
 
 	void Update();
 
@@ -14,9 +26,16 @@ public:
 
 	double GetSec();
 
+	inline TimerState GetState() 
+	{
+		return mState;
+	}
+
 private:
 	uint32_t msStart;
 
 	uint32_t ms;
 	uint32_t dt;
+
+	TimerState mState = TimerState::cTIMER_NONE;
 };

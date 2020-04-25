@@ -48,8 +48,13 @@ namespace vigame
 		vec3i WorldSpaceToChunkSpace(vec3 aPosition);
 		vec3i WorldSpaceToCubeSpace(vec3 aPosition);
 
-		void Update(float aDeltaTime);
-		void Draw(ViVertexBatch* batch);
+		inline bool PointWithinBounds(vec3 aPoint, vec3i aCube)
+		{
+			return WorldSpaceToCubeSpace(aPoint) == aCube;
+		}
+
+		void Update(double aDeltaTime);
+		void Draw(double aDeltaTime,  ViVertexBatch* batch);
 
 		vi_property_get_named(vec3i, mSize, Size);
 		vi_property_get_named(vec3i, mChunkSize, ChunkSize);

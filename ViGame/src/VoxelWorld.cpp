@@ -133,7 +133,7 @@ vigame::VoxelWorld::ChunkMap::iterator vigame::VoxelWorld::RemoveChunkIterSafe(C
 	return mChunks.erase(iter);
 }
 
-void vigame::VoxelWorld::Update(float aDeltaTime)
+void vigame::VoxelWorld::Update(double aDeltaTime)
 {
 	if (!mGenerateInfinite)
 		return;
@@ -168,7 +168,7 @@ void vigame::VoxelWorld::Update(float aDeltaTime)
 	loadedChunks.clear();
 }
 
-void vigame::VoxelWorld::Draw(ViVertexBatch* aBatch)
+void vigame::VoxelWorld::Draw(double aDeltaTime, ViVertexBatch* aBatch)
 {
 	for (int z = -mViewDistanceChunks.z; z <= mViewDistanceChunks.z; z++)
 	{
@@ -182,19 +182,6 @@ void vigame::VoxelWorld::Draw(ViVertexBatch* aBatch)
 				if (chunk != nullptr)
 				{
 					chunk->Draw(aBatch);
-
-					/*if (pos == WorldSpaceToChunkSpace(mLoadPosition))
-					{
-						VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_NONE, ViVertexBatchSettings::cDEPTH_LESS,
-							ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_NONPREMULTIPLIED, ViVertexBatchSettings::cDRAW_LINES));
-
-						ViTransform trans(vec3(chunk->GetWorldPosition()) + vec3(GetGridSize() / 2.f), vec3(0),
-							vec3(Chunk::GetSize()) * GetGridSize());
-						aBatch->Draw(trans, mCubeMesh);
-
-						VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_NONE, ViVertexBatchSettings::cDEPTH_LESS,
-							ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_NONPREMULTIPLIED, ViVertexBatchSettings::cDRAW_FILLED));
-					}*/
 				}
 			}
 		}
@@ -204,8 +191,7 @@ void vigame::VoxelWorld::Draw(ViVertexBatch* aBatch)
 	VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_NONE,
 		ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_ALPHABLEND, ViVertexBatchSettings::cDRAW_FILLED));
 	aBatch->DrawString(ViTransform::Positioned({ 0, 128 + 24, 0 }), mTestFontMat, 
-		"Load Pos: x " + std::to_string(mLoadPosition.x) + " y " + std::to_string(mLoadPosition.y) + " z " + std::to_string(mLoadPosition.z) +
-		", Chunk Pos: x " + std::to_string(chunkPos.x) + " y " + std::to_string(chunkPos.y) + " z " + std::to_string(chunkPos.z) + "\n");
+		"Current delta time: " + std::to_string(aDeltaTime) + "\n");
 	/*for (auto iter = mChunks.begin(); iter != mChunks.end(); iter++)
 	{
 		if (iter->second == nullptr)
@@ -272,7 +258,7 @@ vec3i vigame::VoxelWorld::WorldSpaceToChunkSpace(vec3 aPosition)
 
 vec3i vigame::VoxelWorld::WorldSpaceToCubeSpace(vec3 aPosition)
 {
-	return RoundToVec3i(aPosition / GetGridSize());
+	return aPosition / GetGridSize();
 }
 
 vec3i vigame::VoxelWorld::GetChunkRelativePosition(vec3i aChunkPosition)

@@ -25,6 +25,8 @@ public:
 
 	vi_property_get_named(SDL_Window*, mWindow, Window);
 
+	vi_property_named(bool, mFocused, Focused);
+
 private:
 	static ViEnvironment* mEnvironment;
 
