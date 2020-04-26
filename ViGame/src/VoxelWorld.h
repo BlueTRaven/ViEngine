@@ -99,21 +99,18 @@ namespace vigame
 
 		vec3i GetChunkRelativePosition(vec3i aChunkPosition);
 
-		vec3 mOldLoadPosition;
-
 		float mTimer;
 
 		bool mGenerateInfinite = true;
 
+		ViMesh* mSkyboxMesh;
+
 		//Infinite generation needs special rounding
 		inline vec3i RoundToVec3i(vec3 aPosition)
 		{
-			if (aPosition.x < 0)
-				aPosition.x = floorf(aPosition.x);
-			if (aPosition.y < 0)
-				aPosition.y = floorf(aPosition.y);
-			if (aPosition.z < 0)
-				aPosition.z = floorf(aPosition.z);
+			aPosition.x = floorf(aPosition.x);
+			aPosition.y = floorf(aPosition.y);
+			aPosition.z = floorf(aPosition.z);
 
 			return aPosition;
 		}

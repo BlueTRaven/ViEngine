@@ -2,6 +2,7 @@
 
 #include "ProgramCubesInstanced.h"
 #include "ProgramLitGeneric.h"
+#include "ProgramUnlitGeneric.h"
 
 ViProgram* vigame::ViGameAssetHolderProgramFactory::Create(std::string type)
 {
@@ -9,6 +10,8 @@ ViProgram* vigame::ViGameAssetHolderProgramFactory::Create(std::string type)
 		return new ProgramCubesInstanced();
 	else if (type == "lit_generic")
 		return new ProgramLitGeneric();
+	else if (type == "unlit_generic")
+		return new ProgramUnlitGeneric();
 
 	return ViAssetHolderProgramFactory::Create(type);
 }

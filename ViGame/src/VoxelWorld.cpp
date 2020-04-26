@@ -11,7 +11,7 @@ vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWo
 	mChunkManager(new ChunkManager()),
 	mDrawDebug(false),
 	mLoadPosition(vec3(0)),
-	mOldLoadPosition(vec3(0)),
+	mSkyboxMesh(nullptr),
 	mTimer(0),
 	mChunksAccessMutex(new std::mutex)
 {
@@ -31,7 +31,11 @@ vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWo
 	mCubeRegistry->AddCubeType(new Cube(this, GET_ASSET_MATERIAL("white_pixel"), ViColorGL(0.25, 1, 0.25, 1), false));
 	mCubeRegistry->AddCubeType(new Cube(this, GET_ASSET_MATERIAL("white_pixel"), vicolors::BLUE, true));
 
-	mCubeMesh = ViMesh::MakeUCube(ASSET_HANDLER->LoadMaterial("white_pixel_fullbright"), vec3(-0.5), vec3(0.5), ViMesh::cFACE_ALL, vicolors::WHITE);
+	mCubeMesh = ViMesh::MakeUCube(ASSET_HANDLER->LoadMaterial("white_pixel"), vec3(-0.5), vec3(0.5), ViMesh::cFACE_ALL, vicolors::WHITE);
+
+	//Note positions are inverted so it faces inward
+	float skyboxDistance = 512;
+	mSkyboxMesh = ViMesh::MakeUCube(ASSET_HANDLER->LoadMaterial("white_pixel_unlit"), vec3(skyboxDistance), vec3(-skyboxDistance), ViMesh::cFACE_ALL, vicolors::BLUE);
 
 	mTestFontMat = new ViMaterialFont(GET_ASSET_FONT("debug"), GET_ASSET_MATERIAL("font_debug"));
 }
@@ -66,7 +70,7 @@ void vigame::VoxelWorld::SetCube(vec3i aPosition, Cube* aCube)
 	if (chunk == nullptr)
 		return;
 
-	vec3i relPosition = RoundToVec3i(aPosition - chunk->GetWorldPosition() * Chunk::GetSize());
+	vec3i relPosition = RoundToVec3i(vec3(aPosition) - vec3(chunk->GetWorldPosition() * Chunk::GetSize()));
 	chunk->SetCubeRelative(MakeInstance(aCube->GetId()), relPosition);
 }
 
@@ -77,7 +81,7 @@ vigame::CubeInstance& vigame::VoxelWorld::GetCube(vec3i aPosition)
 	if (chunk == nullptr)
 		return voidCube;
 
-	vec3i relPosition = RoundToVec3i(aPosition - chunk->GetWorldPosition() * Chunk::GetSize());
+	vec3i relPosition = RoundToVec3i(vec3(aPosition) - vec3(chunk->GetWorldPosition() * Chunk::GetSize()));
 	return chunk->GetCubeRelative(relPosition);
 }
 
@@ -187,9 +191,12 @@ void vigame::VoxelWorld::Draw(double aDeltaTime, ViVertexBatch* aBatch)
 		}
 	}
 
+	aBatch->Draw(ViTransform::Positioned(mLoadPosition), mSkyboxMesh);
+
 	vec3i chunkPos = WorldSpaceToChunkSpace(mLoadPosition);
 	VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_NONE,
 		ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_ALPHABLEND, ViVertexBatchSettings::cDRAW_FILLED));
+
 	aBatch->DrawString(ViTransform::Positioned({ 0, 128 + 24, 0 }), mTestFontMat, 
 		"Current delta time: " + std::to_string(aDeltaTime) + "\n");
 	/*for (auto iter = mChunks.begin(); iter != mChunks.end(); iter++)
@@ -258,7 +265,7 @@ vec3i vigame::VoxelWorld::WorldSpaceToChunkSpace(vec3 aPosition)
 
 vec3i vigame::VoxelWorld::WorldSpaceToCubeSpace(vec3 aPosition)
 {
-	return aPosition / GetGridSize();
+	return RoundToVec3i(aPosition / GetGridSize());
 }
 
 vec3i vigame::VoxelWorld::GetChunkRelativePosition(vec3i aChunkPosition)

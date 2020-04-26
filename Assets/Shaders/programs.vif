@@ -16,3 +16,6 @@ customtype cube_instanced
 
 program lit_generic
 customtype lit_generic
+
+program unlit_generic
+customtype unlit_generic

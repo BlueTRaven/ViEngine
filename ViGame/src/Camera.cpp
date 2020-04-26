@@ -12,6 +12,7 @@ vigame::Camera::Camera(ViTransform aStartTransform) :
 	mTargetEase(0.1f)
 {
 	mProgramGeneric = static_cast<ViProgramGeneric*>(GET_ASSET_PROGRAM("generic"));
+	mProgramUnlitGeneric = static_cast<ProgramUnlitGeneric*>(GET_ASSET_PROGRAM("unlit_generic"));
 	mProgramLitGeneric = static_cast<ProgramLitGeneric*>(GET_ASSET_PROGRAM("lit_generic"));
 	mProgramGenericFullBright = static_cast<ViProgramGeneric*>(GET_ASSET_PROGRAM("generic_fullbright"));
 
@@ -77,11 +78,12 @@ void vigame::Camera::LateUpdate(float aDeltaTime)
 	diffuseLight.strength = 1;
 
 	auto radialFog = ProgramLitGeneric::RadialFog();
-	radialFog.color = vicolors::BLACK.ToVec4();
+	radialFog.color = vicolors::BLUE.ToVec4();
 	radialFog.start = 64;
 	radialFog.end = 128;
 
 	mProgramLitGeneric->SetDiffuseLight(diffuseLight);
 	mProgramLitGeneric->SetRadialFog(radialFog);
+	mProgramUnlitGeneric->SetCamera(mat);
 	mProgramGenericFullBright->SetCamera(mat);
 }

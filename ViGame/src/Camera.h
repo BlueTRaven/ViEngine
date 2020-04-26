@@ -4,6 +4,7 @@
 #include "ViUtil.h"
 
 #include "ProgramGeneric.h"
+#include "ProgramUnlitGeneric.h"
 #include "ProgramLitGeneric.h"
 
 class ViVertexBatch;
@@ -39,6 +40,7 @@ namespace vigame
 		ViTransform mTransform;
 
 		ViProgramGeneric* mProgramGeneric;
+		ProgramUnlitGeneric* mProgramUnlitGeneric;
 		ProgramLitGeneric* mProgramLitGeneric;
 		ViProgramGeneric* mProgramGenericFullBright;
 	};
