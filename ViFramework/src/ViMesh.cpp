@@ -87,8 +87,20 @@ void ViMesh::BindSubsection(ViVertexBatchInstance& aInstance, ViMeshSubsection a
 {
 	aMeshSubsection.material->GetProgram()->Bind(aInstance);
 
-	if (aMeshSubsection.material->GetTexture() != nullptr)
-		glBindTexture(GL_TEXTURE_2D, aMeshSubsection.material->GetTexture()->GetId());
+	ViTexture** textures = aMeshSubsection.material->GetTextures();
+	if (textures != nullptr)
+	{
+		for (int i = 0; i < ViMaterial::cMAX_TEXTURES; i++)
+		{
+			ViTexture* texture = textures[i];
+
+			glActiveTexture(GL_TEXTURE0 + i);
+
+			if (texture == nullptr)
+				glBindTexture(GL_TEXTURE_2D, 0);
+			else glBindTexture(GL_TEXTURE_2D, texture->GetId());
+		}
+	}
 }
 
 ViMeshSubsection ViMesh::GetSubsection(int aIndex)
