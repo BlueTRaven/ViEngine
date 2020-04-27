@@ -4,6 +4,7 @@
 
 #include "ViUtil.h"
 #include "ViMaterialFont.h"
+#include "ViEnvironment.h"
 
 #include "Cube.h"
 #include "CubeInstance.h"
@@ -11,7 +12,8 @@
 #include "Chunk.h"
 #include "ViGameUtil.h"
 #include "WorldGenerator.h"
-#include "ProgramCubesInstanced.h"
+#include "ProgramLitGeneric.h"
+#include "ProgramUnlitGeneric.h"
 #include "ChunkManager.h"
 
 class ViVertexBatch;
@@ -73,6 +75,9 @@ namespace vigame
 		template<typename TCallback>
 		bool VoxelRaycast(glm::vec3& aStart, glm::vec3& aEnd, vec3i& aOut, TCallback aCallback);
 
+		vec3 GetRadialFogColor();
+		vec3 GetSunPos();
+
 	private:
 		vec3i mSize;
 		float mGridSize;
@@ -93,17 +98,20 @@ namespace vigame
 		WorldGenerator* mGenerator;
 		ChunkManager* mChunkManager;
 
-		ProgramCubesInstanced* mProgramCubesInstanced;
-
-		ViMesh* mCubeMesh;
+		ProgramLitGeneric* mProgramLitGeneric;
+		ProgramUnlitGeneric* mProgramUnlitGeneric;
 
 		vec3i GetChunkRelativePosition(vec3i aChunkPosition);
 
-		float mTimer;
+		double mTimeOfDay;
+		const double mEndOfDay = 5;
 
 		bool mGenerateInfinite = true;
 
+		ViMesh* mCubeMesh;
 		ViMesh* mSkyboxMesh;
+		ViMesh* mSunMesh;
+		ViMesh* mMoonMesh;
 
 		//Infinite generation needs special rounding
 		inline vec3i RoundToVec3i(vec3 aPosition)

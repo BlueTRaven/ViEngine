@@ -36,6 +36,9 @@ namespace vigame
 		vi_property_named(vec3, mTargetRotation, TargetRotation);
 		vi_property_named(float, mTargetEase, TargetEase);
 
+		vi_property_named(ProgramLitGeneric::DiffuseLight, mDiffuseLight, DiffuseLight);
+		vi_property_named(ProgramLitGeneric::RadialFog, mRadialFog, RadialFog);
+
 	private:
 		ViTransform mTransform;
 

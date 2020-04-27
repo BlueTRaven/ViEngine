@@ -33,9 +33,15 @@ namespace vigame
 
 		void SetCamera(mat4 aCamera);
 
+		void SetTintColor(vec3 aTintColor);
+
+		void SetObjectMat(mat4 aMatrix) override;
+
 	private:
 		ViUniformMat4* mUniformProjection;
 		ViUniformMat4* mUniformCamera;
+		ViUniformMat4* mUniformObjectNormal;
+		ViUniformVec3* mUniformTintColor;
 
 		ViUniformVec3* mUniformLightPos;
 		ViUniformVec3* mUniformLightColor;

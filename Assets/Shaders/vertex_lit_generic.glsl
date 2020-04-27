@@ -3,6 +3,8 @@
 uniform mat4 projection;
 uniform mat4 camera;
 uniform mat4 object;
+uniform mat4 object_normal;
+uniform vec3 tint_color;
 
 in vec2 tex_coord;
 in vec4 color;
@@ -19,7 +21,7 @@ void main()
 	gl_Position = projection * camera * object * vec4(position, 1.0);
 
 	frag_tex_coord = tex_coord;
-	frag_color = color;
+	frag_color = color * vec4(tint_color, 1);
 	frag_pos = vec3(object * vec4(position, 1.0));
-	frag_normal = normalize(transpose(inverse(mat3(object))) * normal);
+	frag_normal = normalize(mat3(object_normal) * normal);
 }

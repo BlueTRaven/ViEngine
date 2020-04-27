@@ -103,6 +103,13 @@ void vigame::VoxelIslandGame::Update(double aDeltaTime)
 
 	ViGame::Update(aDeltaTime);
 
+	auto diffuse = mCamera->GetDiffuseLight();
+	diffuse.position = mCamera->GetTransform().GetPosition();
+	mCamera->SetDiffuseLight(diffuse);
+
+	auto radialFog = mCamera->GetRadialFog();
+	radialFog.color = world->GetRadialFogColor();
+	mCamera->SetRadialFog(radialFog);
 	mCamera->LateUpdate(aDeltaTime);
 	
 	if (SDL_GetWindowFlags(GetWindow()) & SDL_WINDOW_INPUT_FOCUS)

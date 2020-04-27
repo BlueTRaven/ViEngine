@@ -37,6 +37,12 @@ void ViVertexBatch::Draw(ViTransform aTransform, ViMesh* aMesh)
 
 void ViVertexBatch::Draw(ViTransform aTransform, ViMesh* aMesh, int aMeshSubsection, int64_t aInfo)
 {
+	if (aMesh->GetSubsection(aMeshSubsection).material == nullptr)
+	{
+		printf("Error: Mesh with invalid subsection material.\n");
+		return;
+	}
+
 	ViVertexBatchInstance instance = ViVertexBatchInstance();
 	instance.transform = aTransform;
 	instance.mesh = aMesh;

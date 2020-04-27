@@ -11,11 +11,15 @@ vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWo
 	mChunkManager(new ChunkManager()),
 	mDrawDebug(false),
 	mLoadPosition(vec3(0)),
+	mCubeMesh(nullptr),
 	mSkyboxMesh(nullptr),
-	mTimer(0),
+	mSunMesh(nullptr),
+	mMoonMesh(nullptr),
+	mTimeOfDay(0),
 	mChunksAccessMutex(new std::mutex)
 {
-	mProgramCubesInstanced = static_cast<ProgramCubesInstanced*>(GET_ASSET_PROGRAM("cube_instanced"));
+	mProgramLitGeneric = static_cast<ProgramLitGeneric*>(GET_ASSET_PROGRAM("lit_generic"));
+	mProgramUnlitGeneric = static_cast<ProgramUnlitGeneric*>(GET_ASSET_PROGRAM("unlit_generic"));
 
 	vec3i chunkSize = Chunk::GetSize();
 
@@ -35,7 +39,12 @@ vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWo
 
 	//Note positions are inverted so it faces inward
 	float skyboxDistance = 512;
-	mSkyboxMesh = ViMesh::MakeUCube(ASSET_HANDLER->LoadMaterial("white_pixel_unlit"), vec3(skyboxDistance), vec3(-skyboxDistance), ViMesh::cFACE_ALL, vicolors::BLUE);
+	mSkyboxMesh = ViMesh::MakeUCube(ASSET_HANDLER->LoadMaterial("white_pixel_unlit"), vec3(skyboxDistance), vec3(-skyboxDistance), ViMesh::cFACE_ALL, vicolors::WHITE);
+
+	float sunSize = 8;
+	float moonSize = 5;
+	mSunMesh = ViMesh::MakeUCube(ASSET_HANDLER->LoadMaterial("white_pixel_unlit"), vec3(-sunSize), vec3(sunSize), ViMesh::cFACE_ALL, vicolors::YELLOW);
+	mMoonMesh = ViMesh::MakeUCube(ASSET_HANDLER->LoadMaterial("white_pixel_unlit"), vec3(-moonSize), vec3(moonSize), ViMesh::cFACE_ALL, ViColorGL(0.88, 0.88, 0.95, 1.0));
 
 	mTestFontMat = new ViMaterialFont(GET_ASSET_FONT("debug"), GET_ASSET_MATERIAL("font_debug"));
 }
@@ -170,6 +179,10 @@ void vigame::VoxelWorld::Update(double aDeltaTime)
 	}
 
 	loadedChunks.clear();
+
+	//Update Sun
+	mTimeOfDay += aDeltaTime;
+	mTimeOfDay = glm::mod(mTimeOfDay, mEndOfDay);
 }
 
 void vigame::VoxelWorld::Draw(double aDeltaTime, ViVertexBatch* aBatch)
@@ -191,7 +204,14 @@ void vigame::VoxelWorld::Draw(double aDeltaTime, ViVertexBatch* aBatch)
 		}
 	}
 
+	mProgramUnlitGeneric->SetTintColor(GetRadialFogColor());
 	aBatch->Draw(ViTransform::Positioned(mLoadPosition), mSkyboxMesh);
+	aBatch->Flush();
+	mProgramUnlitGeneric->SetTintColor(vec3(1));
+	aBatch->Flush();
+
+	aBatch->Draw(ViTransform::Positioned(mLoadPosition + GetSunPos()), mSunMesh);
+	aBatch->Draw(ViTransform::Positioned(mLoadPosition - GetSunPos()), mMoonMesh);
 
 	vec3i chunkPos = WorldSpaceToChunkSpace(mLoadPosition);
 	VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_NONE,
@@ -199,26 +219,6 @@ void vigame::VoxelWorld::Draw(double aDeltaTime, ViVertexBatch* aBatch)
 
 	aBatch->DrawString(ViTransform::Positioned({ 0, 128 + 24, 0 }), mTestFontMat, 
 		"Current delta time: " + std::to_string(aDeltaTime) + "\n");
-	/*for (auto iter = mChunks.begin(); iter != mChunks.end(); iter++)
-	{
-		if (iter->second == nullptr)
-			continue;
-
-		iter->second->Draw(aBatch);
-
-		if (WorldSpaceToChunkSpace(mLoadPosition) == iter->second->GetWorldPosition())
-		{
-			VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_NONE, ViVertexBatchSettings::cDEPTH_LESS,
-				ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_NONPREMULTIPLIED, ViVertexBatchSettings::cDRAW_LINES));
-
-			ViTransform trans(vec3(iter->second->GetWorldPosition()) + vec3(GetGridSize() / 2.f), vec3(0),
-				vec3(Chunk::GetSize()) * GetGridSize());
-			aBatch->Draw(trans, mCubeMesh);
-
-			VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_NONE, ViVertexBatchSettings::cDEPTH_LESS,
-				ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_NONPREMULTIPLIED, ViVertexBatchSettings::cDRAW_FILLED));
-		}
-	}*/
 
 	if (mDrawDebug)
 	{
@@ -271,4 +271,48 @@ vec3i vigame::VoxelWorld::WorldSpaceToCubeSpace(vec3 aPosition)
 vec3i vigame::VoxelWorld::GetChunkRelativePosition(vec3i aChunkPosition)
 {
 	return aChunkPosition - WorldSpaceToChunkSpace(mLoadPosition);
+}
+
+vec3 vigame::VoxelWorld::GetSunPos()
+{
+	float timePercent = mTimeOfDay / mEndOfDay;
+
+	float x = glm::cos((glm::two_pi<double>()) * timePercent) * 320;
+	float y = glm::sin((glm::two_pi<double>()) * timePercent) * 320;
+	return vec3(x, y, 0);
+}
+
+vec3 vigame::VoxelWorld::GetRadialFogColor()
+{
+	float startOffset = mEndOfDay * 0.08;
+	float dawnStart = mEndOfDay - startOffset;
+	float dawnEnd = mEndOfDay * 0.16;
+
+	float duskStart = (mEndOfDay / 2) - (mEndOfDay * 0.08);
+	float duskEnd = (mEndOfDay / 2) + (mEndOfDay * 0.16);
+
+	vec3 dayColor = vicolors::BLUE.ToVec4();
+	vec3 nightColor = ViColorGL(0.0, 0.01, 0.06, 1.0).ToVec4();
+
+	vec3 col = dayColor;
+
+	if (mTimeOfDay > duskEnd && mTimeOfDay <= dawnStart)
+		col = nightColor;
+	else if (mTimeOfDay > duskStart && mTimeOfDay <= duskEnd)
+	{
+		float percent = (mTimeOfDay - duskStart) / (duskEnd - duskStart);
+		col = glm::mix(dayColor, nightColor, percent);
+	}
+	else if ((mTimeOfDay > dawnStart && mTimeOfDay <= mEndOfDay) || (mTimeOfDay >= 0 && mTimeOfDay <= dawnEnd))
+	{
+		float percent = 0;
+		if (mTimeOfDay > dawnStart)
+			percent = (mTimeOfDay - dawnStart) / ((mTimeOfDay + dawnEnd) - dawnStart);
+		else if (mTimeOfDay <= dawnEnd)
+			percent = (mTimeOfDay - (-startOffset)) / dawnEnd;
+
+		col = glm::mix(nightColor, dayColor, percent);
+	}
+
+	return col;
 }

@@ -1,5 +1,9 @@
 #pragma once
 
+//glm/gtx/hash.hpp has hash functions for its vector and matrix types, so it needs to be included.
+#define GLM_ENABLE_EXPERIMENTAL
+#include "glm/gtx/hash.hpp"
+
 #include "ViInputManager.h"
 #include "ViAssetHandler.h"
 #include "ViVertexBatch.h"

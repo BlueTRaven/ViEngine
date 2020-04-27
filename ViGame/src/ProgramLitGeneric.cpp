@@ -11,6 +11,8 @@ vigame::ProgramLitGeneric::ProgramLitGeneric() : ViProgram(ASSET_HANDLER->LoadSh
 }),
 mUniformProjection(new ViUniformMat4("projection", glm::perspective(glm::radians(80.0), double(ENVIRONMENT->GetScreenWidth()) / double(ENVIRONMENT->GetScreenHeight()), 0.01, 1000.0))),
 mUniformCamera(new ViUniformMat4("camera", glm::identity<glm::mat4>())),
+mUniformObjectNormal(new ViUniformMat4("object_normal", glm::identity<mat4>())),
+mUniformTintColor(new ViUniformVec3("tint_color", vec3(1))),
 mUniformLightPos(new ViUniformVec3("diffuse_light.position", vec3(0))),
 mUniformLightColor(new ViUniformVec3("diffuse_light.color", vec3(1, 1, 1))),
 mUniformLightStrength(new ViUniformFloat("diffuse_light.strength", 1)),
@@ -24,6 +26,8 @@ void vigame::ProgramLitGeneric::SetUniforms(ViVertexBatchInstance & aInstance)
 {
 	mUniformProjection->Upload(this);
 	mUniformCamera->Upload(this);
+	mUniformObjectNormal->Upload(this);
+	mUniformTintColor->Upload(this);
 
 	mUniformLightPos->Upload(this);
 	mUniformLightColor->Upload(this);
@@ -56,4 +60,18 @@ void vigame::ProgramLitGeneric::SetCamera(mat4 aCamera)
 {
 	SetDirty(true);
 	mUniformCamera->Set(this, aCamera);
+}
+
+void vigame::ProgramLitGeneric::SetTintColor(vec3 aTintColor)
+{
+	SetDirty(true);
+	mUniformTintColor->Set(this, aTintColor);
+}
+
+void vigame::ProgramLitGeneric::SetObjectMat(mat4 aMatrix)
+{
+	//transpose(inverse(mat3(object)))
+	mUniformObjectNormal->Set(this, glm::transpose(glm::inverse(aMatrix)));
+
+	ViProgram::SetObjectMat(aMatrix);
 }
