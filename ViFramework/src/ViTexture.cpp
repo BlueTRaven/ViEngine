@@ -54,6 +54,47 @@ ViTexture::ViTexture(uint8_t* aData, GLsizei aWidth, GLsizei aHeight, GLint aInt
 	mData = aData;
 }
 
+ViTexture::ViTexture(GLsizei aWidth, GLsizei aHeight, GLint aInternalFormat, GLenum aFormat, GLint aPack, GLint aUnpack, GLenum aMipMap) :
+	mWidth(aWidth),
+	mHeight(aHeight),
+	mInternalFormat(aInternalFormat),
+	mFormat(aFormat),
+	mPack(aPack),
+	mUnpack(aUnpack),
+	mMipMap(aMipMap),
+	mAlpha(false)
+{
+	if (aInternalFormat == GL_RGBA)
+		mAlpha = true;
+
+	glGenTextures(1, &mId);
+	glBindTexture(GL_TEXTURE_2D, mId);
+
+	if (aPack > 0)
+		glPixelStorei(GL_PACK_ALIGNMENT, aPack);
+	if (aUnpack > 0)
+		glPixelStorei(GL_UNPACK_ALIGNMENT, aUnpack);
+
+	uint8_t* data = (uint8_t*)malloc(aWidth * aHeight * GetStrideFromInternalFormat(aInternalFormat) * sizeof(uint8_t));
+	glTexImage2D(GL_TEXTURE_2D, 0, aInternalFormat, mWidth, mHeight, 0, aFormat, GL_UNSIGNED_BYTE, data);
+
+	if (aMipMap)
+	{
+		glHint(GL_GENERATE_MIPMAP_HINT, aMipMap);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	mData = data;
+}
+
+ViTexture::~ViTexture()
+{
+	//TODO test this - it might bug out since we're not using stbi_free?
+	free(mData);
+}
+
 vec4i ViTexture::GetPixel(vec2i aPosition)
 {
 	if (mAlpha)
@@ -75,4 +116,10 @@ vec4i ViTexture::GetPixel(vec2i aPosition)
 
 		return vec4i(r, g, b, 1.0);
 	}
+}
+
+uint8_t ViTexture::GetStrideFromInternalFormat(GLint aInternalFormat)
+{
+	//TODO revamp
+	return mAlpha ? 4 : 3;
 }

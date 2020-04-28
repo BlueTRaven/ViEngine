@@ -14,6 +14,10 @@ public:
 	static ViTexture* Load(std::string path, bool aAlpha, GLint aInternalFormat);
 
 	ViTexture(uint8_t* aData, GLsizei aWidth, GLsizei aHeight, GLint aInternalFormat = GL_RGBA, GLenum aFormat = GL_RGBA, GLint aPack = -1, GLint aUnpack = -1, GLenum aMipMap = GL_NONE);
+	//Data is not provided with this constructor. Instead it is initialized as all 0 based off of the format.
+	ViTexture(GLsizei aWidth, GLsizei aHeight, GLint aInternalFormat, GLenum aFormat, GLint aPack = -1, GLint aUnpack = -1, GLenum aMipMap = GL_NONE);
+
+	~ViTexture();
 
 	vec4i GetPixel(vec2i aPosition);
 
@@ -38,4 +42,6 @@ private:
 	GLenum mMipMap;
 
 	uint8_t* mData;	
+
+	uint8_t GetStrideFromInternalFormat(GLint aInternalFormat);
 };

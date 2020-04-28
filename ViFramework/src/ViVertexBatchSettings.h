@@ -3,6 +3,7 @@
 #include <GL/glew.h>
 
 #include "ViUtil.h"
+#include "ViFrameBuffer.h"
 
 struct VIENGINE_EXPORT ViVertexBatchSettings
 {
@@ -64,4 +65,6 @@ struct VIENGINE_EXPORT ViVertexBatchSettings
 	void SetSettings();
 
 	void SetTextureSettings();
+
+	void SetTarget(ViFrameBuffer* aFrameBuffer);
 };

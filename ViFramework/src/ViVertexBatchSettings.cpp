@@ -115,3 +115,10 @@ void ViVertexBatchSettings::SetTextureSettings()
 	}
 }
 
+void ViVertexBatchSettings::SetTarget(ViFrameBuffer * aFrameBuffer)
+{
+	if (aFrameBuffer == nullptr)
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	else glBindFramebuffer(GL_FRAMEBUFFER, aFrameBuffer->GetId());
+}
+
