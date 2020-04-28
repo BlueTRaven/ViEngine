@@ -8,13 +8,11 @@
 
 #include "ViTexture.h"
 #include "ViFont.h"
-#include "ViMaterial.h"
 #include "ViProgram.h"
 #include "ViShader.h"
 #include "ViVifParser.h"
 #include "ViAssetHolderTexture.h"
 #include "ViAssetHolderFont.h"
-#include "ViAssetHolderMaterial.h"
 #include "ViAssetHolderProgram.h"
 #include "ViAssetHolderShader.h"
 
@@ -23,7 +21,6 @@
 
 #define GET_ASSET_TEXTURE(name) ENVIRONMENT->GetAssetHandler()->LoadTexture(name)
 #define GET_ASSET_FONT(name) ENVIRONMENT->GetAssetHandler()->LoadFont(name)
-#define GET_ASSET_MATERIAL(name) ENVIRONMENT->GetAssetHandler()->LoadMaterial(name)
 #define GET_ASSET_PROGRAM(name) ENVIRONMENT->GetAssetHandler()->LoadProgram(name)
 #define GET_ASSET_SHADER(name) ENVIRONMENT->GetAssetHandler()->LoadShader(name)
 
@@ -34,7 +31,6 @@ public:
 
 	VIENGINE_EXPORT ViTexture* LoadTexture(std::string aName);
 	VIENGINE_EXPORT ViFont* LoadFont(std::string aName);
-	VIENGINE_EXPORT ViMaterial* LoadMaterial(std::string aName);
 	VIENGINE_EXPORT ViProgram* LoadProgram(std::string aName);
 	VIENGINE_EXPORT ViShader* LoadShader(std::string aName);
 
@@ -43,7 +39,6 @@ public:
 private:
 	ViAssetHolderTexture* mTextureHolder;
 	ViAssetHolderFont* mFontHolder;
-	ViAssetHolderMaterial* mMaterialHolder;
 	ViAssetHolderProgram* mProgramHolder;
 	ViAssetHolderShader* mShaderHolder;
 };

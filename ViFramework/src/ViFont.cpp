@@ -2,7 +2,6 @@
 
 #include "ViMesh.h"
 #include "ViGlyphInfo.h"
-#include "ViMaterial.h"
 
 ViFont* ViFont::Load(float size, std::string path)
 {

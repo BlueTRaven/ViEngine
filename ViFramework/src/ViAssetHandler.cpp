@@ -3,7 +3,6 @@
 ViAssetHandler::ViAssetHandler() :
 	mTextureHolder(new ViAssetHolderTexture()),
 	mFontHolder(new ViAssetHolderFont()),
-	mMaterialHolder(new ViAssetHolderMaterial()),
 	mProgramHolder(new ViAssetHolderProgram()),
 	mShaderHolder(new ViAssetHolderShader())
 {
@@ -17,11 +16,6 @@ ViTexture* ViAssetHandler::LoadTexture(std::string aName)
 ViFont * ViAssetHandler::LoadFont(std::string aName)
 {
 	return mFontHolder->GetAsset(aName);
-}
-
-ViMaterial* ViAssetHandler::LoadMaterial(std::string aName)
-{
-	return mMaterialHolder->GetAsset(aName);
 }
 
 ViProgram * ViAssetHandler::LoadProgram(std::string aName)
@@ -49,8 +43,6 @@ void ViAssetHandler::InitialParse(std::string assetsvifpath)
 			mTextureHolder->Find(location);
 		else if (type == "fonts")
 			mFontHolder->Find(location);
-		else if (type == "materials")
-			mMaterialHolder->Find(location);
 		else if (type == "programs")
 			mProgramHolder->Find(location);
 		else if (type == "shaders")

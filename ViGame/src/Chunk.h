@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <set>
 
-#include "ViMaterial.h"
+#include "ViProgram.h"
 #include "ViMesh.h"
 #include "ViUtil.h"
 

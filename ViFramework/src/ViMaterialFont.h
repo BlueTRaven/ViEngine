@@ -3,8 +3,8 @@
 #include <map>
 #include <unordered_map>
 
+#include "ViProgram.h"
 #include "ViFont.h"
-#include "ViMaterial.h"
 #include "ViUtil.h"
 
 class ViMesh;
