@@ -28,7 +28,7 @@ vigame::Chunk::Chunk(vec3i aWorldPosition, VoxelWorld* aWorld) :
 
 	std::function<ViMesh*(void)> meshingFunction = nullptr;
 
-	mTestMesh = ViMesh::MakeUCube(ASSET_HANDLER->LoadMaterial("white_pixel"), vec3(0), vec3(1), ViMesh::cFACE_ALL, vicolors::WHITE);
+	mTestMesh = ViMesh::MakeUCube(vec3(0), vec3(1), ViMesh::cFACE_ALL, vicolors::WHITE);
 	mTestMesh->UploadData();
 
 	switch (mMeshingMethod)
@@ -146,7 +146,7 @@ void vigame::Chunk::Draw(ViVertexBatch* aBatch)
 			//TODO remove subsection references
 			if (mOptimizedMesh)
 				aBatch->Draw(ViTransform::Positioned(vec3(mWorldPosition) * mWorld->GetGridSize() * vec3(GetSize())), mOptimizedMesh, 
-					mOptimizedMesh->GetSubsection(0).material->GetProgram(), mOptimizedMesh->GetSubsection(0).material->GetTextures()[0], 0);
+					GET_ASSET_PROGRAM("lit_generic"), GET_ASSET_TEXTURE("white_pixel"), 0);
 		}
 	}
 	else if (mHasAnything && mOldOptimizedMesh)
@@ -154,7 +154,7 @@ void vigame::Chunk::Draw(ViVertexBatch* aBatch)
 		//If we cannot lock the mutex, try to draw the old optimized mesh, if it exists yet.
 		//(If the mutex is locked, that means we're still meshing.)
 		aBatch->Draw(ViTransform::Positioned(vec3(mWorldPosition) * mWorld->GetGridSize() * vec3(GetSize())), mOldOptimizedMesh,
-			mOldOptimizedMesh->GetSubsection(0).material->GetProgram(), mOldOptimizedMesh->GetSubsection(0).material->GetTextures()[0], 0);
+			GET_ASSET_PROGRAM("lit_generic"), GET_ASSET_TEXTURE("white_pixel"), 0);
 	}
 }
 
@@ -237,14 +237,13 @@ ViMesh* vigame::Chunk::NaiveMesh()
 	auto endTime = std::chrono::steady_clock::now();
 	printf("Debug: Took %f seconds to mesh a chunk on thread %i.\n", ((float)std::chrono::duration_cast<std::chrono::milliseconds>(endTime - time).count() / 1000), std::this_thread::get_id());
 
-	return new ViMesh(ASSET_HANDLER->LoadMaterial("white_pixel"), vertices, indices);
+	return new ViMesh(vertices, indices);
 }
 
 ViMesh* vigame::Chunk::GreedyMesh()
 {
 	auto time = std::chrono::steady_clock::now();
 
-	std::vector<ViMeshSubsection> subsections;
 	std::vector<ViVertex> vertices;
 	std::vector<GLuint> indices;
 
@@ -430,7 +429,7 @@ ViMesh* vigame::Chunk::GreedyMesh()
 	auto endTime = std::chrono::steady_clock::now();
 	printf("Debug: Took %f seconds to generate a chunk on thread %i.\n", ((float)std::chrono::duration_cast<std::chrono::milliseconds>(endTime - time).count() / 1000), std::this_thread::get_id());
 
-	return new ViMesh(ASSET_HANDLER->LoadMaterial("white_pixel"), vertices, indices);
+	return new ViMesh(vertices, indices);
 }
 
 vigame::CubeInstance vigame::Chunk::GetCubeRelative(vec3i aPosition)

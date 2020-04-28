@@ -23,14 +23,14 @@ struct VIENGINE_EXPORT ViMaterialFontCharacterMesh
 class VIENGINE_EXPORT ViMaterialFont
 {
 public:
-	ViMaterialFont(ViFont* aFont, ViMaterial* aMaterial);
+	ViMaterialFont(ViFont* aFont, ViProgram* aProgram);
 
-	void MakeMesh(char c);
+	void MakeCharMesh(char c);
 
-	inline ViMaterialFontCharacterMesh GetCharInfo(char c)
+	inline ViMaterialFontCharacterMesh GetCharMeshInfo(char c)
 	{
 		if (mCharMeshes.find(c) == mCharMeshes.end())
-			MakeMesh(c);
+			MakeCharMesh(c);
 
 		return mCharMeshes[c];
 	}
@@ -38,11 +38,11 @@ public:
 	vec2 MeasureString(string s);
 
 	vi_property_get_named(ViFont*, mFont, Font);
-	vi_property_get_named(ViMaterial*, mMaterial, Material);
+	vi_property_get_named(ViProgram*, mProgram, Program);
 
 private:
 	ViFont* mFont;
-	ViMaterial* mMaterial;
+	ViProgram* mProgram;
 
 	std::map<char, ViMaterialFontCharacterMesh> mCharMeshes;
 };

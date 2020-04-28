@@ -23,7 +23,7 @@ void vigame::VoxelIslandGame::Init()
 
 	SDL_WarpMouseInWindow(GetWindow(), width / 2, height / 2);
 
-	mDebugFont = new ViMaterialFont(GET_ASSET_FONT("debug"), GET_ASSET_MATERIAL("font_debug"));
+	mDebugFont = new ViMaterialFont(GET_ASSET_FONT("debug"), GET_ASSET_PROGRAM("text"));
 
 	mProgramText = static_cast<ViProgramText*>(GET_ASSET_PROGRAM("text"));
 

@@ -2,23 +2,7 @@
 
 #include "ViVertexBatchInstance.h"
 
-ViMesh::ViMesh(ViMaterial* aMaterial, std::vector<ViVertex> aVertices, std::vector<GLuint> aIndices) :
-	mVertices(aVertices),
-	mIndices(aIndices),
-	mVerticesSize(aVertices.size() * sizeof(ViVertex)),
-	mIndicesSize(aIndices.size() * sizeof(GLuint)),
-	mCanGenerateGLObjects(false),
-	mHasGLObjects(false),
-	mVAO(0),
-	mVBO(0),
-	mIBO(0),
-	mVolatile(false)
-{
-	mSubsections = std::vector<ViMeshSubsection>{ ViMeshSubsection(aMaterial, 0, mIndices.size()) };
-}
-
-ViMesh::ViMesh(std::vector<ViMeshSubsection> aSubsections, std::vector<ViVertex> aVertices, std::vector<GLuint> aIndices) : 
-	mSubsections(aSubsections),
+ViMesh::ViMesh(std::vector<ViVertex> aVertices, std::vector<GLuint> aIndices) :
 	mVertices(aVertices),
 	mIndices(aIndices),
 	mVerticesSize(aVertices.size() * sizeof(ViVertex)),
@@ -80,38 +64,6 @@ void ViMesh::Bind()
 	glBindVertexArray(mVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIBO);
-
-}
-
-void ViMesh::BindSubsection(ViVertexBatchInstance& aInstance, ViMeshSubsection aMeshSubsection)
-{
-	aMeshSubsection.material->GetProgram()->Bind(aInstance);
-
-	ViTexture** textures = aMeshSubsection.material->GetTextures();
-	if (textures != nullptr)
-	{
-		for (int i = 0; i < ViMaterial::cMAX_TEXTURES; i++)
-		{
-			ViTexture* texture = textures[i];
-
-			glActiveTexture(GL_TEXTURE0 + i);
-
-			if (texture == nullptr)
-				glBindTexture(GL_TEXTURE_2D, 0);
-			else glBindTexture(GL_TEXTURE_2D, texture->GetId());
-		}
-	}
-}
-
-ViMeshSubsection ViMesh::GetSubsection(int aIndex)
-{
-	if (aIndex < 0 || aIndex >= mSubsections.size())
-	{
-		printf("Error: Could not get subsection %i as it was out of bounds. Size is %i.\n", aIndex, (int)mSubsections.size());
-		return ViMeshSubsection();
-	}
-
-	return mSubsections[aIndex];
 }
 
 void ViMesh::Unbind()
@@ -136,7 +88,7 @@ void ViMesh::UploadData()
 	Unbind();
 }
 
-ViMesh* ViMesh::MakeQuad(ViMaterial* aMaterial, vec3 pointA, vec3 pointB, vec3 pointC, vec3 pointD, vec3 nrm)
+ViMesh* ViMesh::MakeQuad(vec3 pointA, vec3 pointB, vec3 pointC, vec3 pointD, vec3 nrm)
 {
 	std::vector<ViVertex> vertices
 	{
@@ -151,7 +103,7 @@ ViMesh* ViMesh::MakeQuad(ViMaterial* aMaterial, vec3 pointA, vec3 pointB, vec3 p
 		0, 1, 3, 1, 2, 3
 	};
 
-	return new ViMesh(aMaterial, vertices, indices);
+	return new ViMesh(vertices, indices);
 }
 
 void ViMesh::MakeQuadRaw(vec3 pointA, vec3 pointB, vec3 pointC, vec3 pointD, vec3 nrm, std::vector<ViVertex> &aVertices, std::vector<GLuint> &aIndices, ViColorGL aColor, bool aOverwrite)
@@ -176,7 +128,7 @@ void ViMesh::MakeQuadRaw(vec3 pointA, vec3 pointB, vec3 pointC, vec3 pointD, vec
 	aVertices.push_back(ViVertex(nrm, pointD, aColor, glm::vec2(0.0, 1.0)));
 }
 
-ViMesh* ViMesh::MakeUCube(ViMaterial* aMaterial, vec3 min, vec3 max, int aFaces, ViColorGL aColor)
+ViMesh* ViMesh::MakeUCube(vec3 min, vec3 max, uint8_t aFaces, ViColorGL aColor)
 {
 	if (aFaces == cFACE_NONE)
 		return ViMesh::GetEmpty();
@@ -194,49 +146,40 @@ ViMesh* ViMesh::MakeUCube(ViMaterial* aMaterial, vec3 min, vec3 max, int aFaces,
 
 	std::vector<ViVertex> vertices;
 	std::vector<GLuint> indices;
-	std::vector<ViMeshSubsection> subsections;
 
 	int numIndices = 0;
 	if (aFaces & cFACE_FRONT)
 	{
 		ViMesh::MakeQuadRaw(l_t_n, r_t_n, r_b_n, l_b_n, { 0.0, 0.0, -1.0 }, vertices, indices, aColor); //front face
-		subsections.push_back(ViMeshSubsection(aMaterial, numIndices, 6));
 		numIndices += 6;
 	}
 	if (aFaces & cFACE_RIGHT)
 	{
 		ViMesh::MakeQuadRaw(r_t_n, r_t_f, r_b_f, r_b_n, { 1.0, 0.0, 0.0 }, vertices, indices, aColor);	//right face
-		subsections.push_back(ViMeshSubsection(aMaterial, numIndices, 6));
 		numIndices += 6;
 	}
 	if (aFaces & cFACE_BACK)
 	{
 		ViMesh::MakeQuadRaw(r_t_f, l_t_f, l_b_f, r_b_f, { 0.0, 0.0, 1.0 }, vertices, indices, aColor);	//back face
-		subsections.push_back(ViMeshSubsection(aMaterial, numIndices, 6));
 		numIndices += 6;
 	}
 	if (aFaces & cFACE_LEFT)
 	{
 		ViMesh::MakeQuadRaw(l_t_f, l_t_n, l_b_n, l_b_f, { -1.0, 0.0, 0.0 }, vertices, indices, aColor);	//left face
-		subsections.push_back(ViMeshSubsection(aMaterial, numIndices, 6));
 		numIndices += 6;
 	}
 	if (aFaces & cFACE_TOP)
 	{
 		ViMesh::MakeQuadRaw(l_t_f, r_t_f, r_t_n, l_t_n, { 0.0, -1.0, 0.0 }, vertices, indices, aColor);	//top face
-		subsections.push_back(ViMeshSubsection(aMaterial, numIndices, 6));
 		numIndices += 6;
 	}
 	if (aFaces & cFACE_BOTTOM)
 	{
 		ViMesh::MakeQuadRaw(r_b_f, l_b_f, l_b_n, r_b_n, { 0.0, 1.0, 0.0 }, vertices, indices, aColor);	//bottom face
-		subsections.push_back(ViMeshSubsection(aMaterial, numIndices, 6));
 		numIndices += 6;
 	}
 
-	subsections.push_back(ViMeshSubsection(aMaterial, 0, numIndices));
-
-	ViMesh* mesh = new ViMesh(subsections, vertices, indices);
+	ViMesh* mesh = new ViMesh(vertices, indices);
 
 	return mesh;
 }
@@ -296,7 +239,7 @@ void ViMesh::MakeUCubeRaw(vec3 min, vec3 max, uint8_t aFaces, std::vector<ViVert
 	}
 }
 
-void ViMesh::MergeInto(std::vector<ViVertex>& aIntoVertices, std::vector<GLuint>& aIntoIndices, ViMesh* aMesh, std::vector<ViMeshSubsection> aSubsectionsToMerge)
+void ViMesh::MergeInto(std::vector<ViVertex>& aIntoVertices, std::vector<GLuint>& aIntoIndices, ViMesh* aMesh)
 {
 }
 
@@ -305,7 +248,7 @@ ViMesh* ViMesh::Empty = nullptr;
 ViMesh* ViMesh::GetEmpty()
 {
 	if (Empty == nullptr)
-		Empty = new ViMesh(nullptr, {}, {});
+		Empty = new ViMesh({}, {});
 
 	return Empty;
 }

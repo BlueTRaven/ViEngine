@@ -3,11 +3,8 @@
 #include <GL/glew.h>
 #include <vector>
 
-#include "ViMaterial.h"
 #include "ViVertex.h"
 #include "ViUtil.h"
-
-#include "ViMeshSubsection.h"
 
 struct ViVertexBatchInstance;
 
@@ -27,17 +24,11 @@ public:
 		cFACE_ALL		= cFACE_TOP | cFACE_BOTTOM | cFACE_LEFT | cFACE_RIGHT | cFACE_FRONT | cFACE_BACK
 	};
 
-	ViMesh(ViMaterial* aMaterial, std::vector<ViVertex> aVertices, std::vector<GLuint> aIndices);
-	ViMesh(std::vector<ViMeshSubsection> aSubsections, std::vector<ViVertex> aVertices, std::vector<GLuint> aIndices);
+	ViMesh(std::vector<ViVertex> aVertices, std::vector<GLuint> aIndices);
 
 	~ViMesh();
 
 	void Merge(ViMesh* aMesh...);
-	
-	const inline std::vector<ViMeshSubsection>& GetSubsections() const
-	{
-		return mSubsections;
-	}
 
 	//vi_property_named(std::vector<ViMeshSubsection>, mSubsections, Subsections);
 	vi_property_named(std::vector<ViVertex>, mVertices, Vertices);
@@ -55,29 +46,24 @@ public:
 	bool HasGeneratedGLObjects();
 
 	void Bind();
-	void BindSubsection(ViVertexBatchInstance& aInstance, ViMeshSubsection aMeshSubsection);
-
-	ViMeshSubsection GetSubsection(int aIndex);
 
 	void Unbind();
 
 	void UploadData();
 
 	//Makes a quad ViMesh.
-	static ViMesh* MakeQuad(ViMaterial* aMaterial, vec3 pointA, vec3 pointB, vec3 pointC, vec3 pointD, vec3 nrm);
+	static ViMesh* MakeQuad(vec3 pointA, vec3 pointB, vec3 pointC, vec3 pointD, vec3 nrm);
 	//Makes a quad. If aOverwrite is false, adds to aVertices and aIndices; otherwise, overwrites them completely.
 	static void MakeQuadRaw(vec3 pointA, vec3 pointB, vec3 pointC, vec3 pointD, vec3 nrm, std::vector<ViVertex> &aVertices, std::vector<GLuint> &aIndices, ViColorGL aColor, bool aOverwrite = false);
 	//Makes an unrotated cube. This assumes it is axis aligned in world space, and thus takes only two points, a minimum and maximum. min = x left, y top, z near. max = x right, y bottom, z far
-	static ViMesh* MakeUCube(ViMaterial* aMaterial, vec3 min, vec3 max, int aFaces, ViColorGL aColor);
+	static ViMesh* MakeUCube(vec3 min, vec3 max, uint8_t aFaces, ViColorGL aColor);
 	static void MakeUCubeRaw(vec3 min, vec3 max, uint8_t aFaces, std::vector<ViVertex> &aVertices, std::vector<GLuint> &aIndices, ViColorGL aColor, bool aOverwrite = false);
 
-	static void MergeInto(std::vector<ViVertex>& aIntoVertices, std::vector<GLuint>& aIntoIndices, ViMesh* aMesh, std::vector<ViMeshSubsection> aSubsectionsToMerge);
+	static void MergeInto(std::vector<ViVertex>& aIntoVertices, std::vector<GLuint>& aIntoIndices, ViMesh* aMesh);
 
 	static ViMesh* GetEmpty();
 
 private:
-	std::vector<ViMeshSubsection> mSubsections;
-
 	GLsizeiptr mVerticesSize;
 	GLsizeiptr mIndicesSize;
 

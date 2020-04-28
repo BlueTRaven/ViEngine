@@ -30,23 +30,23 @@ vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWo
 	mChunkSize = aSize / chunkSize;
 
 	//Cube with no mesh
-	mCubeRegistry->AddCubeType(new Cube(this, nullptr, vicolors::WHITE, false));
-	mCubeRegistry->AddCubeType(new Cube(this, GET_ASSET_MATERIAL("white_pixel"), vicolors::WHITE, false));
-	mCubeRegistry->AddCubeType(new Cube(this, GET_ASSET_MATERIAL("white_pixel"), ViColorGL(0.25, 1, 0.25, 1), false));
-	mCubeRegistry->AddCubeType(new Cube(this, GET_ASSET_MATERIAL("white_pixel"), vicolors::BLUE, true));
+	mCubeRegistry->AddCubeType(new Cube(this, vicolors::WHITE, false));
+	mCubeRegistry->AddCubeType(new Cube(this, vicolors::WHITE, false));
+	mCubeRegistry->AddCubeType(new Cube(this, ViColorGL(0.25, 1, 0.25, 1), false));
+	mCubeRegistry->AddCubeType(new Cube(this, vicolors::BLUE, true));
 
-	mCubeMesh = ViMesh::MakeUCube(ASSET_HANDLER->LoadMaterial("white_pixel"), vec3(-0.5), vec3(0.5), ViMesh::cFACE_ALL, vicolors::WHITE);
+	mCubeMesh = ViMesh::MakeUCube(vec3(-0.5), vec3(0.5), ViMesh::cFACE_ALL, vicolors::WHITE);
 
 	//Note positions are inverted so it faces inward
 	float skyboxDistance = 512;
-	mSkyboxMesh = ViMesh::MakeUCube(ASSET_HANDLER->LoadMaterial("white_pixel_unlit"), vec3(skyboxDistance), vec3(-skyboxDistance), ViMesh::cFACE_ALL, vicolors::WHITE);
+	mSkyboxMesh = ViMesh::MakeUCube(vec3(skyboxDistance), vec3(-skyboxDistance), ViMesh::cFACE_ALL, vicolors::WHITE);
 
 	float sunSize = 8;
 	float moonSize = 5;
-	mSunMesh = ViMesh::MakeUCube(ASSET_HANDLER->LoadMaterial("white_pixel_unlit"), vec3(-sunSize), vec3(sunSize), ViMesh::cFACE_ALL, vicolors::YELLOW);
-	mMoonMesh = ViMesh::MakeUCube(ASSET_HANDLER->LoadMaterial("white_pixel_unlit"), vec3(-moonSize), vec3(moonSize), ViMesh::cFACE_ALL, ViColorGL(0.88, 0.88, 0.95, 1.0));
+	mSunMesh = ViMesh::MakeUCube(vec3(-sunSize), vec3(sunSize), ViMesh::cFACE_ALL, vicolors::YELLOW);
+	mMoonMesh = ViMesh::MakeUCube(vec3(-moonSize), vec3(moonSize), ViMesh::cFACE_ALL, ViColorGL(0.88, 0.88, 0.95, 1.0));
 
-	mTestFontMat = new ViMaterialFont(GET_ASSET_FONT("debug"), GET_ASSET_MATERIAL("font_debug"));
+	mTestFontMat = new ViMaterialFont(GET_ASSET_FONT("debug"), GET_ASSET_PROGRAM("text"));
 }
 
 void vigame::VoxelWorld::Init()

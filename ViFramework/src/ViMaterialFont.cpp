@@ -4,13 +4,13 @@
 #include "ViVertex.h"
 #include "ViGlyphInfo.h"
 
-ViMaterialFont::ViMaterialFont(ViFont * aFont, ViMaterial * aMaterial) :
+ViMaterialFont::ViMaterialFont(ViFont* aFont, ViProgram* aProgram) :
 	mFont(aFont),
-	mMaterial(aMaterial)
+	mProgram(aProgram)
 {
 }
 
-void ViMaterialFont::MakeMesh(char c)
+void ViMaterialFont::MakeCharMesh(char c)
 {
 	if (mCharMeshes.find(c) != mCharMeshes.end())
 		delete mCharMeshes[c].mesh;	//recreate the mesh
@@ -34,7 +34,7 @@ void ViMaterialFont::MakeMesh(char c)
 	indices.push_back(2);
 	indices.push_back(3);
 
-	ViMesh* mesh = new ViMesh(mMaterial, vertices, indices);
+	ViMesh* mesh = new ViMesh(vertices, indices);
 	mesh->UploadData();
 
 	ViMaterialFontCharacterMesh charMesh;
@@ -54,7 +54,7 @@ vec2 ViMaterialFont::MeasureString(string s)
 	float y = 0;
 	for (int i = 0; i < s.size(); i++)
 	{
-		auto charInfo = GetCharInfo(s[i]);
+		auto charInfo = GetCharMeshInfo(s[i]);
 		x += charInfo.width;
 
 		if (charInfo.height > y)

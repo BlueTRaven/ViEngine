@@ -3,7 +3,6 @@
 #include <GL/glew.h>
 
 #include "ViVertexBatchInstance.h"
-#include "ViMaterial.h"
 #include "ViFont.h"
 #include "ViProgram.h"
 #include "ViVertexBatchSettings.h"

@@ -61,11 +61,11 @@ void ViVertexBatch::DrawString(ViTransform aTransform, ViMaterialFont* aFont, st
 
 	for (char c : aText)
 	{
-		auto charInfo = aFont->GetCharInfo(c);
+		auto charInfo = aFont->GetCharMeshInfo(c);
 		ViMesh* cMesh = charInfo.mesh;
 
 		//TODO remove all material stuff
-		Draw(aTransform, cMesh, aFont->GetMaterial()->GetProgram(), aFont->GetMaterial()->GetTextures()[0], 0);
+		Draw(aTransform, cMesh, aFont->GetProgram(), aFont->GetFont()->GetTexture(), 0);
 		aTransform.Translate(vec3(charInfo.offX, charInfo.offY, 0));
 	}
 }
@@ -145,7 +145,6 @@ void ViVertexBatch::Flush()
 
 			if (meshChanged || textureChanged || programChanged)
 			{
-				//TODO rework binding
 				instance.program->Bind(instance);
 				instance.texture->Bind();
 				mSettings.SetTextureSettings();

@@ -4,7 +4,7 @@
 #include "VoxelWorld.h"
 #include "CubeInstance.h"
 
-vigame::Cube::Cube(VoxelWorld* world, ViMaterial* aMaterial, ViColorGL aColor, bool aTransparent) :
+vigame::Cube::Cube(VoxelWorld* world, ViColorGL aColor, bool aTransparent) :
 	mWorld(world),
 	idSet(false),
 	mTransparent(aTransparent),
@@ -75,21 +75,6 @@ ViTransform vigame::Cube::GetWorldSpaceTransform(const CubeInstance& aCubeInstan
 vigame::VoxelWorld* vigame::Cube::GetWorld()
 {
 	return mWorld;
-}
-
-void vigame::Cube::CreateMesh(ViMaterial* aMaterial)
-{
-	if (aMaterial == nullptr)
-		return;
-
-	float scale = GetWorld()->GetGridSize() / 2;	//since we start in the middle...
-	vec3 min = { -scale, scale, scale };
-	vec3 max = { scale, -scale, -scale };
-
-	mMesh = ViMesh::MakeUCube(aMaterial, min, max, ViMesh::cFACE_ALL, vicolors::GREEN);
-	
-	if (mMesh != ViMesh::GetEmpty())
-		mMesh->UploadData();
 }
 
 bool vigame::Cube::GetAdjacentCubeShouldHideFace(vec3i aPosition)

@@ -12,10 +12,10 @@ vigame::Player::Player(ViTransform aStartTransform, VoxelWorld* aWorld, Camera* 
 	mVelocity(vec3(0)),
 	mAcceleration(5)
 {
-	mCubeMesh = ViMesh::MakeUCube(ASSET_HANDLER->LoadMaterial("white_pixel_unlit"), vec3(-0.5), vec3(0.5), ViMesh::cFACE_ALL, vicolors::WHITE);
+	mCubeMesh = ViMesh::MakeUCube(vec3(-0.5), vec3(0.5), ViMesh::cFACE_ALL, vicolors::WHITE);
 	mCubeMesh->UploadData();
 
-	mMaterialFont = new ViMaterialFont(GET_ASSET_FONT("debug"), GET_ASSET_MATERIAL("font_debug"));
+	mMaterialFont = new ViMaterialFont(GET_ASSET_FONT("debug"), GET_ASSET_PROGRAM("text"));
 
 	mMaxVelocity = vec3(4, 30, 4);
 

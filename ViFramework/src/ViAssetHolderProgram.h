@@ -15,7 +15,6 @@ class ViAssetHolderProgram : public ViAssetHolder<ViProgram*>
 public:
 	ViAssetHolderProgram();
 
-	//TODO this needs a way of adding new program customtypes without hardcoding them. 
 	virtual ViProgram* LoadAsset(ViAssetDefinition aDefinition) override;
 
 	static VIENGINE_EXPORT void SetFactory(ViAssetHolderProgramFactory* aProgramFactory);
