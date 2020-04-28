@@ -22,33 +22,30 @@ void ViVertexBatch::Init(ViVertexBatchSettings aSettings)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 }
 
-void ViVertexBatch::Draw(ViTransform aTransform, ViMesh* aMesh)
+void ViVertexBatch::Draw(ViTransform aTransform, ViMesh* aMesh, ViProgram* aProgram, ViTexture* aTexture, int aTextureBinding, int64_t aInfo)
 {
-	if (aMesh == ViMesh::GetEmpty())
-		return;	//don't draw, since Empty has nothing to draw...
-
-	std::vector<ViMeshSubsection> subsections = aMesh->GetSubsections();
-
-	for (int i = 0; i < subsections.size(); i++)
+	if (aMesh == nullptr)
 	{
-		Draw(aTransform, aMesh, i);
-	}
-}
-
-void ViVertexBatch::Draw(ViTransform aTransform, ViMesh* aMesh, int aMeshSubsection, int64_t aInfo)
-{
-	if (aMesh->GetSubsection(aMeshSubsection).material == nullptr)
-	{
-		printf("Error: Mesh with invalid subsection material.\n");
+		printf("Error: Null mesh passed into Draw.");
 		return;
+	}
+
+	if (aProgram == nullptr)
+	{
+		printf("Error: Null program passed into Draw.");
+		return;
+	}
+
+	if (aTexture == nullptr)
+	{
+		printf("Error: Null texture passed into Draw.");
 	}
 
 	ViVertexBatchInstance instance = ViVertexBatchInstance();
 	instance.transform = aTransform;
 	instance.mesh = aMesh;
-	instance.meshSubsection = aMeshSubsection;
-	instance.instanced = false;
-	instance.instancedCount = 0;
+	instance.program = aProgram;
+	instance.texture = new ViTextureDrawInstance(aTexture, aTextureBinding);
 	instance.info = aInfo;
 
 	mInstances.push_back(instance);
@@ -67,7 +64,8 @@ void ViVertexBatch::DrawString(ViTransform aTransform, ViMaterialFont* aFont, st
 		auto charInfo = aFont->GetCharInfo(c);
 		ViMesh* cMesh = charInfo.mesh;
 
-		Draw(aTransform, cMesh);
+		//TODO remove all material stuff
+		Draw(aTransform, cMesh, aFont->GetMaterial()->GetProgram(), aFont->GetMaterial()->GetTextures()[0], 0);
 		aTransform.Translate(vec3(charInfo.offX, charInfo.offY, 0));
 	}
 }
@@ -91,11 +89,10 @@ void ViVertexBatch::Flush()
 		if (instance.mesh == ViMesh::GetEmpty())
 			continue;	//don't draw if we're the empty instance mesh
 
-		ViMeshSubsection subsection = instance.mesh->GetSubsection(instance.meshSubsection);
-
 		bool meshChanged = first || (lastInstance.mesh != instance.mesh);
 		bool transformChanged = first || (lastInstance.transform != instance.transform);
-		bool materialChanged = first || (lastInstance.mesh->GetSubsection(lastInstance.meshSubsection).material != subsection.material);
+		bool programChanged = first || (lastInstance.program != instance.program);
+		bool textureChanged = first || (lastInstance.texture != instance.texture);
 
 		if (!instance.mesh->HasGeneratedGLObjects())
 		{
@@ -122,20 +119,19 @@ void ViVertexBatch::Flush()
 					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			}
 
-			if (meshChanged || materialChanged)
+			if (meshChanged || textureChanged || programChanged)
 			{
-				instance.mesh->BindSubsection(instance, subsection);
+				instance.program->Bind(instance);
+				instance.texture->Bind();
 				mSettings.SetTextureSettings();
 			}
 
 			if (transformChanged)
-				subsection.material->GetProgram()->SetObjectMat(instance.transform.Matrix());
+				instance.program->SetObjectMat(instance.transform.Matrix());
 
-			subsection.material->GetProgram()->SetUniforms(instance);
+			instance.program->SetUniforms(instance);
 
-			if (instance.instanced)
-				glDrawElementsInstanced(GL_TRIANGLES, subsection.size, GL_UNSIGNED_INT, (void*)(subsection.start * sizeof(GLuint)), instance.instancedCount);
-			else glDrawElements(GL_TRIANGLES, subsection.size, GL_UNSIGNED_INT, (void*)(subsection.start * sizeof(GLuint)));
+			glDrawElements(GL_TRIANGLES, instance.mesh->GetIndicesSize(), GL_UNSIGNED_INT, nullptr);
 		}
 		else
 		{
@@ -147,20 +143,20 @@ void ViVertexBatch::Flush()
 				instance.mesh->Bind();
 			}
 
-			if (meshChanged || materialChanged)
+			if (meshChanged || textureChanged || programChanged)
 			{
-				instance.mesh->BindSubsection(instance, subsection);
+				//TODO rework binding
+				instance.program->Bind(instance);
+				instance.texture->Bind();
 				mSettings.SetTextureSettings();
 			}
 
 			if (transformChanged)
-				subsection.material->GetProgram()->SetObjectMat(instance.transform.Matrix());
+				instance.program->SetObjectMat(instance.transform.Matrix());
 
-			subsection.material->GetProgram()->SetUniforms(instance);
-
-			if (instance.instanced)
-				glDrawElementsInstanced(GL_TRIANGLES, subsection.size, GL_UNSIGNED_INT, (void*)(subsection.start * sizeof(GLuint)), instance.instancedCount);
-			else glDrawElements(GL_TRIANGLES, subsection.size, GL_UNSIGNED_INT, (void*)(subsection.start * sizeof(GLuint)));
+			instance.program->SetUniforms(instance);
+			
+			glDrawElements(GL_TRIANGLES, instance.mesh->GetIndicesSize(), GL_UNSIGNED_INT, nullptr);
 		}
 
 		if (!deletedLast && lastInstance.mesh->GetVolatile())
@@ -172,6 +168,9 @@ void ViVertexBatch::Flush()
 
 		lastInstance = instance;
 		first = false;
+
+		if (instance.texture != nullptr)
+			delete instance.texture;
 	}
 
 	if (!deletedLast && lastInstance.mesh->GetVolatile())

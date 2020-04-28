@@ -1,20 +1,20 @@
 #pragma once
 
-#include "ViMaterial.h"
+#include "ViTexture.h"
+#include "ViTextureDrawInstance.h"
+#include "ViProgram.h"
 #include "ViMesh.h"
 #include "ViTransform.h"
 
 struct ViVertexBatchInstance
 {
 	ViMesh* mesh;
-	int meshSubsection;
+	ViTextureDrawInstance* texture;
+	ViProgram* program;
 	ViTransform transform;
 
 	//extra information, if necessary
 	//Store information about the draw call here.
 	//It's up to the executing program to determine how to use this.
-	int64_t info;	
-
-	bool instanced;	//whether this draw call should be an instanced draw call or not
-	int instancedCount;
+	int64_t info;
 };

@@ -39,8 +39,6 @@ namespace vigame
 		
 		ViTransform GetWorldSpaceTransform(const CubeInstance& aCubeInstance, vec3i aPosition);
 
-		void Draw(const CubeInstance& aCubeInstance, vec3i aPosition, ViVertexBatch* aBatch);
-
 	protected:
 		VoxelWorld* GetWorld();
 

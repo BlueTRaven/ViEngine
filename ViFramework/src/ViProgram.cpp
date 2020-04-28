@@ -15,7 +15,7 @@ ViProgram::ViProgram(ViShader* vertShader, ViShader* fragShader, std::vector<ViV
 
 void ViProgram::Bind(ViVertexBatchInstance& aBindTo)//, ViVertexBatchSettings aSettings)
 {
-	glUseProgram(aBindTo.mesh->GetSubsection(aBindTo.meshSubsection).material->GetProgram()->GetId());
+	glUseProgram(GetId());
 
 	BindAttributes(aBindTo, false);
 }

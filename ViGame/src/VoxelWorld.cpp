@@ -205,13 +205,13 @@ void vigame::VoxelWorld::Draw(double aDeltaTime, ViVertexBatch* aBatch)
 	}
 
 	mProgramUnlitGeneric->SetTintColor(GetRadialFogColor());
-	aBatch->Draw(ViTransform::Positioned(mLoadPosition), mSkyboxMesh);
+	aBatch->Draw(ViTransform::Positioned(mLoadPosition), mSkyboxMesh, GET_ASSET_PROGRAM("unlit_generic"), GET_ASSET_TEXTURE("white_pixel"), 0);
 	aBatch->Flush();
 	mProgramUnlitGeneric->SetTintColor(vec3(1));
 	aBatch->Flush();
 
-	aBatch->Draw(ViTransform::Positioned(mLoadPosition + GetSunPos()), mSunMesh);
-	aBatch->Draw(ViTransform::Positioned(mLoadPosition - GetSunPos()), mMoonMesh);
+	aBatch->Draw(ViTransform::Positioned(mLoadPosition + GetSunPos()), mSunMesh, GET_ASSET_PROGRAM("unlit_generic"), GET_ASSET_TEXTURE("white_pixel"), 0);
+	aBatch->Draw(ViTransform::Positioned(mLoadPosition - GetSunPos()), mMoonMesh, GET_ASSET_PROGRAM("unlit_generic"), GET_ASSET_TEXTURE("white_pixel"), 0);
 
 	vec3i chunkPos = WorldSpaceToChunkSpace(mLoadPosition);
 	VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_NONE,
@@ -231,7 +231,7 @@ void vigame::VoxelWorld::Draw(double aDeltaTime, ViVertexBatch* aBatch)
 
 			ViTransform trans(vec3(chunk.second->GetWorldPosition()) + vec3(GetGridSize() / 2.f), vec3(0),
 				vec3(Chunk::GetSize()) * GetGridSize());
-			aBatch->Draw(trans, mCubeMesh);
+			aBatch->Draw(trans, mCubeMesh, GET_ASSET_PROGRAM("unlit_generic"), GET_ASSET_TEXTURE("white_pixel"), 0);
 		}
 	}
 }

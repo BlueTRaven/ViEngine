@@ -72,10 +72,8 @@ void vigame::ProgramCubesInstanced::SetUniforms(ViVertexBatchInstance& aInstance
 
 void vigame::ProgramCubesInstanced::BindAttributes(ViVertexBatchInstance& aInstance, bool aForceBind)
 {
+	//TODO remove this class
 	cubeid id = (cubeid)aInstance.info;
-
-	aInstance.instanced = true;
-	aInstance.instancedCount = mInstances[id].size();
 
 	if (mDirtyIds.find(id) != mDirtyIds.end())
 	{

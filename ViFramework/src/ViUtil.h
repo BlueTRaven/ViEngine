@@ -110,6 +110,14 @@ public:														\
 	vi_property_exported_set_named(type, var, get_set_name);\
 static_assert(true, "vi_property_exported_named macro requires a semicolon immediately proceeding.")
 
+#define vi_disable_new \
+private:										\
+	void* operator new(std::size_t) = delete;	\
+	void* operator new[](std::size_t) = delete;	\
+	struct t { }								\
+
+#define vi_disable_copy static_assert(false, "This has not been implemented yet! Bug me!");
+
 #ifdef ViFramework_EXPORTS
 	/*Enabled as "export" while compiling the dll project*/
 	#define VIENGINE_EXPORT __declspec(dllexport)  

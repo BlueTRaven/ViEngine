@@ -70,7 +70,7 @@ void vigame::Player::Draw(ViVertexBatch * aBatch)
 		float scale = 1.f / mWorld->GetGridSize() + 0.001f;
 		ViTransform trans = ViTransform::Positioned((vec3(mWorld->GetGridSize() / 2.0f) + vec3(mHighlightedCube)) / scale);
 		trans.SetScale(vec3(scale));
-		VERTEX_BATCH->Draw(trans, mCubeMesh, 6);
+		VERTEX_BATCH->Draw(trans, mCubeMesh, GET_ASSET_PROGRAM("unlit_generic"), GET_ASSET_TEXTURE("white_pixel"), 0);
 
 		VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_NONE,
 			ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_ALPHABLEND, ViVertexBatchSettings::cDRAW_FILLED));

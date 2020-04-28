@@ -143,15 +143,18 @@ void vigame::Chunk::Draw(ViVertexBatch* aBatch)
 	{
 		if (mHasAnything)
 		{
+			//TODO remove subsection references
 			if (mOptimizedMesh)
-				aBatch->Draw(ViTransform::Positioned(vec3(mWorldPosition) * mWorld->GetGridSize() * vec3(GetSize())), mOptimizedMesh);
+				aBatch->Draw(ViTransform::Positioned(vec3(mWorldPosition) * mWorld->GetGridSize() * vec3(GetSize())), mOptimizedMesh, 
+					mOptimizedMesh->GetSubsection(0).material->GetProgram(), mOptimizedMesh->GetSubsection(0).material->GetTextures()[0], 0);
 		}
 	}
 	else if (mHasAnything && mOldOptimizedMesh)
 	{
 		//If we cannot lock the mutex, try to draw the old optimized mesh, if it exists yet.
 		//(If the mutex is locked, that means we're still meshing.)
-		aBatch->Draw(ViTransform::Positioned(vec3(mWorldPosition) * mWorld->GetGridSize() * vec3(GetSize())), mOldOptimizedMesh);
+		aBatch->Draw(ViTransform::Positioned(vec3(mWorldPosition) * mWorld->GetGridSize() * vec3(GetSize())), mOldOptimizedMesh,
+			mOldOptimizedMesh->GetSubsection(0).material->GetProgram(), mOldOptimizedMesh->GetSubsection(0).material->GetTextures()[0], 0);
 	}
 }
 

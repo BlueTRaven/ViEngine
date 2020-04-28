@@ -72,12 +72,6 @@ ViTransform vigame::Cube::GetWorldSpaceTransform(const CubeInstance& aCubeInstan
 	return ViTransform::Positioned(glm::vec3(aPosition) * mWorld->GetGridSize());
 }
 
-void vigame::Cube::Draw(const CubeInstance& aCubeInstance, vec3i aPosition, ViVertexBatch* aBatch)
-{
-	for (int subsection : GetSubsectionsToDraw(aCubeInstance, aPosition))
-		aBatch->Draw(GetWorldSpaceTransform(aCubeInstance, aPosition), mMesh, subsection);
-}
-
 vigame::VoxelWorld* vigame::Cube::GetWorld()
 {
 	return mWorld;
