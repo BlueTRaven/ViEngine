@@ -3,7 +3,8 @@
 #include "ViGlyphInfo.h"
 
 ViVertexBatch::ViVertexBatch() :
-	mSettings(ViVertexBatchSettings::Default)
+	mSettings(ViVertexBatchSettings::Default),
+	mPrimitiveQuad(new ViPrimitiveQuad(vec3(0), vec3(1)))
 {
 }
 
@@ -49,6 +50,12 @@ void ViVertexBatch::Draw(ViTransform aTransform, ViMesh* aMesh, ViProgram* aProg
 	instance.info = aInfo;
 
 	mInstances.push_back(instance);
+}
+
+void ViVertexBatch::DrawQuad(ViTransform aTransform, vec3 aTopLeft, vec3 aBottomRight, ViProgram* aProgram, ViTexture* aTexture, int aTextureBinding)
+{
+	mPrimitiveQuad->Resize(aTopLeft, aBottomRight);
+	Draw(aTransform, mPrimitiveQuad->GetMesh(), aProgram, aTexture, aTextureBinding);
 }
 
 void ViVertexBatch::DrawString(ViTransform aTransform, ViMaterialFont* aFont, std::string aText)
@@ -131,7 +138,7 @@ void ViVertexBatch::Flush()
 
 			instance.program->SetUniforms(instance);
 
-			glDrawElements(GL_TRIANGLES, instance.mesh->GetIndicesSize(), GL_UNSIGNED_INT, nullptr);
+			glDrawElements(GL_TRIANGLES, instance.mesh->GetIndices().size(), GL_UNSIGNED_INT, nullptr);
 		}
 		else
 		{
@@ -155,7 +162,7 @@ void ViVertexBatch::Flush()
 
 			instance.program->SetUniforms(instance);
 			
-			glDrawElements(GL_TRIANGLES, instance.mesh->GetIndicesSize(), GL_UNSIGNED_INT, nullptr);
+			glDrawElements(GL_TRIANGLES, instance.mesh->GetIndices().size(), GL_UNSIGNED_INT, nullptr);
 		}
 
 		if (!deletedLast && lastInstance.mesh->GetVolatile())
@@ -182,4 +189,13 @@ void ViVertexBatch::SetSettings(ViVertexBatchSettings aSettings)
 {
 	Flush();
 	mSettings = aSettings;
+}
+
+void ViVertexBatch::SetTarget(ViFrameBuffer* aFrameBuffer)
+{
+	Flush();
+
+	if (aFrameBuffer == nullptr)
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	else glBindFramebuffer(GL_FRAMEBUFFER, aFrameBuffer->GetId());
 }

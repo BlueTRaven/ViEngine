@@ -5,7 +5,7 @@
 #include "ViUtil.h"
 #include "ViTexture.h"
 
-class ViFrameBuffer
+class VIENGINE_EXPORT ViFrameBuffer
 {
 public:
 	ViFrameBuffer(int aWidth, int aHeight, bool aDepth);

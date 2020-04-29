@@ -20,7 +20,7 @@ ViFrameBuffer::ViFrameBuffer(int aWidth, int aHeight, bool aDepth)
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, mTexture->GetId(), 0);
 	
 	//Not sure I entirely understand what this does...
-	//I think it sets what the `out vec4` points to in the fragment shader? So this says that it points to the above texture.
+	//I think it sets what the `out vec4` points to in the fragment shader? So this says that it points to the bound framebuffer.
 	GLenum drawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
 	glDrawBuffers(1, drawBuffers);
 

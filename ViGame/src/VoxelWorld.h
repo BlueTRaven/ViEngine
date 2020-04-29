@@ -17,6 +17,7 @@
 #include "ChunkManager.h"
 
 class ViVertexBatch;
+class ViFrameBuffer;
 
 namespace vigame
 {
@@ -112,6 +113,8 @@ namespace vigame
 		ViMesh* mSkyboxMesh;
 		ViMesh* mSunMesh;
 		ViMesh* mMoonMesh;
+
+		ViFrameBuffer* mTestFrameBuffer;
 
 		//Infinite generation needs special rounding
 		inline vec3i RoundToVec3i(vec3 aPosition)

@@ -2,6 +2,7 @@
 
 #include "ViEnvironment.h"
 #include "ViVertexBatch.h"
+#include "ViFrameBuffer.h"
 
 vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWorldGenerator) :
 	mSize(aSize),
@@ -45,6 +46,8 @@ vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWo
 	float moonSize = 5;
 	mSunMesh = ViMesh::MakeUCube(vec3(-sunSize), vec3(sunSize), ViMesh::cFACE_ALL, vicolors::YELLOW);
 	mMoonMesh = ViMesh::MakeUCube(vec3(-moonSize), vec3(moonSize), ViMesh::cFACE_ALL, ViColorGL(0.88, 0.88, 0.95, 1.0));
+
+	mTestFrameBuffer = new ViFrameBuffer(ENVIRONMENT->GetScreenWidth(), ENVIRONMENT->GetScreenHeight(), true);
 
 	mTestFontMat = new ViMaterialFont(GET_ASSET_FONT("debug"), GET_ASSET_PROGRAM("text"));
 }
@@ -187,6 +190,8 @@ void vigame::VoxelWorld::Update(double aDeltaTime)
 
 void vigame::VoxelWorld::Draw(double aDeltaTime, ViVertexBatch* aBatch)
 {
+	//aBatch->SetTarget(mTestFrameBuffer);
+
 	for (int z = -mViewDistanceChunks.z; z <= mViewDistanceChunks.z; z++)
 	{
 		for (int y = -mViewDistanceChunks.y; y <= mViewDistanceChunks.y; y++)
@@ -234,6 +239,9 @@ void vigame::VoxelWorld::Draw(double aDeltaTime, ViVertexBatch* aBatch)
 			aBatch->Draw(trans, mCubeMesh, GET_ASSET_PROGRAM("unlit_generic"), GET_ASSET_TEXTURE("white_pixel"), 0);
 		}
 	}
+
+	//aBatch->SetTarget(nullptr);
+	//aBatch->DrawQuad(ViTransform::None, vec3(0), vec3(ENVIRONMENT->GetScreenWidth(), ENVIRONMENT->GetScreenHeight(), 0), GET_ASSET_PROGRAM("text"), mTestFrameBuffer->GetTexture(), 0);
 }
 
 vigame::Chunk* vigame::VoxelWorld::GetChunkResponsibleForCube(vec3i aPosition)
