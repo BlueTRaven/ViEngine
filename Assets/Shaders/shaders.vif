@@ -29,3 +29,11 @@ location "fragment_lit_generic.glsl"
 shader fragment_unlit_generic
 type fragment
 location "fragment_unlit_generic.glsl"
+
+shader fragment_invert
+type fragment
+location "fragment_invert.glsl"
+
+shader fragment_grayscale
+type fragment
+location "fragment_grayscale.glsl"

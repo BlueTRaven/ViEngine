@@ -27,19 +27,20 @@ void ViVertexBatch::Draw(ViTransform aTransform, ViMesh* aMesh, ViProgram* aProg
 {
 	if (aMesh == nullptr)
 	{
-		printf("Error: Null mesh passed into Draw.");
+		printf("Error: Null mesh passed into Draw.\n");
 		return;
 	}
 
 	if (aProgram == nullptr)
 	{
-		printf("Error: Null program passed into Draw.");
+		printf("Error: Null program passed into Draw.\n");
 		return;
 	}
 
 	if (aTexture == nullptr)
 	{
-		printf("Error: Null texture passed into Draw.");
+		printf("Error: Null texture passed into Draw.\n");
+		return;
 	}
 
 	ViVertexBatchInstance instance = ViVertexBatchInstance();
