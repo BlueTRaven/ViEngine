@@ -45,6 +45,5 @@ namespace vigame
 		ViProgramGeneric* mProgramGeneric;
 		ProgramUnlitGeneric* mProgramUnlitGeneric;
 		ProgramLitGeneric* mProgramLitGeneric;
-		ViProgramGeneric* mProgramGenericFullBright;
 	};
 }

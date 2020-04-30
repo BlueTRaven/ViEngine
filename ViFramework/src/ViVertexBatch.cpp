@@ -1,6 +1,6 @@
 #include "ViVertexBatch.h"
-
 #include "ViGlyphInfo.h"
+#include "ViEnvironment.h"
 
 ViVertexBatch::ViVertexBatch() :
 	mSettings(ViVertexBatchSettings::Default),
@@ -191,6 +191,18 @@ void ViVertexBatch::SetSettings(ViVertexBatchSettings aSettings)
 	mSettings = aSettings;
 }
 
+void ViVertexBatch::Clear(ViColorGL aColor, bool aColorBit, bool aDepthBit)
+{
+	//TODO glClearDepth?
+	glClearColor(aColor.r, aColor.g, aColor.b, aColor.a);
+	Clear(aColorBit, aDepthBit);
+}
+
+void ViVertexBatch::Clear(bool aColorBit, bool aDepthBit)
+{
+	glClear((aColorBit ? GL_COLOR_BUFFER_BIT : 0) | (aDepthBit ? GL_DEPTH_BUFFER_BIT : 0));
+}
+
 void ViVertexBatch::SetTarget(ViFrameBuffer* aFrameBuffer)
 {
 	Flush();
@@ -198,4 +210,6 @@ void ViVertexBatch::SetTarget(ViFrameBuffer* aFrameBuffer)
 	if (aFrameBuffer == nullptr)
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	else glBindFramebuffer(GL_FRAMEBUFFER, aFrameBuffer->GetId());
+
+	glViewport(0, 0, ENVIRONMENT->GetScreenWidth(), ENVIRONMENT->GetScreenHeight());
 }

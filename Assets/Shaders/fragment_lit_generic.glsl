@@ -20,7 +20,7 @@ struct RadialFog
 uniform DiffuseLight diffuse_light = DiffuseLight(vec3(0, 0, 0), vec3(1, 1, 1), 1);
 uniform RadialFog radial_fog = RadialFog(vec3(0, 0, 0), 32, 128);
 
-out vec4 color;
+layout(location = 0) out vec4 color;
 
 in vec4 frag_color;
 in vec2 frag_tex_coord;

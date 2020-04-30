@@ -27,6 +27,12 @@ public:
 
 	void SetSettings(ViVertexBatchSettings aSettings);
 
+	//Clears the current framebuffer.
+	//aColor: ViColorGL
+	//	The color to clear the current framebuffer.
+	void Clear(ViColorGL aColor, bool aColorBit, bool aDepthBit);
+	void Clear(bool aColorBit, bool aDepthBit);
+
 	void SetTarget(ViFrameBuffer* aFrameBuffer);
 
 private:

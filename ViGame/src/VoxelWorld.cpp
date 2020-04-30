@@ -190,7 +190,8 @@ void vigame::VoxelWorld::Update(double aDeltaTime)
 
 void vigame::VoxelWorld::Draw(double aDeltaTime, ViVertexBatch* aBatch)
 {
-	//aBatch->SetTarget(mTestFrameBuffer);
+	aBatch->SetTarget(mTestFrameBuffer);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	for (int z = -mViewDistanceChunks.z; z <= mViewDistanceChunks.z; z++)
 	{
@@ -240,8 +241,12 @@ void vigame::VoxelWorld::Draw(double aDeltaTime, ViVertexBatch* aBatch)
 		}
 	}
 
-	//aBatch->SetTarget(nullptr);
-	//aBatch->DrawQuad(ViTransform::None, vec3(0), vec3(ENVIRONMENT->GetScreenWidth(), ENVIRONMENT->GetScreenHeight(), 0), GET_ASSET_PROGRAM("text"), mTestFrameBuffer->GetTexture(), 0);
+	aBatch->SetTarget(nullptr);
+	aBatch->Clear(true, true);
+	aBatch->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_NONE,
+		ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_NONPREMULTIPLIED, ViVertexBatchSettings::cDRAW_FILLED));
+	aBatch->DrawQuad(ViTransform::None, vec3(0, 0, -0.1), vec3(ENVIRONMENT->GetScreenWidth(), ENVIRONMENT->GetScreenHeight(), -0.1), GET_ASSET_PROGRAM("ortho"), mTestFrameBuffer->GetTexture(), 0);
+	aBatch->Flush();
 }
 
 vigame::Chunk* vigame::VoxelWorld::GetChunkResponsibleForCube(vec3i aPosition)

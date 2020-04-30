@@ -3,11 +3,6 @@ customtype generic
 param diffuse 1
 param ambient 1
 
-program generic_fullbright
-customtype generic
-param diffuse 1
-param ambient 1
-
 program text
 customtype text
 
@@ -19,3 +14,6 @@ customtype lit_generic
 
 program unlit_generic
 customtype unlit_generic
+
+program ortho
+customtype ortho
