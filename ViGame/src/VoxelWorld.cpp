@@ -47,7 +47,7 @@ vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWo
 	mSunMesh = ViMesh::MakeUCube(vec3(-sunSize), vec3(sunSize), ViMesh::cFACE_ALL, vicolors::YELLOW);
 	mMoonMesh = ViMesh::MakeUCube(vec3(-moonSize), vec3(moonSize), ViMesh::cFACE_ALL, ViColorGL(0.88, 0.88, 0.95, 1.0));
 
-	mTestFrameBuffer = new ViFrameBuffer(ENVIRONMENT->GetScreenWidth(), ENVIRONMENT->GetScreenHeight(), ViFrameBuffer::cCOLOR_ALL, ViFrameBuffer::cDEPTH);
+	mTestFrameBuffer = new ViFrameBuffer(ENVIRONMENT->GetScreenWidth(), ENVIRONMENT->GetScreenHeight(), ViFrameBuffer::cCOLOR_NONE, ViFrameBuffer::cDEPTH_READ);
 
 	mTestFontMat = new ViMaterialFont(GET_ASSET_FONT("debug"), GET_ASSET_PROGRAM("text"));
 }
@@ -183,6 +183,8 @@ void vigame::VoxelWorld::Update(double aDeltaTime)
 
 	loadedChunks.clear();
 
+	if (INPUT_MANAGER->KeyDown(SDL_SCANCODE_K))
+		mTestFrameBuffer->GetDepthTexture()->WritePNG("./test.png");
 	//Update Sun
 	mTimeOfDay += aDeltaTime;
 	mTimeOfDay = glm::mod(mTimeOfDay, mEndOfDay);
@@ -190,8 +192,19 @@ void vigame::VoxelWorld::Update(double aDeltaTime)
 
 void vigame::VoxelWorld::Draw(double aDeltaTime, ViVertexBatch* aBatch)
 {
+	aBatch->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_LESS,
+		ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_NONPREMULTIPLIED, ViVertexBatchSettings::cDRAW_FILLED));
 	aBatch->SetTarget(mTestFrameBuffer);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	aBatch->Clear(true, true);
+
+	/*mProgramUnlitGeneric->SetTintColor(GetRadialFogColor());
+	aBatch->Draw(ViTransform::Positioned(mLoadPosition), mSkyboxMesh, GET_ASSET_PROGRAM("shadowmap"), GET_ASSET_TEXTURE("white_pixel"), 0);
+	aBatch->Flush();
+	mProgramUnlitGeneric->SetTintColor(vec3(1));
+	aBatch->Flush();
+
+	aBatch->Draw(ViTransform::Positioned(mLoadPosition + GetSunPos()), mSunMesh, GET_ASSET_PROGRAM("shadowmap"), GET_ASSET_TEXTURE("white_pixel"), 0);
+	aBatch->Draw(ViTransform::Positioned(mLoadPosition - GetSunPos()), mMoonMesh, GET_ASSET_PROGRAM("shadowmap"), GET_ASSET_TEXTURE("white_pixel"), 0);*/
 
 	for (int z = -mViewDistanceChunks.z; z <= mViewDistanceChunks.z; z++)
 	{
@@ -210,14 +223,10 @@ void vigame::VoxelWorld::Draw(double aDeltaTime, ViVertexBatch* aBatch)
 		}
 	}
 
-	mProgramUnlitGeneric->SetTintColor(GetRadialFogColor());
-	aBatch->Draw(ViTransform::Positioned(mLoadPosition), mSkyboxMesh, GET_ASSET_PROGRAM("unlit_generic"), GET_ASSET_TEXTURE("white_pixel"), 0);
+	aBatch->SetTarget(nullptr);
+	aBatch->Clear(true, true);
+	aBatch->DrawQuad(ViTransform::None, vec3(0, 0, -0.1), vec3(ENVIRONMENT->GetScreenWidth(), ENVIRONMENT->GetScreenHeight(), -0.1), GET_ASSET_PROGRAM("ortho"), mTestFrameBuffer->GetDepthTexture(), 0);
 	aBatch->Flush();
-	mProgramUnlitGeneric->SetTintColor(vec3(1));
-	aBatch->Flush();
-
-	aBatch->Draw(ViTransform::Positioned(mLoadPosition + GetSunPos()), mSunMesh, GET_ASSET_PROGRAM("unlit_generic"), GET_ASSET_TEXTURE("white_pixel"), 0);
-	aBatch->Draw(ViTransform::Positioned(mLoadPosition - GetSunPos()), mMoonMesh, GET_ASSET_PROGRAM("unlit_generic"), GET_ASSET_TEXTURE("white_pixel"), 0);
 
 	vec3i chunkPos = WorldSpaceToChunkSpace(mLoadPosition);
 	VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_NONE,
@@ -240,13 +249,6 @@ void vigame::VoxelWorld::Draw(double aDeltaTime, ViVertexBatch* aBatch)
 			aBatch->Draw(trans, mCubeMesh, GET_ASSET_PROGRAM("unlit_generic"), GET_ASSET_TEXTURE("white_pixel"), 0);
 		}
 	}
-
-	aBatch->SetTarget(nullptr);
-	aBatch->Clear(true, true);
-	aBatch->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_NONE,
-		ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_NONPREMULTIPLIED, ViVertexBatchSettings::cDRAW_FILLED));
-	aBatch->DrawQuad(ViTransform::None, vec3(0, 0, -0.1), vec3(ENVIRONMENT->GetScreenWidth(), ENVIRONMENT->GetScreenHeight(), -0.1), GET_ASSET_PROGRAM("ortho"), mTestFrameBuffer->GetTexture(), 0);
-	aBatch->Flush();
 }
 
 vigame::Chunk* vigame::VoxelWorld::GetChunkResponsibleForCube(vec3i aPosition)

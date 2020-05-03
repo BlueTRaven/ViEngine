@@ -20,11 +20,12 @@ ViTexture* ViTexture::Load(std::string path, bool aAlpha, GLint aInternalFormat)
 	return texture;
 }
 
-ViTexture::ViTexture(uint8_t* aData, GLsizei aWidth, GLsizei aHeight, GLint aInternalFormat, GLenum aFormat, GLint aPack, GLint aUnpack, GLenum aMipMap) :
+ViTexture::ViTexture(uint8_t* aData, GLsizei aWidth, GLsizei aHeight, GLint aInternalFormat, GLenum aFormat, GLenum aType, GLint aPack, GLint aUnpack, GLenum aMipMap) :
 	mWidth(aWidth),
 	mHeight(aHeight),
 	mInternalFormat(aInternalFormat),
 	mFormat(aFormat),
+	mType(aType),
 	mPack(aPack),
 	mUnpack(aUnpack),
 	mMipMap(aMipMap),
@@ -41,7 +42,7 @@ ViTexture::ViTexture(uint8_t* aData, GLsizei aWidth, GLsizei aHeight, GLint aInt
 	if (aUnpack > 0)
 		glPixelStorei(GL_UNPACK_ALIGNMENT, aUnpack);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, aInternalFormat, mWidth, mHeight, 0, aFormat, GL_UNSIGNED_BYTE, aData);
+	glTexImage2D(GL_TEXTURE_2D, 0, aInternalFormat, mWidth, mHeight, 0, aFormat, aType, aData);
 
 	if (aMipMap)
 	{
@@ -54,11 +55,12 @@ ViTexture::ViTexture(uint8_t* aData, GLsizei aWidth, GLsizei aHeight, GLint aInt
 	mData = aData;
 }
 
-ViTexture::ViTexture(GLsizei aWidth, GLsizei aHeight, GLint aInternalFormat, GLenum aFormat, GLint aPack, GLint aUnpack, GLenum aMipMap) :
+ViTexture::ViTexture(GLsizei aWidth, GLsizei aHeight, GLint aInternalFormat, GLenum aFormat, GLenum aType, GLint aPack, GLint aUnpack, GLenum aMipMap) :
 	mWidth(aWidth),
 	mHeight(aHeight),
 	mInternalFormat(aInternalFormat),
 	mFormat(aFormat),
+	mType(aType),
 	mPack(aPack),
 	mUnpack(aUnpack),
 	mMipMap(aMipMap),
@@ -75,8 +77,10 @@ ViTexture::ViTexture(GLsizei aWidth, GLsizei aHeight, GLint aInternalFormat, GLe
 	if (aUnpack > 0)
 		glPixelStorei(GL_UNPACK_ALIGNMENT, aUnpack);
 
-	uint8_t* data = (uint8_t*)malloc(aWidth * aHeight * GetStrideFromInternalFormat(aInternalFormat) * sizeof(uint8_t));
-	glTexImage2D(GL_TEXTURE_2D, 0, aInternalFormat, mWidth, mHeight, 0, aFormat, GL_UNSIGNED_BYTE, data);
+	int channels = GetChannels(aFormat);
+	int size = aWidth * aHeight * channels * sizeof(uint8_t);
+	uint8_t* data = (uint8_t*)malloc(size);
+	glTexImage2D(GL_TEXTURE_2D, 0, aInternalFormat, mWidth, mHeight, 0, aFormat, aType, data);
 
 	if (aMipMap)
 	{
@@ -93,6 +97,21 @@ ViTexture::~ViTexture()
 {
 	//TODO test this - it might bug out since we're not using stbi_free?
 	free(mData);
+}
+
+void ViTexture::UpdateTextureFromGpu()
+{
+	glBindTexture(GL_TEXTURE_2D, mId);
+	glGetTexImage(GL_TEXTURE_2D, 0, mFormat, mType, mData);
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void ViTexture::WritePNG(const char * aFileName)
+{
+	UpdateTextureFromGpu();
+
+	stbi_flip_vertically_on_write(true);
+	int out = stbi_write_png(aFileName, mWidth, mHeight, GetChannels(mInternalFormat), mData, mWidth * GetChannels(mInternalFormat));
 }
 
 vec4i ViTexture::GetPixel(vec2i aPosition)
@@ -118,8 +137,23 @@ vec4i ViTexture::GetPixel(vec2i aPosition)
 	}
 }
 
-uint8_t ViTexture::GetStrideFromInternalFormat(GLint aInternalFormat)
+uint8_t ViTexture::GetChannels(GLint aInternalFormat)
 {
-	//TODO revamp
-	return mAlpha ? 4 : 3;
+	switch (aInternalFormat)
+	{
+	case (GL_DEPTH_COMPONENT):
+		return 1;
+	case (GL_DEPTH_STENCIL):
+		return 2;
+	case (GL_RED):
+		return 1;
+	case (GL_RG):
+		return 2;
+	case (GL_RGB):
+		return 3;
+	case (GL_RGBA):
+		return 4;
+	default:
+		return 0;
+	}
 }

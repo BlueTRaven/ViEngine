@@ -25,6 +25,7 @@ public:
 	~ViFrameBuffer();
 
 	vi_property_named(ViTexture*, mTexture, Texture);
+	vi_property_named(ViTexture*, mDepthTexture, DepthTexture);
 
 	vi_property_named(GLuint, mId, Id);
 	vi_property_named(GLuint, mDepthBufferId, DepthBufferId);

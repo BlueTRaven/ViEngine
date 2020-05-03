@@ -43,7 +43,7 @@ ViFont::ViFont(uint8_t* aData, float aSize) :
 
 	stbtt_PackEnd(&context);
 
-	mTexture = new ViTexture(atlasData, cATLASWIDTH, cATLASHEIGHT, GL_RGB, GL_RED, 1, -1, GL_NICEST);
+	mTexture = new ViTexture(atlasData, cATLASWIDTH, cATLASHEIGHT, GL_RGB, GL_RED, GL_UNSIGNED_BYTE, 1, -1, GL_NICEST);
 
 	mValid = true;
 }

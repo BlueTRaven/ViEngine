@@ -17,3 +17,6 @@ customtype unlit_generic
 
 program ortho
 customtype ortho
+
+program shadowmap
+customtype shadowmap

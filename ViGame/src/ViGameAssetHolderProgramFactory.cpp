@@ -4,6 +4,7 @@
 #include "ProgramLitGeneric.h"
 #include "ProgramUnlitGeneric.h"
 #include "ProgramOrtho.h"
+#include "ProgramShadowmap.h"
 
 ViProgram* vigame::ViGameAssetHolderProgramFactory::Create(std::string type)
 {
@@ -15,6 +16,8 @@ ViProgram* vigame::ViGameAssetHolderProgramFactory::Create(std::string type)
 		return new ProgramUnlitGeneric();
 	else if (type == "ortho")
 		return new ProgramOrtho();
+	else if (type == "shadowmap")
+		return new ProgramShadowmap();
 
 	return ViAssetHolderProgramFactory::Create(type);
 }

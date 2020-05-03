@@ -37,3 +37,7 @@ location "fragment_invert.glsl"
 shader fragment_grayscale
 type fragment
 location "fragment_grayscale.glsl"
+
+shader fragment_depthbuffer
+type fragment
+location "fragment_depthbuffer.glsl"
