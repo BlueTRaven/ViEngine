@@ -47,7 +47,7 @@ vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWo
 	mSunMesh = ViMesh::MakeUCube(vec3(-sunSize), vec3(sunSize), ViMesh::cFACE_ALL, vicolors::YELLOW);
 	mMoonMesh = ViMesh::MakeUCube(vec3(-moonSize), vec3(moonSize), ViMesh::cFACE_ALL, ViColorGL(0.88, 0.88, 0.95, 1.0));
 
-	mTestFrameBuffer = new ViFrameBuffer(ENVIRONMENT->GetScreenWidth(), ENVIRONMENT->GetScreenHeight(), ViFrameBuffer::cCOLOR_NONE, ViFrameBuffer::cDEPTH_READ);
+	mTestFrameBuffer = new ViFrameBuffer(ENVIRONMENT->GetScreenWidth(), ENVIRONMENT->GetScreenHeight(), ViFrameBuffer::cCOLOR_ALL, ViFrameBuffer::cDEPTH_READ);
 
 	mTestFontMat = new ViMaterialFont(GET_ASSET_FONT("debug"), GET_ASSET_PROGRAM("text"));
 }
@@ -184,7 +184,10 @@ void vigame::VoxelWorld::Update(double aDeltaTime)
 	loadedChunks.clear();
 
 	if (INPUT_MANAGER->KeyDown(SDL_SCANCODE_K))
-		mTestFrameBuffer->GetDepthTexture()->WritePNG("./test.png");
+	{
+		mTestFrameBuffer->GetTexture()->WritePNG("./output_color.png");
+		mTestFrameBuffer->GetDepthTexture()->WritePNG("./output_depth.png");
+	}
 	//Update Sun
 	mTimeOfDay += aDeltaTime;
 	mTimeOfDay = glm::mod(mTimeOfDay, mEndOfDay);
@@ -197,14 +200,14 @@ void vigame::VoxelWorld::Draw(double aDeltaTime, ViVertexBatch* aBatch)
 	aBatch->SetTarget(mTestFrameBuffer);
 	aBatch->Clear(true, true);
 
-	/*mProgramUnlitGeneric->SetTintColor(GetRadialFogColor());
-	aBatch->Draw(ViTransform::Positioned(mLoadPosition), mSkyboxMesh, GET_ASSET_PROGRAM("shadowmap"), GET_ASSET_TEXTURE("white_pixel"), 0);
+	mProgramUnlitGeneric->SetTintColor(GetRadialFogColor());
+	aBatch->Draw(ViTransform::Positioned(mLoadPosition), mSkyboxMesh, GET_ASSET_PROGRAM("unlit_generic"), GET_ASSET_TEXTURE("white_pixel"), 0);
 	aBatch->Flush();
 	mProgramUnlitGeneric->SetTintColor(vec3(1));
 	aBatch->Flush();
 
-	aBatch->Draw(ViTransform::Positioned(mLoadPosition + GetSunPos()), mSunMesh, GET_ASSET_PROGRAM("shadowmap"), GET_ASSET_TEXTURE("white_pixel"), 0);
-	aBatch->Draw(ViTransform::Positioned(mLoadPosition - GetSunPos()), mMoonMesh, GET_ASSET_PROGRAM("shadowmap"), GET_ASSET_TEXTURE("white_pixel"), 0);*/
+	aBatch->Draw(ViTransform::Positioned(mLoadPosition + GetSunPos()), mSunMesh, GET_ASSET_PROGRAM("unlit_generic"), GET_ASSET_TEXTURE("white_pixel"), 0);
+	aBatch->Draw(ViTransform::Positioned(mLoadPosition - GetSunPos()), mMoonMesh, GET_ASSET_PROGRAM("unlit_generic"), GET_ASSET_TEXTURE("white_pixel"), 0);
 
 	for (int z = -mViewDistanceChunks.z; z <= mViewDistanceChunks.z; z++)
 	{
@@ -225,7 +228,7 @@ void vigame::VoxelWorld::Draw(double aDeltaTime, ViVertexBatch* aBatch)
 
 	aBatch->SetTarget(nullptr);
 	aBatch->Clear(true, true);
-	aBatch->DrawQuad(ViTransform::None, vec3(0, 0, -0.1), vec3(ENVIRONMENT->GetScreenWidth(), ENVIRONMENT->GetScreenHeight(), -0.1), GET_ASSET_PROGRAM("ortho"), mTestFrameBuffer->GetDepthTexture(), 0);
+	aBatch->DrawQuad(ViTransform::None, vec3(0, 0, -0.1), vec3(ENVIRONMENT->GetScreenWidth(), ENVIRONMENT->GetScreenHeight(), -0.1), GET_ASSET_PROGRAM("ortho"), mTestFrameBuffer->GetTexture(), 0);
 	aBatch->Flush();
 
 	vec3i chunkPos = WorldSpaceToChunkSpace(mLoadPosition);

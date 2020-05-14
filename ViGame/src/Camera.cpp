@@ -14,6 +14,7 @@ vigame::Camera::Camera(ViTransform aStartTransform) :
 	mProgramGeneric = static_cast<ViProgramGeneric*>(GET_ASSET_PROGRAM("generic"));
 	mProgramUnlitGeneric = static_cast<ProgramUnlitGeneric*>(GET_ASSET_PROGRAM("unlit_generic"));
 	mProgramLitGeneric = static_cast<ProgramLitGeneric*>(GET_ASSET_PROGRAM("lit_generic"));
+	mProgramShadowmap = static_cast<ProgramShadowmap*>(GET_ASSET_PROGRAM("shadowmap"));
 
 	mProgramGeneric->SetAmbientStrength(0.1f);
 
@@ -82,4 +83,5 @@ void vigame::Camera::LateUpdate(float aDeltaTime)
 	mProgramLitGeneric->SetDiffuseLight(mDiffuseLight);
 	mProgramLitGeneric->SetRadialFog(mRadialFog);
 	mProgramUnlitGeneric->SetCamera(mat);
+	mProgramShadowmap->SetCamera(mat);
 }

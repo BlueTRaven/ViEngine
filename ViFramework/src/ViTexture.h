@@ -52,4 +52,6 @@ private:
 	uint8_t* mData;	
 
 	uint8_t GetChannels(GLint aInternalFormat);
+
+	size_t GetFormatSize(GLenum aInternalFormat);
 };

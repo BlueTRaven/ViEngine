@@ -22,20 +22,13 @@ ViFrameBuffer::ViFrameBuffer(int aWidth, int aHeight, ColorMode aColor, DepthMod
 	else if (aDepth == DepthMode::cDEPTH_READ)
 	{
 		mDepthTexture = new ViTexture(nullptr, aWidth, aHeight, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
-		/*glGenTextures(1, &mDepthBufferId);
-		glBindTexture(GL_TEXTURE_2D, mDepthBufferId);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, aWidth, aHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);*/
 
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, mDepthTexture->GetId(), 0);
 	}
 
 	if (aColor == cCOLOR_ALL)
 	{
-		mTexture = new ViTexture(aWidth, aHeight, GL_RGBA, GL_RGBA, -1, -1, GL_FALSE);
+		mTexture = new ViTexture(aWidth, aHeight, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, -1, -1, GL_FALSE);
 
 		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, mTexture->GetId(), 0);
 

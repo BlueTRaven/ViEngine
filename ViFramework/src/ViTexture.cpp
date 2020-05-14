@@ -102,6 +102,14 @@ ViTexture::~ViTexture()
 void ViTexture::UpdateTextureFromGpu()
 {
 	glBindTexture(GL_TEXTURE_2D, mId);
+
+	if (mData == nullptr)
+	{
+		//We didn't allocate space for this memory yet, so go ahead and do that
+		int size = sizeof(uint8_t) * GetFormatSize(mInternalFormat) * mWidth * mHeight;
+		mData = (uint8_t*)malloc(size);
+	}
+
 	glGetTexImage(GL_TEXTURE_2D, 0, mFormat, mType, mData);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -110,8 +118,11 @@ void ViTexture::WritePNG(const char * aFileName)
 {
 	UpdateTextureFromGpu();
 
+	int channels = GetChannels(mInternalFormat);
+	int size = GetFormatSize(mInternalFormat);
+
 	stbi_flip_vertically_on_write(true);
-	int out = stbi_write_png(aFileName, mWidth, mHeight, GetChannels(mInternalFormat), mData, mWidth * GetChannels(mInternalFormat));
+	int out = stbi_write_png(aFileName, mWidth, mHeight, 3, mData, mWidth * size);
 }
 
 vec4i ViTexture::GetPixel(vec2i aPosition)
@@ -141,19 +152,165 @@ uint8_t ViTexture::GetChannels(GLint aInternalFormat)
 {
 	switch (aInternalFormat)
 	{
-	case (GL_DEPTH_COMPONENT):
+	case GL_DEPTH_COMPONENT:
+	case GL_DEPTH_COMPONENT16:
+	case GL_DEPTH_COMPONENT24:
+	case GL_DEPTH_COMPONENT32:
+	case GL_DEPTH_COMPONENT32F:
 		return 1;
-	case (GL_DEPTH_STENCIL):
+	case GL_DEPTH_STENCIL:
+	case GL_DEPTH24_STENCIL8:
+	case GL_DEPTH32F_STENCIL8:
+	case GL_DEPTH32F_STENCIL8_NV:
 		return 2;
-	case (GL_RED):
+	case GL_RED:
+	case GL_R8:
+	case GL_R8I:
+	case GL_R8UI:
+	case GL_R8_SNORM:
+	case GL_R16:
+	case GL_R16F:
+	case GL_R16I:
+	case GL_R16UI:
+	case GL_R16_SNORM:
+	case GL_R32F:
+	case GL_R32I:
+	case GL_R32UI:
 		return 1;
-	case (GL_RG):
+	case GL_RG:
+	case GL_RG8:
+	case GL_RG8I:
+	case GL_RG8UI:
+	case GL_RG8_SNORM:
+	case GL_RG16:
+	case GL_RG16I:
+	case GL_RG16F:
+	case GL_RG16UI:
+	case GL_RG16_SNORM:
+	case GL_RG32I:
+	case GL_RG32F:
+	case GL_RG32UI:
 		return 2;
-	case (GL_RGB):
+	case GL_RGB:
+	case GL_RGB8:
+	case GL_RGB8I:
+	case GL_RGB8UI:
+	case GL_RGB8_SNORM:
+	case GL_RGB16:
+	case GL_RGB16I:
+	case GL_RGB16F:
+	case GL_RGB16UI:
+	case GL_RGB16_SNORM:
+	case GL_RGB32I:
+	case GL_RGB32F:
+	case GL_RGB32UI:
 		return 3;
-	case (GL_RGBA):
+	case GL_RGBA:
+	case GL_RGBA8:
+	case GL_RGBA8I:
+	case GL_RGBA8UI:
+	case GL_RGBA8_SNORM:
+	case GL_RGBA16:
+	case GL_RGBA16I:
+	case GL_RGBA16F:
+	case GL_RGBA16UI:
+	case GL_RGBA16_SNORM:
+	case GL_RGBA32I:
+	case GL_RGBA32F:
+	case GL_RGBA32UI:
 		return 4;
 	default:
 		return 0;
+	}
+}
+
+size_t ViTexture::GetFormatSize(GLenum aInternalFormat)
+{
+	switch (aInternalFormat)
+	{
+		//One component - R
+	case GL_R8:
+	case GL_R8I:
+	case GL_R8UI:
+	case GL_R8_SNORM:
+		return 1;
+	case GL_RED:
+	case GL_R16:
+	case GL_R16F:
+	case GL_R16I:
+	case GL_R16UI:
+	case GL_R16_SNORM:
+		return 2;
+	case GL_R32F:
+	case GL_R32I:
+	case GL_R32UI:
+		return 4;
+
+		//Two components - RG
+	case GL_RG8:
+	case GL_RG8I:
+	case GL_RG8UI:
+	case GL_RG8_SNORM:
+		return 2 * 1;
+	case GL_RG:
+	case GL_RG16:
+	case GL_RG16I:
+	case GL_RG16F:
+	case GL_RG16UI:
+	case GL_RG16_SNORM:
+		return 2 * 2;
+	case GL_RG32I:
+	case GL_RG32F:
+	case GL_RG32UI:
+		return 2 * 4;
+
+		//Three components - RGB
+	case GL_RGB8:
+	case GL_RGB8I:
+	case GL_RGB8UI:
+	case GL_RGB8_SNORM:
+		return 2 * 1;
+	case GL_RGB:
+	case GL_RGB16:
+	case GL_RGB16I:
+	case GL_RGB16F:
+	case GL_RGB16UI:
+	case GL_RGB16_SNORM:
+		return 2 * 2;
+	case GL_RGB32I:
+	case GL_RGB32F:
+	case GL_RGB32UI:
+		return 2 * 4;
+
+		//Four components - RGBA
+	case GL_RGBA8:
+	case GL_RGBA8I:
+	case GL_RGBA8UI:
+	case GL_RGBA8_SNORM:
+		return 2 * 1;
+	case GL_RGBA:
+	case GL_RGBA16:
+	case GL_RGBA16I:
+	case GL_RGBA16F:
+	case GL_RGBA16UI:
+	case GL_RGBA16_SNORM:
+		return 2 * 2;
+	case GL_RGBA32I:
+	case GL_RGBA32F:
+	case GL_RGBA32UI:
+		return 2 * 4;
+
+	case GL_DEPTH_COMPONENT16:
+		return 2;
+	case GL_DEPTH_COMPONENT24:
+		return 3;
+	case GL_DEPTH_COMPONENT32:
+	case GL_DEPTH_COMPONENT32F:
+	case GL_DEPTH24_STENCIL8:
+		return 4;
+
+	case GL_DEPTH32F_STENCIL8:
+	case GL_DEPTH32F_STENCIL8_NV:
+		return 5;
 	}
 }

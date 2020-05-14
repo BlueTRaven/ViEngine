@@ -6,6 +6,7 @@
 #include "ProgramGeneric.h"
 #include "ProgramUnlitGeneric.h"
 #include "ProgramLitGeneric.h"
+#include "ProgramShadowmap.h"
 
 class ViVertexBatch;
 
@@ -45,5 +46,6 @@ namespace vigame
 		ViProgramGeneric* mProgramGeneric;
 		ProgramUnlitGeneric* mProgramUnlitGeneric;
 		ProgramLitGeneric* mProgramLitGeneric;
+		ProgramShadowmap* mProgramShadowmap;
 	};
 }
