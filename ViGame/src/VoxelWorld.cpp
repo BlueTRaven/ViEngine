@@ -195,6 +195,31 @@ void vigame::VoxelWorld::Update(double aDeltaTime)
 		chunk->LoadFinished();
 	}
 
+	//We use a unordered_map in order to store our chunks, in order to make them accessible at O(1) by their positions in chunk space.
+	//however, unordered_map is... painfully slow. Even if we get a better implementation, it's still going to be slower than a flat array.
+	//So, we instead cache the chunks once they've finished loading, and only re-cache them when we move.
+	if (mHasChunksToCache || WorldSpaceToChunkSpace(mLoadPosition) != WorldSpaceToChunkSpace(mOldLoadPosition))
+	{
+		mHasChunksToCache = false;
+		mCachedDrawChunks.clear();
+
+		for (int z = -mViewDistanceChunks.z; z <= mViewDistanceChunks.z; z++)
+		{
+			for (int y = -mViewDistanceChunks.y; y <= mViewDistanceChunks.y; y++)
+			{
+				for (int x = -mViewDistanceChunks.x; x <= mViewDistanceChunks.x; x++)
+				{
+					vec3i pos = WorldSpaceToChunkSpace(mLoadPosition) + vec3i(x, y, z);
+					Chunk* chunk = GetChunk(pos);
+
+					if (chunk != nullptr)
+						mCachedDrawChunks.push_back(chunk);
+					else mHasChunksToCache = true;	//while any of our chunks are null, we want to keep trying to cache.
+				}
+			}
+		}
+	}
+
 	loadedChunks.clear();
 
 	if (INPUT_MANAGER->KeyDown(SDL_SCANCODE_K))
@@ -224,31 +249,6 @@ void vigame::VoxelWorld::Draw(double aDeltaTime, ViVertexBatch* aBatch)
 
 	aBatch->Draw(ViTransform::Positioned(mLoadPosition + GetSunPos()), mSunMesh, GET_ASSET_PROGRAM("unlit_generic"), GET_ASSET_TEXTURE("white_pixel"), 0);
 	aBatch->Draw(ViTransform::Positioned(mLoadPosition - GetSunPos()), mMoonMesh, GET_ASSET_PROGRAM("unlit_generic"), GET_ASSET_TEXTURE("white_pixel"), 0);
-
-	//We use a unordered_map in order to store our chunks, in order to make them accessible at O(1) by their positions in chunk space.
-	//however, unordered_map is... painfully slow. Even if we get a better implementation, it's still going to be slower than a flat array.
-	//So, we instead cache the chunks once they've finished loading, and only re-cache them when we move.
-	if (mHasChunksToCache || WorldSpaceToChunkSpace(mLoadPosition) != WorldSpaceToChunkSpace(mOldLoadPosition))
-	{
-		mHasChunksToCache = false;
-		mCachedDrawChunks.clear();
-
-		for (int z = -mViewDistanceChunks.z; z <= mViewDistanceChunks.z; z++)
-		{
-			for (int y = -mViewDistanceChunks.y; y <= mViewDistanceChunks.y; y++)
-			{
-				for (int x = -mViewDistanceChunks.x; x <= mViewDistanceChunks.x; x++)
-				{
-					vec3i pos = WorldSpaceToChunkSpace(mLoadPosition) + vec3i(x, y, z);
-					Chunk* chunk = GetChunk(pos);
-
-					if (chunk != nullptr)
-						mCachedDrawChunks.push_back(chunk);
-					else mHasChunksToCache = true;	//while any of our chunks are null, we want to keep trying to cache.
-				}
-			}
-		}
-	}
 
 	for (const auto& chunk : mCachedDrawChunks)
 	{
