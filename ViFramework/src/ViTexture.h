@@ -28,6 +28,8 @@ public:
 
 	vec4i GetPixel(vec2i aPosition);
 
+	void Reload();
+
 	vi_property_get_named(GLuint, mId, Id);
 
 	vi_property_get_named(bool, mAlpha, Alpha);
@@ -49,6 +51,7 @@ private:
 	GLint mUnpack;
 	GLenum mMipMap;
 
+	std::string mLoadedFrom;
 	uint8_t* mData;	
 
 	uint8_t GetChannels(GLint aInternalFormat);

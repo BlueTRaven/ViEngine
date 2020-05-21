@@ -25,7 +25,7 @@ namespace vigame
 		//Starts the chunk manager. Does nothing if already started, and re-starts the chunk manager if paused. Thread-safe.
 		void Start();
 
-		//Pauses the chunk manager. It will no longer load new chunks. Call Start to re-start it. Thread-safe.
+		//Pauses the chunk manager. It will no longer load new chunks. If called in the middle of loading a chunk, that chunk will finish loading. Call Start to re-start it. Thread-safe.
 		void Pause();
 
 		void LoadAll();

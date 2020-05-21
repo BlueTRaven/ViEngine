@@ -34,6 +34,8 @@ void ViAssetHandler::InitialParse(std::string assetsvifpath)
 
 	vi_assert(parser.GetValid(), "Error: Assets vif either does not exist or is not parsable.");
 
+	mAssetsVifPath = assetsvifpath;
+
 	for (ViVifLine line : parser.GetLines())
 	{
 		std::string type = line.mWords[0];
@@ -48,4 +50,13 @@ void ViAssetHandler::InitialParse(std::string assetsvifpath)
 		else if (type == "shaders")
 			mShaderHolder->Find(location);
 	}
+}
+
+void ViAssetHandler::Reload()
+{
+	mTextureHolder->UnloadAllAssets();
+	mFontHolder->UnloadAllAssets();
+	mProgramHolder->UnloadAllAssets();
+	mShaderHolder->UnloadAllAssets();
+	InitialParse(mAssetsVifPath);
 }

@@ -29,7 +29,8 @@ ViTexture::ViTexture(uint8_t* aData, GLsizei aWidth, GLsizei aHeight, GLint aInt
 	mPack(aPack),
 	mUnpack(aUnpack),
 	mMipMap(aMipMap),
-	mAlpha(false)
+	mAlpha(false),
+	mLoadedFrom("")
 {
 	if (aInternalFormat == GL_RGBA)
 		mAlpha = true;
@@ -97,6 +98,8 @@ ViTexture::~ViTexture()
 {
 	//TODO test this - it might bug out since we're not using stbi_free?
 	free(mData);
+
+	glDeleteTextures(1, &mId);
 }
 
 void ViTexture::UpdateTextureFromGpu()
@@ -105,8 +108,16 @@ void ViTexture::UpdateTextureFromGpu()
 
 	if (mData == nullptr)
 	{
+		int formatBPP = GetFormatSize(mInternalFormat);
+
+		if (formatBPP == 0)
+		{
+			printf("Error: Could not update texture from gpu. Its internal format was invalid.\n");
+			return;
+		}
+
 		//We didn't allocate space for this memory yet, so go ahead and do that
-		int size = sizeof(uint8_t) * GetFormatSize(mInternalFormat) * mWidth * mHeight;
+		int size = sizeof(uint8_t) * formatBPP * mWidth * mHeight;
 		mData = (uint8_t*)malloc(size);
 	}
 
@@ -121,8 +132,14 @@ void ViTexture::WritePNG(const char * aFileName)
 	int channels = GetChannels(mInternalFormat);
 	int size = GetFormatSize(mInternalFormat);
 
+	if (size == 0)
+	{
+		printf("Error: Could not write png to %s. Its internal format was invalid.\n", aFileName);
+		return;
+	}
+
 	stbi_flip_vertically_on_write(true);
-	int out = stbi_write_png(aFileName, mWidth, mHeight, 3, mData, mWidth * size);
+	int out = stbi_write_png(aFileName, mWidth, mHeight, 4, mData, mWidth * size);
 }
 
 vec4i ViTexture::GetPixel(vec2i aPosition)
@@ -304,13 +321,17 @@ size_t ViTexture::GetFormatSize(GLenum aInternalFormat)
 		return 2;
 	case GL_DEPTH_COMPONENT24:
 		return 3;
+	case GL_DEPTH_COMPONENT:
 	case GL_DEPTH_COMPONENT32:
 	case GL_DEPTH_COMPONENT32F:
+	case GL_DEPTH_STENCIL:
 	case GL_DEPTH24_STENCIL8:
 		return 4;
 
 	case GL_DEPTH32F_STENCIL8:
 	case GL_DEPTH32F_STENCIL8_NV:
 		return 5;
+	default:
+		return 0;	//error case. Handle 0
 	}
 }

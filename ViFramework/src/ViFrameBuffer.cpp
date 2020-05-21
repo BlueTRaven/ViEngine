@@ -21,9 +21,14 @@ ViFrameBuffer::ViFrameBuffer(int aWidth, int aHeight, ColorMode aColor, DepthMod
 	}
 	else if (aDepth == DepthMode::cDEPTH_READ)
 	{
-		mDepthTexture = new ViTexture(nullptr, aWidth, aHeight, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
+		mDepthTexture = new ViTexture(nullptr, aWidth, aHeight, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_FLOAT, -1, -1, GL_FALSE);
+		glBindTexture(GL_TEXTURE_2D, mDepthTexture->GetId());
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, mDepthTexture->GetId(), 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mDepthTexture->GetId(), 0);
 	}
 
 	if (aColor == cCOLOR_ALL)
@@ -40,11 +45,45 @@ ViFrameBuffer::ViFrameBuffer(int aWidth, int aHeight, ColorMode aColor, DepthMod
 	else if (aColor == cCOLOR_NONE)
 	{
 		glDrawBuffer(GL_NONE);
+		glReadBuffer(GL_NONE);
 	}
 
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	GLenum frameBufferStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (frameBufferStatus != GL_FRAMEBUFFER_COMPLETE)
 	{
-		printf("Error: Framebuffer could not be initialized.");
+		string errorType = "";
+		switch (frameBufferStatus)
+		{
+		case GL_FRAMEBUFFER_UNDEFINED:
+			errorType = "GL_FRAMEBUFFER_UNDEFINED";
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+			errorType = "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT";
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+			errorType = "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT";
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+			errorType = "GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER";
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+			errorType = "GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER";
+			break;
+		case GL_FRAMEBUFFER_UNSUPPORTED:
+			errorType = "GL_FRAMEBUFFER_UNSUPPORTED";
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+			errorType = "GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE";
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
+			errorType = "GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS";
+			break;
+		default:
+			errorType = "Unknown";
+			break;
+		}
+
+		printf("Error: Framebuffer could not be initialized. Error: %s\n", errorType.c_str());
 		delete this;	//dangerous - but should be fine, since we don't do anything after
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

@@ -21,10 +21,24 @@ class ViFrameBuffer;
 
 namespace vigame
 {
+	struct ChunkMap
+	{
+		enum ChunkMapState
+		{
+			cNONE,
+			cLOADING,
+			cDONE
+		};
+
+		vec3i key = vec3i(0);
+		Chunk* value = nullptr;
+		ChunkMapState state = cNONE;
+	};
+
 	class VoxelWorld
 	{
 	public:
-		using ChunkMap = std::unordered_map<vec3i, Chunk*>;
+		//using ChunkMap = std::unordered_map<vec3i, Chunk*>;
 
 		VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWorldGenerator);
 
@@ -39,7 +53,6 @@ namespace vigame
 		Chunk* GetChunk(vec3i aChunkPosition);
 		Chunk* MakeChunk(vec3i aChunkWorldPosition);
 		void RemoveChunk(vec3i aChunkPosition);
-		ChunkMap::iterator RemoveChunkIterSafe(ChunkMap::iterator iter);
 
 		Chunk* GetChunkResponsibleForCube(vec3i aPosition);
 		//converts from cube space to chunk space. Equivalent to aPosInCubeSpace / mChunkSize.
@@ -85,11 +98,15 @@ namespace vigame
 
 		vec3i mChunkSize;
 
+		vec3 mOldLoadPosition;
+		std::vector<Chunk*> mCachedDrawChunks;
+		bool mHasChunksToCache = true;
+
 		ViMaterialFont* mTestFontMat;
 
 		CubeInstance voidCube = CubeInstance(0);
 
-		ChunkMap mChunks;
+		ChunkMap* mChunks;
 		std::mutex* mChunksAccessMutex;
 
 		std::vector<Chunk*> mOldChunks;
@@ -114,7 +131,8 @@ namespace vigame
 		ViMesh* mSunMesh;
 		ViMesh* mMoonMesh;
 
-		ViFrameBuffer* mTestFrameBuffer;
+		//everything in the world is drawn to this framebuffer
+		ViFrameBuffer* mWorldFrameBuffer;
 
 		//Infinite generation needs special rounding
 		inline vec3i RoundToVec3i(vec3 aPosition)

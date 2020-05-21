@@ -21,6 +21,7 @@ uniform DiffuseLight diffuse_light = DiffuseLight(vec3(0, 0, 0), vec3(1, 1, 1), 
 uniform RadialFog radial_fog = RadialFog(vec3(0, 0, 0), 32, 128);
 
 layout(location = 0) out vec4 color;
+out float depth;
 
 in vec4 frag_color;
 in vec2 frag_tex_coord;
@@ -40,7 +41,7 @@ void main()
 	brightness = clamp(brightness, 0, 1);
 	vec4 diffuse_light_color = vec4(brightness * diffuse_light.color * diffuse_light.strength, 1);
 	
-	float distance = length(diffuse_light.position - frag_pos);
+	float distance = length(frag_pos_ss);
 	float fog_factor = (distance - radial_fog.start) / (radial_fog.end - radial_fog.start);
 	fog_factor = clamp(fog_factor, 0, 1);
 	//vec4 radial_fog_color = vec4(radial_fog.color * fog_factor, 1);
@@ -49,4 +50,6 @@ void main()
 	
 	vec4 out_color = tex_color * diffuse_light_color;
 	color = mix(out_color, vec4(radial_fog.color, 1), fog_factor);
+	
+	depth = 1.0;
 }

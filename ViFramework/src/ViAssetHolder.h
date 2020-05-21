@@ -19,9 +19,13 @@ public:
 
 	virtual T GetAsset(std::string name);
 
-	virtual void SetName(ViAssetDefinition& definition);
+	virtual void UnloadAsset(std::string aName);
+
+	virtual void UnloadAllAssets();
 
 protected:
+	virtual void SetName(ViAssetDefinition& definition);
+
 	virtual T LoadAsset(ViAssetDefinition aDefinition) = 0;
 
 	ViVifLine FindLine(ViAssetDefinition aDefinition, std::string aFirstName);
@@ -133,6 +137,28 @@ T ViAssetHolder<T>::GetAsset(std::string aName)
 	{
 		printf("Error: Could not get asset with name %s - no definition for that asset exists under that name.", aName.c_str());
 		return nullptr;
+	}
+}
+
+template<typename T>
+void ViAssetHolder<T>::UnloadAsset(std::string aName)
+{
+	if (mCached && mAssets.find(aName) != mAssets.end())
+	{
+		//If the name was found, delete it.
+		delete mAssets[aName];
+		return;
+	}
+	//otherwise, we're attempting to unload something that was either never initialized or has already been unloaded.
+	printf("Warning: Attempted to unload asset with name '%s' that has not been loaded.", aName.c_str());
+}
+
+template<typename T>
+void ViAssetHolder<T>::UnloadAllAssets()
+{
+	for (auto asset : mAssets)
+	{
+		delete mAssets[asset.first];
 	}
 }
 

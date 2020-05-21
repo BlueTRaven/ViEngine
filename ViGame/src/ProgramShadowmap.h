@@ -18,5 +18,6 @@ namespace vigame
 	private:
 		ViUniformMat4* mUniformProjection;
 		ViUniformMat4* mUniformCamera;
+		ViUniformVec3* mUniformTintColor;
 	};
 }

@@ -29,14 +29,17 @@ class ViAssetHandler
 public:
 	ViAssetHandler();
 
-	VIENGINE_EXPORT ViTexture* LoadTexture(std::string aName);
-	VIENGINE_EXPORT ViFont* LoadFont(std::string aName);
-	VIENGINE_EXPORT ViProgram* LoadProgram(std::string aName);
-	VIENGINE_EXPORT ViShader* LoadShader(std::string aName);
+	VIENGINE_EXPORT ViTexture* LoadTexture(string aName);
+	VIENGINE_EXPORT ViFont* LoadFont(string aName);
+	VIENGINE_EXPORT ViProgram* LoadProgram(string aName);
+	VIENGINE_EXPORT ViShader* LoadShader(string aName);
 
-	VIENGINE_EXPORT void InitialParse(std::string assetsvifpath);
+	VIENGINE_EXPORT void InitialParse(string assetsvifpath);
+
+	VIENGINE_EXPORT void Reload();
 
 private:
+	string mAssetsVifPath;
 	ViAssetHolderTexture* mTextureHolder;
 	ViAssetHolderFont* mFontHolder;
 	ViAssetHolderProgram* mProgramHolder;

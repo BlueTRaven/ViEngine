@@ -4,7 +4,12 @@
 #include "ViVertexBatch.h"
 #include "ViFrameBuffer.h"
 
+#define STB_DS_IMPLEMENTATION
+#include "stb/stb_ds.h"
+#undef STB_DS_IMPLEMENTATION
+
 vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWorldGenerator) :
+	mChunks(nullptr),
 	mSize(aSize),
 	mCubeRegistry(new CubeRegistry()),
 	mGridSize(aGridSize),
@@ -19,6 +24,9 @@ vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWo
 	mTimeOfDay(0),
 	mChunksAccessMutex(new std::mutex)
 {
+	ChunkMap defaultMapObj;	//use default ctor
+	hmdefaults(mChunks, defaultMapObj);
+
 	mProgramLitGeneric = static_cast<ProgramLitGeneric*>(GET_ASSET_PROGRAM("lit_generic"));
 	mProgramUnlitGeneric = static_cast<ProgramUnlitGeneric*>(GET_ASSET_PROGRAM("unlit_generic"));
 
@@ -47,7 +55,7 @@ vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWo
 	mSunMesh = ViMesh::MakeUCube(vec3(-sunSize), vec3(sunSize), ViMesh::cFACE_ALL, vicolors::YELLOW);
 	mMoonMesh = ViMesh::MakeUCube(vec3(-moonSize), vec3(moonSize), ViMesh::cFACE_ALL, ViColorGL(0.88, 0.88, 0.95, 1.0));
 
-	mTestFrameBuffer = new ViFrameBuffer(ENVIRONMENT->GetScreenWidth(), ENVIRONMENT->GetScreenHeight(), ViFrameBuffer::cCOLOR_ALL, ViFrameBuffer::cDEPTH_READ);
+	mWorldFrameBuffer = new ViFrameBuffer(ENVIRONMENT->GetScreenWidth(), ENVIRONMENT->GetScreenHeight(), ViFrameBuffer::cCOLOR_ALL, ViFrameBuffer::cDEPTH_READ);
 
 	mTestFontMat = new ViMaterialFont(GET_ASSET_FONT("debug"), GET_ASSET_PROGRAM("text"));
 }
@@ -110,14 +118,14 @@ vigame::CubeInstance vigame::VoxelWorld::MakeInstance(cubeid aId)
 vigame::Chunk* vigame::VoxelWorld::GetChunk(vec3i aChunkPosition)
 {
 	mChunksAccessMutex->lock();
-	if (mChunks.find(aChunkPosition) == mChunks.end())
+	if (hmgets(mChunks, aChunkPosition).state == ChunkMap::cNONE)
 	{
 		//DON'T FORGET TO UNLOCK WHEN RETURNING EARLY...
 		mChunksAccessMutex->unlock();
 		return nullptr;
 	}
 
-	Chunk* chunk = mChunks[aChunkPosition];
+	Chunk* chunk = hmgets(mChunks, aChunkPosition).value; //mChunks[aChunkPosition];
 	mChunksAccessMutex->unlock();
 
 	return chunk;
@@ -131,7 +139,12 @@ vigame::Chunk* vigame::VoxelWorld::MakeChunk(vec3i aChunkWorldPosition)
 
 	mChunksAccessMutex->lock();
 	//add a dummy value so we don't try to load again
-	mChunks.emplace(aChunkWorldPosition, nullptr);
+
+	ChunkMap obj;
+	obj.key = aChunkWorldPosition;
+	obj.value = nullptr;
+	obj.state = ChunkMap::cLOADING;
+	hmputs(mChunks, obj);
 	mChunksAccessMutex->unlock();
 
 	return chunk;
@@ -140,13 +153,8 @@ vigame::Chunk* vigame::VoxelWorld::MakeChunk(vec3i aChunkWorldPosition)
 void vigame::VoxelWorld::RemoveChunk(vec3i aChunkPosition)
 {
 	delete GetChunk(aChunkPosition);
-	mChunks.erase(aChunkPosition);
-}
-
-vigame::VoxelWorld::ChunkMap::iterator vigame::VoxelWorld::RemoveChunkIterSafe(ChunkMap::iterator iter)
-{
-	delete iter->second;
-	return mChunks.erase(iter);
+	hmdel(mChunks, aChunkPosition);	//TODO does this delete the chunk too?
+	//mChunks.erase(aChunkPosition);
 }
 
 void vigame::VoxelWorld::Update(double aDeltaTime)
@@ -162,7 +170,8 @@ void vigame::VoxelWorld::Update(double aDeltaTime)
 			{
 				vec3i key = WorldSpaceToChunkSpace(mLoadPosition) + vec3i(x, y, z);
 
-				if (mChunks.find(key) == mChunks.end())
+				auto out = hmgets(mChunks, key);
+				if (out.state == ChunkMap::cNONE)// mChunks.find(key) == mChunks.end())
 				{
 					MakeChunk(key);
 				}
@@ -177,7 +186,12 @@ void vigame::VoxelWorld::Update(double aDeltaTime)
 	for (Chunk* chunk : loadedChunks)
 	{
 		//replace dummy chunk
-		mChunks[chunk->GetWorldPosition()] = chunk;
+		ChunkMap obj;
+		obj.key = chunk->GetWorldPosition();
+		obj.value = chunk;
+		obj.state = ChunkMap::cDONE;
+		hmputs(mChunks, obj);
+		//mChunks[chunk->GetWorldPosition()] = chunk;
 		chunk->LoadFinished();
 	}
 
@@ -185,19 +199,21 @@ void vigame::VoxelWorld::Update(double aDeltaTime)
 
 	if (INPUT_MANAGER->KeyDown(SDL_SCANCODE_K))
 	{
-		mTestFrameBuffer->GetTexture()->WritePNG("./output_color.png");
-		mTestFrameBuffer->GetDepthTexture()->WritePNG("./output_depth.png");
+		mWorldFrameBuffer->GetTexture()->WritePNG("./output_color.png");
+		mWorldFrameBuffer->GetDepthTexture()->WritePNG("./output_depth.png");
 	}
 	//Update Sun
 	mTimeOfDay += aDeltaTime;
 	mTimeOfDay = glm::mod(mTimeOfDay, mEndOfDay);
+
+	mOldLoadPosition = mLoadPosition;
 }
 
 void vigame::VoxelWorld::Draw(double aDeltaTime, ViVertexBatch* aBatch)
 {
 	aBatch->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_LESS,
 		ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_NONPREMULTIPLIED, ViVertexBatchSettings::cDRAW_FILLED));
-	aBatch->SetTarget(mTestFrameBuffer);
+	aBatch->SetTarget(mWorldFrameBuffer);
 	aBatch->Clear(true, true);
 
 	mProgramUnlitGeneric->SetTintColor(GetRadialFogColor());
@@ -209,26 +225,39 @@ void vigame::VoxelWorld::Draw(double aDeltaTime, ViVertexBatch* aBatch)
 	aBatch->Draw(ViTransform::Positioned(mLoadPosition + GetSunPos()), mSunMesh, GET_ASSET_PROGRAM("unlit_generic"), GET_ASSET_TEXTURE("white_pixel"), 0);
 	aBatch->Draw(ViTransform::Positioned(mLoadPosition - GetSunPos()), mMoonMesh, GET_ASSET_PROGRAM("unlit_generic"), GET_ASSET_TEXTURE("white_pixel"), 0);
 
-	for (int z = -mViewDistanceChunks.z; z <= mViewDistanceChunks.z; z++)
+	//We use a unordered_map in order to store our chunks, in order to make them accessible at O(1) by their positions in chunk space.
+	//however, unordered_map is... painfully slow. Even if we get a better implementation, it's still going to be slower than a flat array.
+	//So, we instead cache the chunks once they've finished loading, and only re-cache them when we move.
+	if (mHasChunksToCache || WorldSpaceToChunkSpace(mLoadPosition) != WorldSpaceToChunkSpace(mOldLoadPosition))
 	{
-		for (int y = -mViewDistanceChunks.y; y <= mViewDistanceChunks.y; y++)
-		{
-			for (int x = -mViewDistanceChunks.x; x <= mViewDistanceChunks.x; x++)
-			{
-				vec3i pos = WorldSpaceToChunkSpace(mLoadPosition) + vec3i(x, y, z);
-				Chunk* chunk = GetChunk(pos);
+		mHasChunksToCache = false;
+		mCachedDrawChunks.clear();
 
-				if (chunk != nullptr)
+		for (int z = -mViewDistanceChunks.z; z <= mViewDistanceChunks.z; z++)
+		{
+			for (int y = -mViewDistanceChunks.y; y <= mViewDistanceChunks.y; y++)
+			{
+				for (int x = -mViewDistanceChunks.x; x <= mViewDistanceChunks.x; x++)
 				{
-					chunk->Draw(aBatch);
+					vec3i pos = WorldSpaceToChunkSpace(mLoadPosition) + vec3i(x, y, z);
+					Chunk* chunk = GetChunk(pos);
+
+					if (chunk != nullptr)
+						mCachedDrawChunks.push_back(chunk);
+					else mHasChunksToCache = true;	//while any of our chunks are null, we want to keep trying to cache.
 				}
 			}
 		}
 	}
 
+	for (const auto& chunk : mCachedDrawChunks)
+	{
+		chunk->Draw(aBatch);
+	}
+
 	aBatch->SetTarget(nullptr);
 	aBatch->Clear(true, true);
-	aBatch->DrawQuad(ViTransform::None, vec3(0, 0, -0.1), vec3(ENVIRONMENT->GetScreenWidth(), ENVIRONMENT->GetScreenHeight(), -0.1), GET_ASSET_PROGRAM("ortho"), mTestFrameBuffer->GetTexture(), 0);
+	aBatch->DrawQuad(ViTransform::None, vec3(0, 0, -0.1), vec3(ENVIRONMENT->GetScreenWidth(), ENVIRONMENT->GetScreenHeight(), 0), GET_ASSET_PROGRAM("ortho"), mWorldFrameBuffer->GetTexture(), 0);
 	aBatch->Flush();
 
 	vec3i chunkPos = WorldSpaceToChunkSpace(mLoadPosition);
@@ -242,12 +271,13 @@ void vigame::VoxelWorld::Draw(double aDeltaTime, ViVertexBatch* aBatch)
 	{
 		VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_NONE, ViVertexBatchSettings::cDEPTH_LESS,
 			ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_NONPREMULTIPLIED, ViVertexBatchSettings::cDRAW_LINES));
-		for (const auto& chunk : mChunks)
+		for (int i = 0; i < hmlen(mChunks); i++)
 		{
-			if (chunk.second == nullptr)
+			Chunk* chunk = mChunks[i].value;
+			if (chunk == nullptr)
 				continue;
 
-			ViTransform trans(vec3(chunk.second->GetWorldPosition()) + vec3(GetGridSize() / 2.f), vec3(0),
+			ViTransform trans(vec3(chunk->GetWorldPosition()) + vec3(GetGridSize() / 2.f), vec3(0),
 				vec3(Chunk::GetSize()) * GetGridSize());
 			aBatch->Draw(trans, mCubeMesh, GET_ASSET_PROGRAM("unlit_generic"), GET_ASSET_TEXTURE("white_pixel"), 0);
 		}
