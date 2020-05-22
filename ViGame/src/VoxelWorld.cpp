@@ -29,6 +29,7 @@ vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWo
 
 	mProgramLitGeneric = static_cast<ProgramLitGeneric*>(GET_ASSET_PROGRAM("lit_generic"));
 	mProgramUnlitGeneric = static_cast<ProgramUnlitGeneric*>(GET_ASSET_PROGRAM("unlit_generic"));
+	mProgramShadowmap = static_cast<ProgramShadowmap*>(GET_ASSET_PROGRAM("shadowmap"));
 
 	vec3i chunkSize = Chunk::GetSize();
 
@@ -55,7 +56,8 @@ vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWo
 	mSunMesh = ViMesh::MakeUCube(vec3(-sunSize), vec3(sunSize), ViMesh::cFACE_ALL, vicolors::YELLOW);
 	mMoonMesh = ViMesh::MakeUCube(vec3(-moonSize), vec3(moonSize), ViMesh::cFACE_ALL, ViColorGL(0.88, 0.88, 0.95, 1.0));
 
-	mWorldFrameBuffer = new ViFrameBuffer(ENVIRONMENT->GetScreenWidth(), ENVIRONMENT->GetScreenHeight(), ViFrameBuffer::cCOLOR_ALL, ViFrameBuffer::cDEPTH_READ);
+	mShadowMapFrameBuffer = new ViFrameBuffer(ENVIRONMENT->GetScreenWidth(), ENVIRONMENT->GetScreenHeight(), ViFrameBuffer::cCOLOR_NONE, ViFrameBuffer::cDEPTH_READ);
+	mWorldFrameBuffer = new ViFrameBuffer(ENVIRONMENT->GetScreenWidth(), ENVIRONMENT->GetScreenHeight(), ViFrameBuffer::cCOLOR_ALL, ViFrameBuffer::cDEPTH);
 
 	mTestFontMat = new ViMaterialFont(GET_ASSET_FONT("debug"), GET_ASSET_PROGRAM("text"));
 }
@@ -194,6 +196,7 @@ void vigame::VoxelWorld::Update(double aDeltaTime)
 		//mChunks[chunk->GetWorldPosition()] = chunk;
 		chunk->LoadFinished();
 	}
+	loadedChunks.clear();
 
 	//We use a unordered_map in order to store our chunks, in order to make them accessible at O(1) by their positions in chunk space.
 	//however, unordered_map is... painfully slow. Even if we get a better implementation, it's still going to be slower than a flat array.
@@ -220,8 +223,6 @@ void vigame::VoxelWorld::Update(double aDeltaTime)
 		}
 	}
 
-	loadedChunks.clear();
-
 	if (INPUT_MANAGER->KeyDown(SDL_SCANCODE_K))
 	{
 		mWorldFrameBuffer->GetTexture()->WritePNG("./output_color.png");
@@ -238,6 +239,19 @@ void vigame::VoxelWorld::Draw(double aDeltaTime, ViVertexBatch* aBatch)
 {
 	aBatch->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_LESS,
 		ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_NONPREMULTIPLIED, ViVertexBatchSettings::cDRAW_FILLED));
+
+	//Draw Shadow Map
+	aBatch->SetTarget(mShadowMapFrameBuffer);
+	aBatch->Clear(true, true);
+
+	mProgramShadowmap->SetCamera(ViTransform::Positioned(vec3(-128, 0, 0)).Matrix());
+
+	for (const auto& chunk : mCachedDrawChunks)
+	{
+		chunk->Draw(aBatch);
+	}
+
+	//Draw the world
 	aBatch->SetTarget(mWorldFrameBuffer);
 	aBatch->Clear(true, true);
 

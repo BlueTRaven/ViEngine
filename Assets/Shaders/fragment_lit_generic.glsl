@@ -21,14 +21,13 @@ uniform DiffuseLight diffuse_light = DiffuseLight(vec3(0, 0, 0), vec3(1, 1, 1), 
 uniform RadialFog radial_fog = RadialFog(vec3(0, 0, 0), 32, 128);
 
 layout(location = 0) out vec4 color;
-out float depth;
 
 in vec4 frag_color;
 in vec2 frag_tex_coord;
 //world space normal
 in vec3 frag_normal;
-//world space position
-in vec3 frag_pos;
+
+in vec3 frag_pos_ws;
 in vec3 frag_pos_ss;
 
 uniform sampler2D tex;
@@ -36,7 +35,7 @@ uniform sampler2D tex;
 void main()
 {
 	//get vector to light from world space position
-	vec3 pos_to_light = diffuse_light.position - frag_pos;
+	vec3 pos_to_light = diffuse_light.position - frag_pos_ws;
 	float brightness = dot(frag_normal, pos_to_light) / (length(pos_to_light) * length(frag_normal));
 	brightness = clamp(brightness, 0, 1);
 	vec4 diffuse_light_color = vec4(brightness * diffuse_light.color * diffuse_light.strength, 1);
@@ -50,6 +49,4 @@ void main()
 	
 	vec4 out_color = tex_color * diffuse_light_color;
 	color = mix(out_color, vec4(radial_fog.color, 1), fog_factor);
-	
-	depth = 1.0;
 }

@@ -61,6 +61,9 @@ void vigame::VoxelIslandGame::Init()
 		Chunk::SetMeshingMethod(method);
 
 		parser.FindVec3i("view_distance_chunks", viewDistanceChunks);
+
+		parser.FindFloat("fog_start", mFogStart);
+		parser.FindFloat("fog_end", mFogEnd);
 	}
 
 	vec3 startPos = vec3(worldSize / 2);
@@ -109,6 +112,8 @@ void vigame::VoxelIslandGame::Update(double aDeltaTime)
 
 	auto radialFog = mCamera->GetRadialFog();
 	radialFog.color = world->GetRadialFogColor();
+	radialFog.start = mFogStart;
+	radialFog.end = mFogEnd;
 	mCamera->SetRadialFog(radialFog);
 	mCamera->LateUpdate(aDeltaTime);
 	

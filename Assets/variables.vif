@@ -13,4 +13,9 @@ world_cube_scale 1
 world_chunk_meshing_method naive
 
 #number of chunks around camera to load/render.
-view_distance_chunks 4 4 4
+view_distance_chunks 3 3 3
+
+#distance in units that fog should begin to fade out
+fog_start 56
+#distance in units that fog should end fading out and be entirely fog color
+fog_end 112

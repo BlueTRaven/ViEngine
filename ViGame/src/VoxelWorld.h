@@ -4,7 +4,6 @@
 
 #include "ViUtil.h"
 #include "ViMaterialFont.h"
-#include "ViEnvironment.h"
 
 #include "Cube.h"
 #include "CubeInstance.h"
@@ -14,6 +13,7 @@
 #include "WorldGenerator.h"
 #include "ProgramLitGeneric.h"
 #include "ProgramUnlitGeneric.h"
+#include "ProgramShadowmap.h"
 #include "ChunkManager.h"
 
 class ViVertexBatch;
@@ -118,6 +118,7 @@ namespace vigame
 
 		ProgramLitGeneric* mProgramLitGeneric;
 		ProgramUnlitGeneric* mProgramUnlitGeneric;
+		ProgramShadowmap* mProgramShadowmap;
 
 		vec3i GetChunkRelativePosition(vec3i aChunkPosition);
 
@@ -130,6 +131,8 @@ namespace vigame
 		ViMesh* mSkyboxMesh;
 		ViMesh* mSunMesh;
 		ViMesh* mMoonMesh;
+
+		ViFrameBuffer* mShadowMapFrameBuffer;
 
 		//everything in the world is drawn to this framebuffer
 		ViFrameBuffer* mWorldFrameBuffer;

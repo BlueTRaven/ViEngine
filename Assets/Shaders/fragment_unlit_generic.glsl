@@ -7,7 +7,7 @@ in vec2 frag_tex_coord;
 //world space normal
 in vec3 frag_normal;
 //world space position
-in vec3 frag_pos;
+in vec3 frag_pos_ws;
 
 uniform sampler2D tex;
 
