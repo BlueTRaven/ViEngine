@@ -53,6 +53,33 @@ void ViVertexBatch::Draw(ViTransform aTransform, ViMesh* aMesh, ViProgram* aProg
 	mInstances.push_back(instance);
 }
 
+void ViVertexBatch::Draw(ViTransform aTransform, ViMesh * aMesh, ViProgram * aProgram, std::vector<ViTextureDrawInstance*> aDrawInstances, int64_t aInfo)
+{
+	if (aMesh == nullptr)
+	{
+		printf("Error: Null mesh passed into Draw.\n");
+		return;
+	}
+
+	if (aProgram == nullptr)
+	{
+		printf("Error: Null program passed into Draw.\n");
+		return;
+	}
+
+	vi_assert(aDrawInstances.size() > 0, "Error: No textures passed into draw.");
+
+	ViVertexBatchInstance instance = ViVertexBatchInstance();
+	instance.transform = aTransform;
+	instance.mesh = aMesh;
+	instance.program = aProgram;
+	instance.texture = nullptr;
+	instance.textures = aDrawInstances;
+	instance.info = aInfo;
+
+	mInstances.push_back(instance);
+}
+
 void ViVertexBatch::DrawQuad(ViTransform aTransform, vec3 aTopLeft, vec3 aBottomRight, ViProgram* aProgram, ViTexture* aTexture, int aTextureBinding)
 {
 	mPrimitiveQuad->Resize(aTopLeft, aBottomRight);
@@ -130,7 +157,17 @@ void ViVertexBatch::Flush()
 			if (meshChanged || textureChanged || programChanged)
 			{
 				instance.program->Bind(instance);
-				instance.texture->Bind();
+				if (instance.texture == nullptr && instance.textures.size() > 0)
+				{
+					//use textures
+					for (int i = 0; i < instance.textures.size(); i++)
+						instance.textures[i]->Bind();
+				}
+				else if (instance.textures.size() <= 0 && instance.texture != nullptr)
+				{
+					//use texture
+					instance.texture->Bind();
+				}
 				mSettings.SetTextureSettings();
 			}
 
@@ -154,7 +191,19 @@ void ViVertexBatch::Flush()
 			if (meshChanged || textureChanged || programChanged)
 			{
 				instance.program->Bind(instance);
-				instance.texture->Bind();
+
+				if (instance.texture == nullptr && instance.textures.size() > 0)
+				{
+					//use textures
+					for (int i = 0; i < instance.textures.size(); i++)
+						instance.textures[i]->Bind();
+				}
+				else if (instance.textures.size() <= 0 && instance.texture != nullptr)
+				{
+					//use texture
+					instance.texture->Bind();
+				}
+
 				mSettings.SetTextureSettings();
 			}
 
@@ -178,6 +227,9 @@ void ViVertexBatch::Flush()
 
 		if (instance.texture != nullptr)
 			delete instance.texture;
+
+		if (instance.textures.size() > 0)
+			instance.textures.clear();	//clear SHOULD destruct the memory
 	}
 
 	if (!deletedLast && lastInstance.mesh->GetVolatile())

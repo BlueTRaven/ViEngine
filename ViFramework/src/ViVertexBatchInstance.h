@@ -9,7 +9,9 @@
 struct ViVertexBatchInstance
 {
 	ViMesh* mesh;
+	//TODO should this be on the stack instead?
 	ViTextureDrawInstance* texture;
+	std::vector<ViTextureDrawInstance*> textures;	//pointer to array of pointers
 	ViProgram* program;
 	ViTransform transform;
 

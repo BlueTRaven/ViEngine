@@ -5,7 +5,6 @@
 #include <unordered_map>
 #include <set>
 
-#include "ViProgram.h"
 #include "ViMesh.h"
 #include "ViUtil.h"
 
@@ -13,6 +12,7 @@
 #include "ChunkLoader.h"
 
 class ViVertexBatch;
+class ViProgram;
 
 namespace vigame
 {
@@ -60,6 +60,7 @@ namespace vigame
 		void LoadFinished();
 
 		void Draw(ViVertexBatch* aBatch);
+		void DrawShadows(ViVertexBatch* aBatch);
 
 		vi_property_get_named(ChunkState, mChunkState, ChunkState);
 
@@ -111,6 +112,8 @@ namespace vigame
 		ChunkLoader* mChunkLoader;
 
 		ViMesh* mTestMesh;
+
+		void PrivateDraw(ViVertexBatch* aBatch, ViProgram* aProgram);
 
 		static vec3i mSize;
 		

@@ -20,6 +20,7 @@ public:
 
 	void Init(ViVertexBatchSettings aSettings);
 	void Draw(ViTransform aTransform, ViMesh* aMesh, ViProgram* aProgram, ViTexture* aTexture, int aTextureBinding, int64_t aInfo = 0);
+	void Draw(ViTransform aTransform, ViMesh* aMesh, ViProgram* aProgram, std::vector<ViTextureDrawInstance*> aDrawInstances, int64_t aInfo = 0);
 	void DrawQuad(ViTransform aTransform, vec3 aTopLeft, vec3 aBottomRight, ViProgram* aProgram, ViTexture* aTexture, int aTextureBinding);
 	void DrawString(ViTransform aTransform, ViMaterialFont* aFont, std::string text);
 

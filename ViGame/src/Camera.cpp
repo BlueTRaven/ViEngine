@@ -83,5 +83,8 @@ void vigame::Camera::LateUpdate(float aDeltaTime)
 	mProgramLitGeneric->SetDiffuseLight(mDiffuseLight);
 	mProgramLitGeneric->SetRadialFog(mRadialFog);
 	mProgramUnlitGeneric->SetCamera(mat);
+
+	t.Translate(t.Backwards() * 8.0f);
+	mat = t.Matrix();
 	mProgramShadowmap->SetCamera(mat);
 }

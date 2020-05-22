@@ -5,7 +5,7 @@
 #include "ViTexture.h"
 #include "ViUtil.h"
 
-class ViTextureDrawInstance
+class VIENGINE_EXPORT ViTextureDrawInstance
 {
 public:
 	ViTextureDrawInstance(ViTexture* aTexture, int aBinding);

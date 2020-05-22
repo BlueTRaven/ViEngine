@@ -3,6 +3,7 @@
 #include "ViEnvironment.h"
 #include "ViVertexBatch.h"
 #include "ViFrameBuffer.h"
+#include "ViTextureDrawInstance.h"
 
 #define STB_DS_IMPLEMENTATION
 #include "stb/stb_ds.h"
@@ -225,8 +226,8 @@ void vigame::VoxelWorld::Update(double aDeltaTime)
 
 	if (INPUT_MANAGER->KeyDown(SDL_SCANCODE_K))
 	{
-		mWorldFrameBuffer->GetTexture()->WritePNG("./output_color.png");
-		mWorldFrameBuffer->GetDepthTexture()->WritePNG("./output_depth.png");
+		//mShadowMapFrameBuffer->GetTexture()->WritePNG("./output_color.png");
+		mShadowMapFrameBuffer->GetDepthTexture()->WritePNG("./output_depth.png");
 	}
 	//Update Sun
 	mTimeOfDay += aDeltaTime;
@@ -244,11 +245,9 @@ void vigame::VoxelWorld::Draw(double aDeltaTime, ViVertexBatch* aBatch)
 	aBatch->SetTarget(mShadowMapFrameBuffer);
 	aBatch->Clear(true, true);
 
-	mProgramShadowmap->SetCamera(ViTransform::Positioned(vec3(-128, 0, 0)).Matrix());
-
 	for (const auto& chunk : mCachedDrawChunks)
 	{
-		chunk->Draw(aBatch);
+		chunk->DrawShadows(aBatch);
 	}
 
 	//Draw the world
@@ -256,7 +255,11 @@ void vigame::VoxelWorld::Draw(double aDeltaTime, ViVertexBatch* aBatch)
 	aBatch->Clear(true, true);
 
 	mProgramUnlitGeneric->SetTintColor(GetRadialFogColor());
-	aBatch->Draw(ViTransform::Positioned(mLoadPosition), mSkyboxMesh, GET_ASSET_PROGRAM("unlit_generic"), GET_ASSET_TEXTURE("white_pixel"), 0);
+	aBatch->Draw(ViTransform::Positioned(mLoadPosition), mSkyboxMesh, GET_ASSET_PROGRAM("unlit_generic"), std::vector<ViTextureDrawInstance*>
+	{
+		new ViTextureDrawInstance(GET_ASSET_TEXTURE("white_pixel"), 0),
+		new ViTextureDrawInstance(mShadowMapFrameBuffer->GetDepthTexture(), 1)
+	}, 0);
 	aBatch->Flush();
 	mProgramUnlitGeneric->SetTintColor(vec3(1));
 	aBatch->Flush();

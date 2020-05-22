@@ -31,6 +31,8 @@ in vec3 frag_pos_ws;
 in vec3 frag_pos_ss;
 
 uniform sampler2D tex;
+//TODO support multiple lights
+uniform sampler2D light_depth_tex;
 
 void main()
 {

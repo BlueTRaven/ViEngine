@@ -18,6 +18,7 @@
 
 class ViVertexBatch;
 class ViFrameBuffer;
+class ViTextureDrawInstance;
 
 namespace vigame
 {
