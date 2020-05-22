@@ -30,9 +30,6 @@ namespace vigame
 	private:
 		VoxelWorld* world;
 
-		Player* player;
-		Camera* mCamera;
-
 		ViProgramText* mProgramText;
 
 		ViMaterialFont* mDebugFont;
@@ -42,8 +39,5 @@ namespace vigame
 		ViTransform transform;
 		
 		bool mPaused = false;
-
-		float mFogStart = 64;
-		float mFogEnd = 128;
 	};
 }

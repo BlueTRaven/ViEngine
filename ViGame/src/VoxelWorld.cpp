@@ -9,7 +9,7 @@
 #include "stb/stb_ds.h"
 #undef STB_DS_IMPLEMENTATION
 
-vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWorldGenerator) :
+vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWorldGenerator, float aFogStart, float aFogEnd) :
 	mChunks(nullptr),
 	mSize(aSize),
 	mCubeRegistry(new CubeRegistry()),
@@ -23,7 +23,9 @@ vigame::VoxelWorld::VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWo
 	mSunMesh(nullptr),
 	mMoonMesh(nullptr),
 	mTimeOfDay(0),
-	mChunksAccessMutex(new std::mutex)
+	mChunksAccessMutex(new std::mutex),
+	mFogStart(aFogStart),
+	mFogEnd(aFogEnd)
 {
 	ChunkMap defaultMapObj;	//use default ctor
 	hmdefaults(mChunks, defaultMapObj);
@@ -83,7 +85,14 @@ void vigame::VoxelWorld::Init()
 	mChunkManager->SortChunksByDistance(WorldSpaceToChunkSpace(mLoadPosition));
 	mChunkManager->Start();
 
-	mCubeMesh->UploadData();
+	mCamera = new Camera(ViTransform::Positioned(mSize / 2));
+
+	mPlayer = new Player(ViTransform::Positioned(mSize / 2), this, mCamera);
+
+	//mCubeMesh->UploadData();
+	//mSkyboxMesh->UploadData();
+	//mSunMesh->UploadData();
+	//mMoonMesh->UploadData();
 }
 
 void vigame::VoxelWorld::SetCube(vec3i aPosition, Cube* aCube)
@@ -162,8 +171,21 @@ void vigame::VoxelWorld::RemoveChunk(vec3i aChunkPosition)
 
 void vigame::VoxelWorld::Update(double aDeltaTime)
 {
-	if (!mGenerateInfinite)
-		return;
+	mPlayer->Update(aDeltaTime);
+
+	mCamera->Update(aDeltaTime);
+	SetLoadPosition(mCamera->GetTransform().GetPosition());
+
+	auto diffuse = mCamera->GetDiffuseLight();
+	diffuse.position = mCamera->GetTransform().GetPosition();
+	mCamera->SetDiffuseLight(diffuse);
+
+	auto radialFog = mCamera->GetRadialFog();
+	radialFog.color = GetRadialFogColor();
+	radialFog.start = mFogStart;
+	radialFog.end = mFogEnd;
+	mCamera->SetRadialFog(radialFog);
+	mCamera->LateUpdate(aDeltaTime);
 
 	for (int z = -mViewDistanceChunks.z; z <= mViewDistanceChunks.z; z++)
 	{
@@ -299,6 +321,8 @@ void vigame::VoxelWorld::Draw(double aDeltaTime, ViVertexBatch* aBatch)
 			aBatch->Draw(trans, mCubeMesh, GET_ASSET_PROGRAM("unlit_generic"), GET_ASSET_TEXTURE("white_pixel"), 0);
 		}
 	}
+
+	mPlayer->Draw(VERTEX_BATCH);
 }
 
 vigame::Chunk* vigame::VoxelWorld::GetChunkResponsibleForCube(vec3i aPosition)

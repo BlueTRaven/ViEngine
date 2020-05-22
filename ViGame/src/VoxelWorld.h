@@ -5,16 +5,18 @@
 #include "ViUtil.h"
 #include "ViMaterialFont.h"
 
+#include "ViGameUtil.h"
 #include "Cube.h"
 #include "CubeInstance.h"
 #include "CubeRegistry.h"
 #include "Chunk.h"
-#include "ViGameUtil.h"
 #include "WorldGenerator.h"
 #include "ProgramLitGeneric.h"
 #include "ProgramUnlitGeneric.h"
 #include "ProgramShadowmap.h"
 #include "ChunkManager.h"
+#include "Camera.h"
+#include "Player.h"
 
 class ViVertexBatch;
 class ViFrameBuffer;
@@ -41,7 +43,7 @@ namespace vigame
 	public:
 		//using ChunkMap = std::unordered_map<vec3i, Chunk*>;
 
-		VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWorldGenerator);
+		VoxelWorld(vec3i aSize, float aGridSize, WorldGenerator* aWorldGenerator, float aFogStart, float aFogEnd);
 
 		void Init();
 
@@ -117,11 +119,17 @@ namespace vigame
 		WorldGenerator* mGenerator;
 		ChunkManager* mChunkManager;
 
+		Camera* mCamera;
+		Player* mPlayer;
+
 		ProgramLitGeneric* mProgramLitGeneric;
 		ProgramUnlitGeneric* mProgramUnlitGeneric;
 		ProgramShadowmap* mProgramShadowmap;
 
 		vec3i GetChunkRelativePosition(vec3i aChunkPosition);
+
+		float mFogStart = 64;
+		float mFogEnd = 128;
 
 		double mTimeOfDay;
 		const double mEndOfDay = 5;

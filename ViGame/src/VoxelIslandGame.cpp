@@ -34,6 +34,8 @@ void vigame::VoxelIslandGame::Init()
 	vec3i worldSize = vec3i(32, 64, 32);
 	vec3i viewDistanceChunks = vec3i(3, 3, 3);
 	float gridSize = 1;
+	float fogStart = 64;
+	float fogEnd = 128;
 
 	ViVifParser parser("./Assets/variables.vif");
 
@@ -62,20 +64,16 @@ void vigame::VoxelIslandGame::Init()
 
 		parser.FindVec3i("view_distance_chunks", viewDistanceChunks);
 
-		parser.FindFloat("fog_start", mFogStart);
-		parser.FindFloat("fog_end", mFogEnd);
+		parser.FindFloat("fog_start", fogStart);
+		parser.FindFloat("fog_end", fogEnd);
 	}
 
 	vec3 startPos = vec3(worldSize / 2);
 
-	world = new VoxelWorld(worldSize, gridSize, new WorldGenerator);
+	world = new VoxelWorld(worldSize, gridSize, new WorldGenerator, fogStart, fogEnd);
 	world->SetViewDistanceChunks(viewDistanceChunks);
 	world->SetLoadPosition(startPos);
 	world->Init();
-
-	mCamera = new Camera(ViTransform::Positioned(vec3(startPos)));
-
-	player = new Player(ViTransform::Positioned(startPos), world, mCamera);
 
 	ViGame::Init();
 }
@@ -98,24 +96,9 @@ void vigame::VoxelIslandGame::Update(double aDeltaTime)
 	if (ENVIRONMENT->GetFocused() && (!mPaused || (mPaused && INPUT_MANAGER->KeyDown(SDL_SCANCODE_O))))
 	{
 		world->Update(aDeltaTime);
-		player->Update(aDeltaTime);
-
-		mCamera->Update(aDeltaTime);
-		world->SetLoadPosition(mCamera->GetTransform().GetPosition());
 	}
 
 	ViGame::Update(aDeltaTime);
-
-	auto diffuse = mCamera->GetDiffuseLight();
-	diffuse.position = mCamera->GetTransform().GetPosition();
-	mCamera->SetDiffuseLight(diffuse);
-
-	auto radialFog = mCamera->GetRadialFog();
-	radialFog.color = world->GetRadialFogColor();
-	radialFog.start = mFogStart;
-	radialFog.end = mFogEnd;
-	mCamera->SetRadialFog(radialFog);
-	mCamera->LateUpdate(aDeltaTime);
 	
 	if (SDL_GetWindowFlags(GetWindow()) & SDL_WINDOW_INPUT_FOCUS)
 		SDL_WarpMouseInWindow(GetWindow(), width / 2, height / 2);
@@ -132,27 +115,16 @@ void vigame::VoxelIslandGame::Draw(double aDeltaTime)
 	VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_LESS,
 		ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_NONPREMULTIPLIED, ViVertexBatchSettings::cDRAW_FILLED));
 	world->Draw(aDeltaTime, VERTEX_BATCH);
-	player->Draw(VERTEX_BATCH);
 
 	VERTEX_BATCH->SetSettings(ViVertexBatchSettings(ViVertexBatchSettings::cCULL_CW, ViVertexBatchSettings::cDEPTH_NONE, 
 		ViVertexBatchSettings::cCLAMP_POINT, ViVertexBatchSettings::cBLEND_ALPHABLEND, ViVertexBatchSettings::cDRAW_FILLED));
 	VERTEX_BATCH->DrawString(ViTransform::Positioned(vec3(0, 0, 0)), mDebugFont, "Avg. FPS: " + std::to_string(GetAvgFPS()));
 	VERTEX_BATCH->DrawString(ViTransform::Positioned(vec3(0, mDebugFont->GetFont()->GetSize() + 8, 0)), mDebugFont, "FPS: " + std::to_string(GetFPS()));
 	
-	vec3 pos = mCamera->GetTransform().GetPosition();
-	vec3 rot = mCamera->GetTransform().GetRotation();
 	std::stringstream str;
 	str << "Loading Chunks Queue: " << world->GetChunkManager()->GetChunksToLoadCount() << std::endl;
 
 	VERTEX_BATCH->DrawString(ViTransform::Positioned(vec3(0, mDebugFont->GetFont()->GetSize() * 2 + 8, 0)), mDebugFont, str.str());
-
-	pos = player->GetTransform().GetPosition();
-	rot = player->GetTransform().GetRotation();
-	str = std::stringstream();
-	str << std::fixed << std::setprecision(2) << "Player Position: x " << pos.x << ", y " << pos.y << ", z " << pos.z <<
-		" Rotation: x " << rot.x << ", y " << rot.y << ", z " << rot.z;
-
-	VERTEX_BATCH->DrawString(ViTransform::Positioned(vec3(0, mDebugFont->GetFont()->GetSize() * 3 + 8, 0)), mDebugFont, str.str());
 
 	ViGame::Draw(aDeltaTime);
 }
